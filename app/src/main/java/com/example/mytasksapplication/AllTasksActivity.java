@@ -2,10 +2,15 @@ package com.example.mytasksapplication;
 
 import android.os.Bundle;
 import android.view.Menu;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+public class AllTasksActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -14,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("Today's Tasks");
+        setTitle("All Tasks");
         /*// Optionally, enable the "up" button if you want navigation
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);*/
     }
