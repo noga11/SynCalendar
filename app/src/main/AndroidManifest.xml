@@ -13,6 +13,9 @@
         android:theme="@style/Theme.MyTasksApplication"
         tools:targetApi="31">
         <activity
+            android:name=".NewTaskActivity"
+            android:exported="false" />
+        <activity
             android:name=".AllTasksActivity"
             android:exported="false" />
         <activity

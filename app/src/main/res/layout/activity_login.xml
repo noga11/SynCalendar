@@ -9,99 +9,58 @@
     android:layout_margin="10dp"
     tools:context=".LoginActivity">
 
-
-
     <TextView
         android:id="@+id/tvSighUp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
         android:gravity="center"
         android:text="Sign up"
         android:textStyle="bold"
         android:textSize="40sp" />
 
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvUname"
+        <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:gravity="center_vertical"
-            android:text="Username:"
-            android:textSize="22sp" />
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:textSize="22sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-        <EditText
-            android:id="@+id/etUname"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="enter your username"
-            android:inputType="text"
-            android:textSize="22sp" />
-    </LinearLayout>
-
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvEmail"
+        <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:gravity="center_vertical"
-            android:text="Email:"
-            android:textSize="22sp" />
-
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="enter your email"
+            android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:textSize="22sp" />
-    </LinearLayout>
+            android:hint="Email"
+            android:textSize="22sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/tvPassword"
+        <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:gravity="center_vertical"
-            android:text="Password:"
-            android:textSize="22sp" />
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="enter your password"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:inputType="textPassword"
+            android:hint="Password"
             android:textSize="22sp" />
-    </LinearLayout>
+    </com.google.android.material.textfield.TextInputLayout>
+
 
     <TextView
         android:id="@+id/tvSwitch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
         android:padding="10dp"
         android:text="login"
         android:textColor="#3F51B5"
@@ -113,6 +72,5 @@
         android:layout_height="wrap_content"
         android:text="Enter"
         android:textSize="31sp" />
-
 
 </LinearLayout>
