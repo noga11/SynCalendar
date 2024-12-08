@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layout_margin="5dp"
     tools:context=".NewTaskActivity">
 
     <EditText
@@ -14,6 +15,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="text"
+        android:textStyle="bold"
         android:textSize="40sp"
         android:hint="Title"
         android:gravity="center"/>
@@ -23,10 +25,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:textSize="20sp"
         android:gravity="start|top"
         android:inputType="textMultiLine"
-        android:hint="details" />
-
+        android:hint="Details" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -39,6 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
+            android:textSize="20sp"
+            android:textStyle="italic"
             android:hint="Start Time"
             android:inputType="time" />
 
@@ -48,6 +52,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
+            android:textSize="20sp"
+            android:textStyle="italic"
             android:hint="End Time"
             android:inputType="time" />
     </LinearLayout>
@@ -57,6 +63,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:textSize="20sp"
+        android:textStyle="italic"
         android:inputType="date"
         android:hint="Date"/>
 
@@ -64,21 +72,98 @@
         android:id="@+id/auetGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="group" />
+        android:textSize="20sp"
+        android:hint="Group" />
+
+    <AutoCompleteTextView
+        android:id="@+id/auetShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:hint="Share Task" />
+
+    <Switch
+        android:id="@+id/swchAddReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="Add Reminder" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etReminderDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:textSize="20sp"
+            android:inputType="date"
+            android:textStyle="italic"
+            android:hint="Reminder Date"/>
+
+        <EditText
+            android:id="@+id/etReminderTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:textSize="20sp"
+            android:hint="Reminder Time"
+            android:textStyle="italic"
+            android:inputType="time" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:text="Progress bar" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <com.google.android.material.chip.ChipGroup
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp">
 
         <com.google.android.material.chip.Chip
             android:id="@+id/cImportant"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Important"
+            android:checkable="true"
+            app:checkedIcon="@drawable/baseline_check_24" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/cStarted"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Started"
+            android:checkable="true"
+            app:checkedIcon="@drawable/baseline_check_24"/>
     </com.google.android.material.chip.ChipGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:text="Add Task" />
 
 </LinearLayout>
