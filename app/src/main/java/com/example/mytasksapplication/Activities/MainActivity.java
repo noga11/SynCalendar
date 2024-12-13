@@ -1,16 +1,21 @@
-package com.example.mytasksapplication;
+package com.example.mytasksapplication.Activities;
 
 import android.os.Bundle;
 import android.view.Menu;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-public class AllTasksActivity extends AppCompatActivity {
+import com.example.mytasksapplication.Model;
+import com.example.mytasksapplication.R;
+
+public class MainActivity extends AppCompatActivity {
+
+    private Model model;
+    private ListView lstDailyTasks;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +24,7 @@ public class AllTasksActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("All Tasks");
+        setTitle("Today's Tasks");
         /*// Optionally, enable the "up" button if you want navigation
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);*/
     }

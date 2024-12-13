@@ -13,16 +13,19 @@
         android:theme="@style/Theme.MyTasksApplication"
         tools:targetApi="31">
         <activity
-            android:name=".NewTaskActivity"
+            android:name=".Activities.FollowingActivity"
             android:exported="false" />
         <activity
-            android:name=".AllTasksActivity"
+            android:name=".Activities.NewTaskActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".Activities.AllTasksActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

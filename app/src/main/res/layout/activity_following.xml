@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activities.AllTasksActivity">
+    tools:context=".Activities.FollowingActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -17,29 +17,15 @@
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
     <SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
-
-    <com.google.android.material.chip.Chip
-        android:id="@+id/chip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="completed"
-        android:checkable="true"
-        app:chipIcon="@drawable/baseline_check_24"
-        app:checkedIcon="@drawable/baseline_keyboard_arrow_down_24"
-        app:closeIcon="@drawable/baseline_keyboard_arrow_up_24"/>
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        tools:listitem="@layout/item_all_task"/>
+        tools:listitem="@layout/item_following"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
