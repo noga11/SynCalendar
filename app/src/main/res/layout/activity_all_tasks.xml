@@ -22,9 +22,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <!--this is going to be a horisontal list-->
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="43dp"
             android:layout_weight="1">
         </androidx.recyclerview.widget.RecyclerView>
 

@@ -25,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:layout_margin="10dp"
         tools:listitem="@layout/item_following"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
