@@ -1,20 +1,17 @@
 package com.example.mytasksapplication;
 
-public class User {
-    private int id;
-    private String uName, email, password;
-    private Task[] tasks;
+import java.util.ArrayList;
 
-    public User(int id, String uName, String email, String password, Task[] tasks) {
-        this.id = id;
+public class User {
+    private String uName, email, password;
+    private ArrayList<Task> tasks;
+
+    public User(String uName, String email, String password, ArrayList<Task> tasks) {
         this.uName = uName;
         this.email = email;
         this.password = password;
         this.tasks = tasks;
     }
-
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
 
     public String getuName() { return uName; }
     public void setuName(String uName) { this.uName = uName; }
@@ -25,7 +22,7 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public Task[] getTasks() { return tasks; }
-    public void setTasks(Task[] tasks) { this.tasks = tasks; }
+    public ArrayList<Task> getTasks() { return tasks; }
+    public void setTasks(ArrayList<Task> tasks) { this.tasks = tasks; }
 
 }

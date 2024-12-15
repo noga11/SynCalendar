@@ -4,24 +4,26 @@ import java.sql.Date;
 import java.sql.Time;
 
 public class Task {
-    private String title, details, group, shareUserId;
+    private String title, details, group;
+    private String[] shareWithUser;
     private Time start, end, remTime;
     private Date date, remDate;
     private boolean reminder, important, started;
     private int progress;
 
-    public Task(String title, String details, String group, String shareUserId, Time start, Time end, Time remTime,
-                Date date, Date remDate, boolean reminder, boolean important, boolean started, int progress) {
+    public Task(String title, String details, String group, String[] shareWithUser, Time start, Time end,
+                Time remTime, Date date, Date remDate, boolean reminder, boolean important,
+                boolean started, int progress) {
         this.title = title;
         this.details = details;
         this.group = group;
-        this.shareUserId = shareUserId;
+        this.shareWithUser = shareWithUser;
         this.start = start;
         this.end = end;
-        this.remTime = remTime;
         this.date = date;
-        this.remDate = remDate;
         this.reminder = reminder;
+        this.remTime = remTime;
+        this.remDate = remDate;
         this.important = important;
         this.started = started;
         this.progress = progress;
@@ -36,8 +38,8 @@ public class Task {
     public String getGroup() { return group; }
     public void setGroup(String group) { this.group = group; }
 
-    public String getShareUserId() { return shareUserId; }
-    public void setShareUserId(String shareUserId) { this.shareUserId = shareUserId; }
+    public String[] getShareWithUser() { return shareWithUser; }
+    public void setShareWithUser(String[] shareWithUser) { this.shareWithUser = shareWithUser; }
 
     public Time getStart() { return start; }
     public void setStart(Time start) { this.start = start; }
@@ -65,5 +67,4 @@ public class Task {
 
     public int getProgress() { return progress; }
     public void setProgress(int progress) { this.progress = progress; }
-
 }
