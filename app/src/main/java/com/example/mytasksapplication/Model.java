@@ -3,10 +3,6 @@ package com.example.mytasksapplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
@@ -53,12 +49,12 @@ public class Model {
     }
 
     public void logout() {
-        currentUser =null;
+        currentUser = null;
     }
 
     //Tasks functions
-    public Task getNoteByTitle(String title) {
-        for (Task task : currentUser.getTasks()) {
+    public Task getTaskByTitleAndUser(String title, User user) {
+        for (Task task : user.getTasks()) {
             if (task.getTitle().equals(title)) {
                 return task;
             }
@@ -66,23 +62,36 @@ public class Model {
         return null;
     }
 
-    public void addTask(String title, String details, String group, String[] shareWithUser, Time start, Time end,
+    public void addTask(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
                         Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                         boolean started, int progress) {
-        Task task = new Task(title, details, group, shareWithUser, start, end, remTime, date, remDate,
-                            reminder, important,started, progress);
+        Task task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
+                reminder, important, started, progress);
         currentUser.getTasks().add(task);
+
+        if (shareWithUsers != null) {
+            shareWithUsers.add(currentUser.getuName());
+            for (String username : shareWithUsers) {
+                User userToShareWith = findUserByUsername(username);
+                shareWithUsers.remove(username);
+                task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
+                        reminder, important, started, progress);
+                userToShareWith.getTasks().add(task);
+                shareWithUsers.add(username);
+            }
+        }
     }
 
-    public void updateNote(String title, String details, String group, String[] shareWithUser, Time start, Time end,
+    public void updateTask(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
                            Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                            boolean started, int progress) {
-        Task task = getNoteByTitle(title);
+        // Update the task for the current user
+        Task task = getTaskByTitleAndUser(title, currentUser);
         if (task != null) {
             task.setTitle(title);
             task.setDetails(details);
             task.setGroup(group);
-            task.setShareWithUser(shareWithUser);
+            task.setShareWithUsers(shareWithUsers);
             task.setStart(start);
             task.setEnd(end);
             task.setReminder(reminder);
@@ -92,9 +101,48 @@ public class Model {
             task.setStarted(started);
             task.setProgress(progress);
         }
+
+        // Update the task for the users it's shared with
+        if (shareWithUsers != null) {
+            for (String username : shareWithUsers) {
+                User userToShareWith = findUserByUsername(username);
+                if (userToShareWith != null) {
+                    Task sharedTask = getTaskByTitleAndUser(title, userToShareWith);
+                    if (sharedTask != null) {
+                        sharedTask.setTitle(title);
+                        sharedTask.setDetails(details);
+                        sharedTask.setGroup(group);
+                        sharedTask.setShareWithUsers(shareWithUsers);
+                        sharedTask.setStart(start);
+                        sharedTask.setEnd(end);
+                        sharedTask.setReminder(reminder);
+                        sharedTask.setRemTime(remTime);
+                        sharedTask.setRemDate(remDate);
+                        sharedTask.setImportant(important);
+                        sharedTask.setStarted(started);
+                        sharedTask.setProgress(progress);
+                    }
+                }
+            }
+        }
     }
 
     public void deleteTask(String title) {
-        currentUser.getTasks().removeIf(task -> task.getTitle().equals(title));
+        Task taskToDelete = getTaskByTitleAndUser(title, currentUser);
+        ArrayList<String> shareWithUsers = taskToDelete.getShareWithUsers();
+        if (shareWithUsers != null) {
+            for (String username : shareWithUsers) {
+                User userToShareWith = findUserByUsername(username);
+                if (userToShareWith != null) {
+                    Task sharedTask = getTaskByTitleAndUser(title, userToShareWith);
+                    if (sharedTask != null) {
+                        ArrayList<String> eachShare = sharedTask.getShareWithUsers();
+                        eachShare.remove(currentUser);
+                        sharedTask.setShareWithUsers(eachShare);
+                    }
+                }
+            }
+        }
+        currentUser.getTasks().remove(taskToDelete);
     }
 }

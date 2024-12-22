@@ -2,22 +2,23 @@ package com.example.mytasksapplication;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
 
 public class Task {
     private String title, details, group;
-    private String[] shareWithUser;
+    private ArrayList<String> shareWithUsers;
     private Time start, end, remTime;
     private Date date, remDate;
     private boolean reminder, important, started;
     private int progress;
 
-    public Task(String title, String details, String group, String[] shareWithUser, Time start, Time end,
+    public Task(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
                 Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                 boolean started, int progress) {
         this.title = title;
         this.details = details;
         this.group = group;
-        this.shareWithUser = shareWithUser;
+        this.shareWithUsers = shareWithUsers;
         this.start = start;
         this.end = end;
         this.date = date;
@@ -38,8 +39,8 @@ public class Task {
     public String getGroup() { return group; }
     public void setGroup(String group) { this.group = group; }
 
-    public String[] getShareWithUser() { return shareWithUser; }
-    public void setShareWithUser(String[] shareWithUser) { this.shareWithUser = shareWithUser; }
+    public ArrayList<String> getShareWithUsers() { return shareWithUsers; }
+    public void setShareWithUsers(ArrayList<String> shareWithUsers) { this.shareWithUsers = shareWithUsers; }
 
     public Time getStart() { return start; }
     public void setStart(Time start) { this.start = start; }
