@@ -69,6 +69,7 @@ public class Model {
                 reminder, important, started, progress);
         currentUser.getTasks().add(task);
 
+        // add task for others in shareWithUser
         if (shareWithUsers != null) {
             shareWithUsers.add(currentUser.getuName());
             for (String username : shareWithUsers) {
@@ -129,6 +130,8 @@ public class Model {
 
     public void deleteTask(String title) {
         Task taskToDelete = getTaskByTitleAndUser(title, currentUser);
+
+        // delete currentUser from others shareWithUsers
         ArrayList<String> shareWithUsers = taskToDelete.getShareWithUsers();
         if (shareWithUsers != null) {
             for (String username : shareWithUsers) {
@@ -143,6 +146,8 @@ public class Model {
                 }
             }
         }
+
+        // delete task for current user
         currentUser.getTasks().remove(taskToDelete);
     }
 }
