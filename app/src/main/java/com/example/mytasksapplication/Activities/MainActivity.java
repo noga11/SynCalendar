@@ -10,9 +10,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.mytasksapplication.DailyTasksAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
+import com.example.mytasksapplication.Task;
 import com.google.android.material.navigation.NavigationBarView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,52 +34,66 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         setTitle("Today's Tasks");
 
+        // Initialize the ListView
+        lstDailyTasks = findViewById(R.id.lstDailyTasks);
+
+        // Sample data (replace with your actual data)
+        List<Task> tasks = new ArrayList<>();
+        /*tasks.add(new Task("Task 1", "12:22 PM", ));
+        tasks.add(new Task("Task 2", "02:15 PM"));
+        tasks.add(new Task("Task 3", "04:00 PM"));*/
+
+        // Set the custom adapter to the ListView
+        DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
+        lstDailyTasks.setAdapter(adapter);
+
         // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Set the listener for item selection using the new method
+        // Set the listener for item selection
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                // Use Intent to switch activities based on selected item
-                switch (item.getItemId()) {
-                    case R.id.nav_Today:
-                        // Navigate to MainActivity (already in the correct activity)
-                        // No need to start MainActivity again
-                        return true;
-                    case R.id.nav_Add:
-                        // Navigate to NewTaskActivity (Add Task)
-                        startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
-                        return true;
-                    case R.id.nav_Tasks:
-                        // Navigate to AllTasksActivity (All Tasks)
-                        startActivity(new Intent(MainActivity.this, AllTasksActivity.class));
-                        return true;
-                    default:
-                        return false;
+                if (item.getItemId() == R.id.nav_Add) {
+                    startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
+                    return true;
+                } else if (item.getItemId() == R.id.nav_Tasks) {
+                    startActivity(new Intent(MainActivity.this, AllTasksActivity.class));
+                    return true;
                 }
+                return false;
             }
         });
     }
 
-    // This method will be called to inflate the options menu in the toolbar
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
-    // Handle action bar item clicks
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_follow_request:
-                // Handle the settings item click
-                // For example, navigate to SettingsActivity (if it exists)
-                startActivity(new Intent(MainActivity.this, FollowingActivity.class));
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_follow_request) {
+            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            return true;
         }
+        else if (item.getItemId() == R.id.action_users){
+            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            return true;
+        }
+        else if (item.getItemId() == R.id.action_following){
+            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            return true;
+        }
+        else if (item.getItemId() == R.id.action_profile){
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            return true;
+        }
+        else if (item.getItemId() == R.id.action_logout){
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            return true;
+        }
+        return false;
     }
 }

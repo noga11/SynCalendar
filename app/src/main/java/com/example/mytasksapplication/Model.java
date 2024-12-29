@@ -12,6 +12,7 @@ public class Model {
     private Context context;
     private User currentUser;
     private SharedPreferences sp;
+
     private ArrayList<User> allUsers = new ArrayList<>();
 
     public Model(Context context) {
@@ -62,7 +63,7 @@ public class Model {
         return null;
     }
 
-    public void addTask(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
+    public void addTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
                         Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                         boolean started, int progress) {
         Task task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
@@ -83,7 +84,7 @@ public class Model {
         }
     }
 
-    public void updateTask(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
+    public void updateTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
                            Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                            boolean started, int progress) {
         // Update the task for the current user

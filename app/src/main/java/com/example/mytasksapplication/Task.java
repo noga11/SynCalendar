@@ -5,14 +5,14 @@ import java.sql.Time;
 import java.util.ArrayList;
 
 public class Task {
-    private String title, details, group;
-    private ArrayList<String> shareWithUsers;
+    private String title, details;
+    private ArrayList<String> group, shareWithUsers;
     private Time start, end, remTime;
     private Date date, remDate;
     private boolean reminder, important, started;
     private int progress;
 
-    public Task(String title, String details, String group, ArrayList<String> shareWithUsers, Time start, Time end,
+    public Task(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
                 Time remTime, Date date, Date remDate, boolean reminder, boolean important,
                 boolean started, int progress) {
         this.title = title;
@@ -36,8 +36,8 @@ public class Task {
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
 
-    public String getGroup() { return group; }
-    public void setGroup(String group) { this.group = group; }
+    public ArrayList<String> getGroup() { return group; }
+    public void setGroup(ArrayList<String> group) { this.group = group; }
 
     public ArrayList<String> getShareWithUsers() { return shareWithUsers; }
     public void setShareWithUsers(ArrayList<String> shareWithUsers) { this.shareWithUsers = shareWithUsers; }
