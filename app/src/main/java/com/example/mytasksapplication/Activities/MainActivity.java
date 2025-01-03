@@ -36,12 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize the ListView
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
-
-        // Sample data (replace with your actual data)
         List<Task> tasks = new ArrayList<>();
-        /*tasks.add(new Task("Task 1", "12:22 PM", ));
-        tasks.add(new Task("Task 2", "02:15 PM"));
-        tasks.add(new Task("Task 3", "04:00 PM"));*/
 
         // Set the custom adapter to the ListView
         DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
