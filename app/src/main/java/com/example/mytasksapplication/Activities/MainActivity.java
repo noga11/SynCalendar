@@ -51,9 +51,11 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
                     startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
+                    finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Tasks) {
                     startActivity(new Intent(MainActivity.this, AllTasksActivity.class));
+                    finish();
                     return true;
                 }
                 return false;
