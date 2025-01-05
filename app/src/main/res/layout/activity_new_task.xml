@@ -24,6 +24,7 @@
         android:id="@+id/etDetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:ems="10"
         android:textSize="20sp"
         android:gravity="start|top"
@@ -68,12 +69,12 @@
         android:inputType="date"
         android:hint="Date"/>
 
-    <AutoCompleteTextView
-        android:id="@+id/auetGroup"
+    <!--group-->
+    <Spinner
+        android:id="@+id/spinnerGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:hint="Group" />
+        android:textSize="20sp" />
 
     <AutoCompleteTextView
         android:id="@+id/auetShare"
@@ -81,6 +82,12 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:hint="Share Task" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </com.google.android.material.chip.ChipGroup>
 
     <Switch
         android:id="@+id/swchAddReminder"
@@ -154,16 +161,13 @@
             app:checkedIcon="@drawable/baseline_check_24"/>
     </com.google.android.material.chip.ChipGroup>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
-
     <Button
         android:id="@+id/button4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
         android:textSize="30sp"
         android:text="Add Task" />
+
 
 </LinearLayout>

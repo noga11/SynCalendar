@@ -17,6 +17,11 @@
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
 
+    <CalendarView
+        android:id="@+id/calendarView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <ListView
         android:id="@+id/lstDailyTasks"
         android:layout_width="match_parent"

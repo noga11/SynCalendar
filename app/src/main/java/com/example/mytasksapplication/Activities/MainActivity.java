@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.mytasksapplication.DailyTasksAdapter;
+import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;

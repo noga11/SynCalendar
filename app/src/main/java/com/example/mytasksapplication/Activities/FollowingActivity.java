@@ -1,23 +1,22 @@
 package com.example.mytasksapplication.Activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mytasksapplication.DailyTasksAdapter;
+import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
+import com.example.mytasksapplication.Adapters.UsersAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;
+import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
@@ -26,12 +25,16 @@ import java.util.List;
 public class FollowingActivity extends AppCompatActivity {
 
     private Model model;
-    private ListView lstDailyTasks;
+    private ListView lstUsers;
+    private String source;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_following);
+
+        String source = getIntent().getStringExtra("source");
 
         // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -39,12 +42,12 @@ public class FollowingActivity extends AppCompatActivity {
         setTitle("Following");
 
         // Initialize the ListView
-        lstDailyTasks = findViewById(R.id.lstDailyTasks);
-        List<Task> tasks = new ArrayList<>();
+        lstUsers = findViewById(R.id.lstUsers);
+        List<User> users = new ArrayList<>();
 
         // Set the custom adapter to the ListView
-        DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
-        lstDailyTasks.setAdapter(adapter);
+        UsersAdapter adapter = new UsersAdapter(this, users, source);
+        lstUsers.setAdapter(adapter);
 
         // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);

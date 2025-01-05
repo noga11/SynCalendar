@@ -1,5 +1,6 @@
 package com.example.mytasksapplication.Activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,7 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.mytasksapplication.DailyTasksAdapter;
+import com.example.mytasksapplication.Adapters.AllTasksAdapter;
+import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;
@@ -22,12 +24,13 @@ import java.util.List;
 public class AllTasksActivity extends AppCompatActivity {
 
     private Model model;
-    private ListView lstDailyTasks;
+    private ListView lstAllTasks;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_all_tasks);
 
         // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -35,12 +38,12 @@ public class AllTasksActivity extends AppCompatActivity {
         setTitle("All Tasks");
 
         // Initialize the ListView
-        lstDailyTasks = findViewById(R.id.lstDailyTasks);
+        lstAllTasks = findViewById(R.id.lstAllTasks);
         List<Task> tasks = new ArrayList<>();
 
         // Set the custom adapter to the ListView
-        DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
-        lstDailyTasks.setAdapter(adapter);
+        AllTasksAdapter adapter = new AllTasksAdapter(this, tasks);
+        lstAllTasks.setAdapter(adapter);
 
         // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);

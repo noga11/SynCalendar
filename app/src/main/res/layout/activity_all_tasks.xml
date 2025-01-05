@@ -52,6 +52,7 @@
         app:closeIcon="@drawable/baseline_keyboard_arrow_up_24"/>
 
     <ListView
+        android:id="@+id/lstAllTasks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
