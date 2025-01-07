@@ -58,12 +58,15 @@ public class FollowingActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
                     startActivity(new Intent(FollowingActivity.this, NewTaskActivity.class));
+                    finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Today) {
                     startActivity(new Intent(FollowingActivity.this, MainActivity.class));
+                    finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Tasks) {
                     startActivity(new Intent(FollowingActivity.this, AllTasksActivity.class));
+                    finish();
                     return true;
                 }
                 return false;
@@ -85,18 +88,22 @@ public class FollowingActivity extends AppCompatActivity {
         }
         else if (item.getItemId() == R.id.action_users){
             startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
             startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
             startActivity(new Intent(FollowingActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){
             startActivity(new Intent(FollowingActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         return false;

@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mytasksapplication.R;
+import com.example.mytasksapplication.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -18,9 +19,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private TextView tvScreenTitle, tvLoginSignUp, tvQuestion;
     private TextInputLayout tilEmail;
-
+    private TextInputEditText tietUsername, tietEmail,tietPassword;
     private boolean LOrSChecked = true;
-
+    private String source;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,13 @@ public class LoginActivity extends AppCompatActivity {
         tvLoginSignUp = findViewById(R.id.tvLoginSignUp);
         tvQuestion = findViewById(R.id.tvQuestion);
         tilEmail = findViewById(R.id.tilEmail);
+        tietUsername = findViewById(R.id.tietUsername);
+
+        if ("action_profile".equals(source)){
+            tvScreenTitle.setText("Your Profile");
+            tvLoginSignUp.setVisibility(View.GONE);
+            tvQuestion.setVisibility(View.GONE);
+        }
 
         tvLoginSignUp.setOnClickListener(v -> {
             if (LOrSChecked){ //Login screen

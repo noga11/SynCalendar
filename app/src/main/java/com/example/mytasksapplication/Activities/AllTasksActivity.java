@@ -35,7 +35,7 @@ public class AllTasksActivity extends AppCompatActivity {
         // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("All Tasks");
+        setTitle("Today");
 
         // Initialize the ListView
         lstAllTasks = findViewById(R.id.lstAllTasks);
@@ -54,9 +54,11 @@ public class AllTasksActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
                     startActivity(new Intent(AllTasksActivity.this, NewTaskActivity.class));
+                    finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Today) {
                     startActivity(new Intent(AllTasksActivity.this, MainActivity.class));
+                    finish();
                     return true;
                 }
                 return false;
@@ -74,22 +76,27 @@ public class AllTasksActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_follow_request) {
             startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
             startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
             startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
             startActivity(new Intent(AllTasksActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){
             startActivity(new Intent(AllTasksActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         return false;

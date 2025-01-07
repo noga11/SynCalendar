@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("Today's Tasks");
+        setTitle("Calander");
 
         // Initialize the ListView
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
@@ -73,14 +73,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_follow_request) {
             startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
             startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
             startActivity(new Intent(MainActivity.this, FollowingActivity.class));
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
@@ -89,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else if (item.getItemId() == R.id.action_logout){
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         return false;
