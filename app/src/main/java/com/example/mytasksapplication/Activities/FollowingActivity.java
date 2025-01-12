@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +28,7 @@ public class FollowingActivity extends AppCompatActivity {
     private Model model;
     private ListView lstUsers;
     private String source;
+    private TextView tvEmptyList;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -34,25 +36,35 @@ public class FollowingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_following);
 
-        String source = getIntent().getStringExtra("source");
+        String source = getIntent().getStringExtra("SOURCE");
 
-        // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Following");
 
-        // Initialize the ListView
         lstUsers = findViewById(R.id.lstUsers);
         List<User> users = new ArrayList<>();
 
-        // Set the custom adapter to the ListView
         UsersAdapter adapter = new UsersAdapter(this, users, source);
         lstUsers.setAdapter(adapter);
 
-        // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Set the listener for item selection
+        tvEmptyList = findViewById(R.id.tvEmptyList);
+        if (users.isEmpty()) {
+            if ("action_Following".equals(source)) {
+                tvEmptyList.setText("You dont follow anyone");
+                lstUsers.setEmptyView(tvEmptyList);
+            } else if ("action_FindUser".equals(source)) {
+                tvEmptyList.setText("There aren't any other users");
+                lstUsers.setEmptyView(tvEmptyList);
+            } else if ("action_FollowRequest".equals(source)) {
+                tvEmptyList.setText("You dont have any Following requests");
+                lstUsers.setEmptyView(tvEmptyList);
+            }
+
+        }
+
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -82,7 +94,9 @@ public class FollowingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
+            intent.putExtra("REQUEST", "action_FollowRequest");
             startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
             return true;
         }

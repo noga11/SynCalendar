@@ -74,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
+            intent.putExtra("REQUEST", "action_FollowRequest");
             startActivity(new Intent(MainActivity.this, FollowingActivity.class));
             finish();
             return true;

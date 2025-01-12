@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +26,7 @@ public class AllTasksActivity extends AppCompatActivity {
 
     private Model model;
     private ListView lstAllTasks;
+    private TextView tvEmptyList;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -32,23 +34,24 @@ public class AllTasksActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_tasks);
 
-        // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Today");
 
-        // Initialize the ListView
         lstAllTasks = findViewById(R.id.lstAllTasks);
         List<Task> tasks = new ArrayList<>();
 
-        // Set the custom adapter to the ListView
         AllTasksAdapter adapter = new AllTasksAdapter(this, tasks);
         lstAllTasks.setAdapter(adapter);
 
-        // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Set the listener for item selection
+        tvEmptyList = findViewById(R.id.tvEmptyList);
+        if (tasks.isEmpty()) {
+            tvEmptyList.setText("There are no events");
+            lstAllTasks.setEmptyView(tvEmptyList);
+        }
+
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -74,7 +77,9 @@ public class AllTasksActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
+            intent.putExtra("REQUEST", "action_FollowRequest");
             startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
             finish();
             return true;
@@ -85,6 +90,7 @@ public class AllTasksActivity extends AppCompatActivity {
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
+            intent.putExtra("FOLLOWING", "action_Following");
             startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
             finish();
             return true;
