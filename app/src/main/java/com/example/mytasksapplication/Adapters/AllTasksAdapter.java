@@ -29,21 +29,20 @@ public class AllTasksAdapter extends ArrayAdapter<Task> {
 
         Task task = allTasks.get(position);
 
-        // Set up the title text
         TextView tvTitle = convertView.findViewById(R.id.tvTitle);
         tvTitle.setText(task.getTitle());
 
-        // Set up the details text
         TextView tvDetails = convertView.findViewById(R.id.tvDetails);
         tvDetails.setText(task.getDetails());
 
-        // Set up the date
         TextView tvDate = convertView.findViewById(R.id.tvDate);
         tvDate.setText((CharSequence) task.getDate());
 
-        // Set up the time (assuming start is a String or formatted time)
-        TextView tvTime = convertView.findViewById(R.id.tvTime);
-        tvTime.setText((CharSequence) task.getStart());
+        TextView tvStart = convertView.findViewById(R.id.tvStart);
+        tvStart.setText((CharSequence) task.getStart());
+
+        TextView tvEnd = convertView.findViewById(R.id.tvEnd);
+        tvEnd.setText((CharSequence) task.getStart());
 
         return convertView;
     }

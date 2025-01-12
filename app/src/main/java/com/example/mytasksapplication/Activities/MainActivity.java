@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,29 +24,31 @@ public class MainActivity extends AppCompatActivity {
 
     private Model model;
     private ListView lstDailyTasks;
+    private TextView tvEmptyList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set up Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Calander");
 
-        // Initialize the ListView
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
         List<Task> tasks = new ArrayList<>();
 
-        // Set the custom adapter to the ListView
         DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
         lstDailyTasks.setAdapter(adapter);
 
-        // Initialize the NavigationBarView (formerly BottomNavigationView)
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Set the listener for item selection
+        tvEmptyList = findViewById(R.id.tvEmptyList);
+        if (tasks.isEmpty()) {
+            tvEmptyList.setText("There are no events");
+            lstDailyTasks.setEmptyView(tvEmptyList);
+        }
+
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {

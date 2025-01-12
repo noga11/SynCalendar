@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:background="#349C27B0"
         android:inputType="text"
         android:textStyle="bold"
         android:textSize="40sp"

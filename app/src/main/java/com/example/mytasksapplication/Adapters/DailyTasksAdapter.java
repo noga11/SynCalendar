@@ -31,13 +31,14 @@ public class DailyTasksAdapter extends ArrayAdapter<Task> {
 
         Task task = dailyTasks.get(position);
 
-        // Set up the title text
         TextView tvTitle = convertView.findViewById(R.id.tvTitle);
         tvTitle.setText(task.getTitle());
 
-        // Set up the time (assuming start is a String or formatted time)
-        TextView tvTime = convertView.findViewById(R.id.tvTime);
-        tvTime.setText((CharSequence) task.getStart());
+        TextView tvStart = convertView.findViewById(R.id.tvStart);
+        tvStart.setText((CharSequence) task.getStart());
+
+        TextView tvEnd = convertView.findViewById(R.id.tvEnd);
+        tvEnd.setText((CharSequence) task.getStart());
 
         return convertView;
     }

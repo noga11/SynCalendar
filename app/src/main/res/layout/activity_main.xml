@@ -30,6 +30,16 @@
         android:padding="10dp"
         tools:listitem="@layout/item_daily_task"/>
 
+    <TextView
+        android:id="@+id/tvEmptyList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="50sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"

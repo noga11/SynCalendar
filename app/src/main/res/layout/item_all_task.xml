@@ -30,11 +30,35 @@
                 android:textSize="20sp" />
 
             <TextView
-                android:id="@+id/tvTime"
+                android:id="@+id/tvStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Time"
+                android:text="Start"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tvDash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="-"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tvEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="End"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tvColom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text=","
                 android:textSize="20sp" />
 
             <TextView
