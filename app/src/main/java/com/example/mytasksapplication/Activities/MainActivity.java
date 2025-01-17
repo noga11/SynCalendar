@@ -20,10 +20,14 @@ import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class MainActivity extends AppCompatActivity {
 
     private Model model;
+    private DailyTasksAdapter adapter;
+    private List<Task> tasks;
     private CalendarView calendarView;
     private ListView lstDailyTasks;
     private TextView tvEmptyList;
@@ -33,12 +37,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        model = Model.getInstance(this);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Calander");
 
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
-        List<Task> tasks = new ArrayList<>();
+        List<Task> tasks = model.tempData();
 
         DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
         lstDailyTasks.setAdapter(adapter);
@@ -112,26 +118,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateTasksForSelectedDate(String selectedDate) {
-        // Filter tasks based on the selected date (you can adjust this to your model)
         List<Task> filteredTasks = new ArrayList<>();
+        LocalDate selectedLocalDate = LocalDate.parse(selectedDate, DateTimeFormatter.ofPattern("yyyy-M-d"));
 
-        // Sample filter logic (Assuming task.date is Date object)
-        for (Task task : model.getTasks()) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String taskDate = sdf.format(task.getDate());
-
-            if (taskDate.equals(selectedDate)) {
+        for (Task task : tasks) {
+            LocalDate taskDate = task.getDate().toLocalDate();
+            if (taskDate.equals(selectedLocalDate)) {
                 filteredTasks.add(task);
             }
         }
 
-        // Update the adapter with filtered tasks
-        AllTasksAdapter adapter = new AllTasksAdapter(this, filteredTasks);
-        lstAllTasks.setAdapter(adapter);
+        adapter.clear();
+        adapter.addAll(filteredTasks);
+        adapter.notifyDataSetChanged();
 
-        // Empty state
         if (filteredTasks.isEmpty()) {
-            tvEmptyList.setText("No tasks for selected date");
-            lstAllTasks.setEmptyView(tvEmptyList);
+            tvEmptyList.setText("You don't have any events");
+            lstDailyTasks.setEmptyView(tvEmptyList);
         }
+    }
+
 }

@@ -7,6 +7,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 
+import java.sql.Date;
+import java.sql.Time;
+import java.util.ArrayList;
+
 public class Model {
     private static Model instance;
     private Context context;
@@ -150,5 +154,91 @@ public class Model {
 
         // delete task for current user
         currentUser.getTasks().remove(taskToDelete);
+    }
+
+    public ArrayList<Task> tempData() {
+        ArrayList<Task> tasks = new ArrayList<>();
+
+        tasks.add(new Task(
+                "Task 1",
+                "Details for Task 1",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                Time.valueOf("09:00:00"),
+                Time.valueOf("10:00:00"),
+                Time.valueOf("08:30:00"),
+                Date.valueOf("2025-01-05"),
+                Date.valueOf("2025-01-04"),
+                true,
+                true,
+                false,
+                50
+        ));
+
+        tasks.add(new Task(
+                "Task 2",
+                "Details for Task 2",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                Time.valueOf("11:00:00"),
+                Time.valueOf("12:00:00"),
+                Time.valueOf("10:30:00"),
+                Date.valueOf("2025-01-10"),
+                Date.valueOf("2025-01-09"),
+                false,
+                false,
+                false,
+                20
+        ));
+
+        tasks.add(new Task(
+                "Task 3",
+                "Details for Task 3",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                Time.valueOf("13:00:00"),
+                Time.valueOf("14:00:00"),
+                Time.valueOf("12:30:00"),
+                Date.valueOf("2025-01-15"),
+                Date.valueOf("2025-01-14"),
+                true,
+                false,
+                true,
+                75
+        ));
+
+        tasks.add(new Task(
+                "Task 4",
+                "Details for Task 4",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                Time.valueOf("15:00:00"),
+                Time.valueOf("16:00:00"),
+                Time.valueOf("14:30:00"),
+                Date.valueOf("2025-01-20"),
+                Date.valueOf("2025-01-19"),
+                false,
+                true,
+                true,
+                100
+        ));
+
+        tasks.add(new Task(
+                "Task 5",
+                "Details for Task 5",
+                new ArrayList<>(),
+                new ArrayList<>(),
+                Time.valueOf("17:00:00"),
+                Time.valueOf("18:00:00"),
+                Time.valueOf("16:30:00"),
+                Date.valueOf("2025-01-25"),
+                Date.valueOf("2025-01-24"),
+                true,
+                true,
+                false,
+                10
+        ));
+
+        return tasks;
     }
 }
