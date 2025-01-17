@@ -18,7 +18,7 @@
         android:theme="?attr/actionBarTheme" />
 
     <CalendarView
-        android:id="@+id/calendarView2"
+        android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

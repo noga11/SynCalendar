@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,6 +24,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private Model model;
+    private CalendarView calendarView;
     private ListView lstDailyTasks;
     private TextView tvEmptyList;
 
@@ -48,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
             tvEmptyList.setText("There are no events");
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
+
+        calendarView = findViewById(R.id.calendarView);
+        calendarView.setOnDateChangeListener((view, year, month, day) -> {
+            String selectedDate = year + "-" + (month + 1) + "-" + day;
+            updateTasksForSelectedDate(selectedDate);
+        });
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -102,4 +110,28 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    private void updateTasksForSelectedDate(String selectedDate) {
+        // Filter tasks based on the selected date (you can adjust this to your model)
+        List<Task> filteredTasks = new ArrayList<>();
+
+        // Sample filter logic (Assuming task.date is Date object)
+        for (Task task : model.getTasks()) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String taskDate = sdf.format(task.getDate());
+
+            if (taskDate.equals(selectedDate)) {
+                filteredTasks.add(task);
+            }
+        }
+
+        // Update the adapter with filtered tasks
+        AllTasksAdapter adapter = new AllTasksAdapter(this, filteredTasks);
+        lstAllTasks.setAdapter(adapter);
+
+        // Empty state
+        if (filteredTasks.isEmpty()) {
+            tvEmptyList.setText("No tasks for selected date");
+            lstAllTasks.setEmptyView(tvEmptyList);
+        }
 }
