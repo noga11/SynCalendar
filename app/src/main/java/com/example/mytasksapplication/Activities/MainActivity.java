@@ -9,6 +9,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -19,9 +21,8 @@ import com.example.mytasksapplication.Task;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private CalendarView calendarView;
     private ListView lstDailyTasks;
     private TextView tvEmptyList;
+
+    private ActivityResultLauncher<Intent> activityStartLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
         setTitle("Calander");
 
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
-        List<Task> tasks = model.tempData();
+        tasks = model.tempData();
 
-        DailyTasksAdapter adapter = new DailyTasksAdapter(this, tasks);
+        adapter = new DailyTasksAdapter(this, tasks);
         lstDailyTasks.setAdapter(adapter);
 
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         calendarView = findViewById(R.id.calendarView);
         calendarView.setOnDateChangeListener((view, year, month, day) -> {
-            String selectedDate = year + "-" + (month + 1) + "-" + day;
+            Date selectedDate = new Date(year, month, day);
             updateTasksForSelectedDate(selectedDate);
         });
 
@@ -67,17 +70,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
-                    startActivity(new Intent(MainActivity.this, NewTaskActivity.class));
-                    finish();
+                    Intent intent = new Intent(MainActivity.this, NewTaskActivity.class);
+                    activityStartLauncher.launch(intent);
                     return true;
                 } else if (item.getItemId() == R.id.nav_Tasks) {
-                    startActivity(new Intent(MainActivity.this, AllTasksActivity.class));
-                    finish();
+                    Intent intent = new Intent(MainActivity.this, AllTasksActivity.class);
+                    activityStartLauncher.launch(intent);
                     return true;
                 }
                 return false;
             }
         });
+
+        activityStartLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                }
+        );
     }
 
     @Override
@@ -90,40 +99,38 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
-            intent.putExtra("REQUEST", "action_FollowRequest");
-            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
+            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
-            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("USERS", "action_users");
+            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
-            startActivity(new Intent(MainActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("FOLLOWING", "action_following");
+            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            intent.putExtra("PROFILE", "action_profile");
+            activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
+            intent.putExtra("LOGOUT", "action_logout");
+            activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
             return true;
         }
         return false;
     }
 
-    private void updateTasksForSelectedDate(String selectedDate) {
+    private void updateTasksForSelectedDate(Date selectedDate) {
         List<Task> filteredTasks = new ArrayList<>();
-        LocalDate selectedLocalDate = LocalDate.parse(selectedDate, DateTimeFormatter.ofPattern("yyyy-M-d"));
 
         for (Task task : tasks) {
-            LocalDate taskDate = task.getDate().toLocalDate();
-            if (taskDate.equals(selectedLocalDate)) {
+            if (task.getDate().equals(selectedDate)) {
                 filteredTasks.add(task);
             }
         }
@@ -137,5 +144,4 @@ public class MainActivity extends AppCompatActivity {
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
     }
-
 }

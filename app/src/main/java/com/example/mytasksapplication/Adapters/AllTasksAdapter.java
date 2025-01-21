@@ -36,13 +36,13 @@ public class AllTasksAdapter extends ArrayAdapter<Task> {
         tvDetails.setText(task.getDetails());
 
         TextView tvDate = convertView.findViewById(R.id.tvDate);
-        tvDate.setText((CharSequence) task.getDate());
+        tvDate.setText(task.getDate().toString());
 
         TextView tvStart = convertView.findViewById(R.id.tvStart);
-        tvStart.setText((CharSequence) task.getStart());
+        tvStart.setText(task.getStart().toString());
 
         TextView tvEnd = convertView.findViewById(R.id.tvEnd);
-        tvEnd.setText((CharSequence) task.getStart());
+        tvEnd.setText(task.getStart().toString());
 
         return convertView;
     }
