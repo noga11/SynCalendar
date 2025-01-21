@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private CalendarView calendarView;
     private ListView lstDailyTasks;
     private TextView tvEmptyList;
-
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
     @Override

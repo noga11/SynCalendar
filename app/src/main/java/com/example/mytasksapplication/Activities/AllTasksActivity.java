@@ -8,6 +8,8 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -27,6 +29,7 @@ public class AllTasksActivity extends AppCompatActivity {
     private Model model;
     private ListView lstAllTasks;
     private TextView tvEmptyList;
+    private ActivityResultLauncher<Intent> activityStartLauncher;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -56,17 +59,23 @@ public class AllTasksActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
-                    startActivity(new Intent(AllTasksActivity.this, NewTaskActivity.class));
-                    finish();
+                    Intent intent = new Intent(AllTasksActivity.this, NewTaskActivity.class);
+                    activityStartLauncher.launch(intent);
                     return true;
                 } else if (item.getItemId() == R.id.nav_Today) {
-                    startActivity(new Intent(AllTasksActivity.this, MainActivity.class));
-                    finish();
+                    Intent intent = new Intent(AllTasksActivity.this, MainActivity.class);
+                    activityStartLauncher.launch(intent);
                     return true;
                 }
                 return false;
             }
         });
+
+        activityStartLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                }
+        );
     }
 
     @Override
@@ -79,30 +88,28 @@ public class AllTasksActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
-            intent.putExtra("REQUEST", "action_FollowRequest");
-            startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
+            activityStartLauncher.launch(new Intent(AllTasksActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
-            startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("USERS", "action_users");
+            activityStartLauncher.launch(new Intent(AllTasksActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
-            intent.putExtra("FOLLOWING", "action_Following");
-            startActivity(new Intent(AllTasksActivity.this, FollowingActivity.class));
-            finish();
+            intent.putExtra("FOLLOWING", "action_following");
+            activityStartLauncher.launch(new Intent(AllTasksActivity.this, FollowingActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
-            startActivity(new Intent(AllTasksActivity.this, LoginActivity.class));
-            finish();
+            intent.putExtra("PROFILE", "action_profile");
+            activityStartLauncher.launch(new Intent(AllTasksActivity.this, LoginActivity.class));
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){
-            startActivity(new Intent(AllTasksActivity.this, LoginActivity.class));
-            finish();
+            intent.putExtra("LOGOUT", "action_logout");
+            activityStartLauncher.launch(new Intent(AllTasksActivity.this, LoginActivity.class));
             return true;
         }
         return false;
