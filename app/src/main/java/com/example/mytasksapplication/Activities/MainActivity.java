@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -15,21 +14,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
+import com.example.mytasksapplication.CustomCalendarView;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private Model model;
     private DailyTasksAdapter adapter;
     private List<Task> tasks;
-    private CalendarView calendarView;
+    private CustomCalendarView customCalendarView;
     private ListView lstDailyTasks;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("Calander");
+        setTitle("Calendar");
 
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
         tasks = model.tempData();
@@ -59,31 +62,34 @@ public class MainActivity extends AppCompatActivity {
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
 
-        calendarView = findViewById(R.id.calendarView);
-        calendarView.setOnDateChangeListener((view, year, month, day) -> {
-            Date selectedDate = new Date(year, month, day);
+        // Initialize custom calendar view
+        customCalendarView = findViewById(R.id.customCalendarView);
+        customCalendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
+            // Use Calendar to create Date (fix deprecated constructor usage)
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, dayOfMonth); // Month is 0-based
+            Date selectedDate = calendar.getTime();
             updateTasksForSelectedDate(selectedDate);
         });
+        drawLines();
 
-        bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.nav_Add) {
-                    Intent intent = new Intent(MainActivity.this, NewTaskActivity.class);
-                    activityStartLauncher.launch(intent);
-                    return true;
-                } else if (item.getItemId() == R.id.nav_Tasks) {
-                    Intent intent = new Intent(MainActivity.this, AllTasksActivity.class);
-                    activityStartLauncher.launch(intent);
-                    return true;
-                }
-                return false;
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.nav_Add) {
+                Intent intent = new Intent(MainActivity.this, NewTaskActivity.class);
+                activityStartLauncher.launch(intent);
+                return true;
+            } else if (item.getItemId() == R.id.nav_Tasks) {
+                Intent intent = new Intent(MainActivity.this, AllTasksActivity.class);
+                activityStartLauncher.launch(intent);
+                return true;
             }
+            return false;
         });
 
         activityStartLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
+                    // Handle result if needed
                 }
         );
     }
@@ -142,5 +148,16 @@ public class MainActivity extends AppCompatActivity {
             tvEmptyList.setText("You don't have any events");
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
+    }
+
+    // Draw lines based on task dates
+    private void drawLines() {
+        Set<Long> taskDates = new HashSet<>();
+        for (Task task : tasks) {
+            taskDates.add(task.getDate().getTime()); // Add the timestamp of the task
+        }
+
+        // Update custom calendar view with task dates
+        customCalendarView.setTaskDates(taskDates); // Pass task dates to the custom calendar view
     }
 }

@@ -11,11 +11,11 @@ public class Task {
     private Time start, end, remTime;
     private Date date, remDate;
     private boolean reminder, important, started;
-    private int progress;
+    private int progress, colour;
 
     public Task(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
                 Time remTime, Date date, Date remDate, boolean reminder, boolean important,
-                boolean started, int progress) {
+                boolean started, int progress, int colour) {
         this.title = title;
         this.details = details;
         this.group = group;
@@ -29,6 +29,7 @@ public class Task {
         this.important = important;
         this.started = started;
         this.progress = progress;
+        this.colour=colour;
     }
 
     public String getTitle() { return title; }
@@ -69,4 +70,7 @@ public class Task {
 
     public int getProgress() { return progress; }
     public void setProgress(int progress) { this.progress = progress; }
+
+    public int getColour() { return colour; }
+    public void setColour(int colour) { this.colour = colour; }
 }

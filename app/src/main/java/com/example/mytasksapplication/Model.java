@@ -69,9 +69,9 @@ public class Model {
 
     public void addTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
                         Time remTime, Date date, Date remDate, boolean reminder, boolean important,
-                        boolean started, int progress) {
+                        boolean started, int progress, int colour) {
         Task task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
-                reminder, important, started, progress);
+                reminder, important, started, progress, colour);
         currentUser.getTasks().add(task);
 
         // add task for others in shareWithUser
@@ -81,7 +81,7 @@ public class Model {
                 User userToShareWith = findUserByUsername(username);
                 shareWithUsers.remove(username);
                 task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
-                        reminder, important, started, progress);
+                        reminder, important, started, progress, colour);
                 userToShareWith.getTasks().add(task);
                 shareWithUsers.add(username);
             }
@@ -172,7 +172,8 @@ public class Model {
                 true,
                 true,
                 false,
-                50
+                50,
+                0xFF00FF00 // Green color (hexadecimal representation of a color)
         ));
 
         tasks.add(new Task(
@@ -188,7 +189,8 @@ public class Model {
                 false,
                 false,
                 false,
-                20
+                20,
+                0xFFFF0000 // Red color (hexadecimal representation of a color)
         ));
 
         tasks.add(new Task(
@@ -204,7 +206,8 @@ public class Model {
                 true,
                 false,
                 true,
-                75
+                75,
+                0xFF0000FF // Blue color (hexadecimal representation of a color)
         ));
 
         tasks.add(new Task(
@@ -220,7 +223,8 @@ public class Model {
                 false,
                 true,
                 true,
-                100
+                100,
+                0xFFFFFF00 // Yellow color (hexadecimal representation of a color)
         ));
 
         tasks.add(new Task(
@@ -236,9 +240,11 @@ public class Model {
                 true,
                 true,
                 false,
-                10
+                10,
+                0xFF00FFFF // Cyan color (hexadecimal representation of a color)
         ));
 
         return tasks;
     }
+
 }
