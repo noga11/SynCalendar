@@ -66,19 +66,49 @@
             android:textSize="22sp" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:id="@+id/tvPublicOrPrivate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textSize="20sp"
+        android:layout_marginRight="10dp"
+        android:text="Make your account: " />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <RadioButton
+            android:id="@+id/rbtnPublic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:textSize="20sp"
+            android:text="Public" />
+
+        <RadioButton
+            android:id="@+id/rbtnPrivate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Private" />
+
+    </RadioGroup>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="40">
 
         <TextView
             android:id="@+id/tvQuestion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10dp"
+            android:padding="5dp"
             android:text="Already Have an account?"
             android:textSize="20sp" />
 
@@ -87,7 +117,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:padding="10dp"
+            android:padding="5dp"
             android:text="Login"
             android:textColor="#3F51B5"
             android:textSize="20sp" />

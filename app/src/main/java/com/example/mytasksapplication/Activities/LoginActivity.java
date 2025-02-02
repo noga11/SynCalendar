@@ -2,6 +2,7 @@ package com.example.mytasksapplication.Activities;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -17,9 +18,10 @@ import com.google.android.material.textfield.TextInputLayout;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private TextView tvScreenTitle, tvLoginSignUp, tvQuestion;
+    private TextView tvScreenTitle, tvLoginSignUp, tvQuestion, tvPublicOrPrivate;
     private TextInputLayout tilEmail;
     private TextInputEditText tietUsername, tietEmail,tietPassword;
+    private RadioButton rbtnPublic, rbtnPrivate;
     private boolean LOrSChecked = true;
     private String source;
     private User currentUser;
@@ -40,6 +42,9 @@ public class LoginActivity extends AppCompatActivity {
         tvQuestion = findViewById(R.id.tvQuestion);
         tilEmail = findViewById(R.id.tilEmail);
         tietUsername = findViewById(R.id.tietUsername);
+        tvPublicOrPrivate = findViewById(R.id.tvPublicOrPrivate);
+        rbtnPublic = findViewById(R.id.rbtnPublic);
+        rbtnPrivate = findViewById(R.id.rbtnPrivate);
 
         if ("action_profile".equals(source)){
             tvScreenTitle.setText("Your Profile");
@@ -53,13 +58,19 @@ public class LoginActivity extends AppCompatActivity {
                 tvLoginSignUp.setText("Sign up");
                 tvQuestion.setText("Don't have an account?");
                 tilEmail.setVisibility(View.GONE);
+                tvPublicOrPrivate.setVisibility(View.GONE);
+                rbtnPublic.setVisibility(View.GONE);
+                rbtnPrivate.setVisibility(View.GONE);
                 LOrSChecked = false;
             }
             else{ // Sign Up screen
                 tvScreenTitle.setText("Sign Up");
                 tvLoginSignUp.setText("Login");
-                tvQuestion.setText("Already Have an account?");
+                tvQuestion.setText("Already have an account?");
                 tilEmail.setVisibility(View.VISIBLE);
+                tvPublicOrPrivate.setVisibility(View.VISIBLE);
+                rbtnPublic.setVisibility(View.VISIBLE);
+                rbtnPrivate.setVisibility(View.VISIBLE);
                 LOrSChecked = true;
             }
         });

@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         else if (item.getItemId() == R.id.action_logout){
             intent.putExtra("LOGOUT", "action_logout");
             activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
             return true;
         }
         return false;
