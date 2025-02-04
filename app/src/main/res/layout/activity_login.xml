@@ -7,7 +7,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_margin="10dp"
-    tools:context=".Activities.LoginActivity">
+    tools:context=".Activities.LoginActivity"
+    android:background="@color/white">
 
     <TextView
         android:id="@+id/tvScreenTitle"
@@ -19,12 +20,12 @@
         android:textStyle="bold"
         android:textSize="40sp" />
 
-    <ImageView
-        android:id="@+id/imageView2"
+    <ImageButton
+        android:id="@+id/imageButton5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        app:srcCompat="@drawable/images" />
+        android:background="@color/white"
+        app:srcCompat="@drawable/profile_picture_placeholder" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -36,6 +37,7 @@
             android:layout_height="wrap_content"
             android:hint="Username"
             android:textSize="22sp"/>
+
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -55,6 +57,12 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/imageButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/baseline_person_outline_24" />
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/tietPassword"
