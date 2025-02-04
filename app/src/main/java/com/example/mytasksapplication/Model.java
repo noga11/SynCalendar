@@ -2,6 +2,7 @@ package com.example.mytasksapplication;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.Image;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -36,9 +37,9 @@ public class Model {
         return null;
     }
 
-    public void createUser(String uName, String email, String password, ArrayList<Task> tasks) throws Exception {
+    public void createUser(String uName, String email, String password, Image profilePic) throws Exception {
         if (findUserByUsername(uName) != null) throw new Exception("Username already exists");
-        User newUser = new User(uName, email, password, tasks);
+        User newUser = new User(uName, email, password, null, profilePic);
         allUsers.add(newUser);
         currentUser = newUser;
     }

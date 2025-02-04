@@ -1,30 +1,40 @@
 package com.example.mytasksapplication.Activities;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private TextView tvScreenTitle, tvLoginSignUp, tvQuestion, tvPublicOrPrivate;
     private TextInputLayout tilEmail;
-    private TextInputEditText tietUsername, tietEmail,tietPassword;
+    private ImageButton imgbtnPicture;
+    private Button btnEnter;
+    private TextInputEditText tietUsername, tietEmail, tietPassword;
     private RadioButton rbtnPublic, rbtnPrivate;
     private boolean LOrSChecked = true;
     private String source;
     private User currentUser;
+    private Model model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        model = Model.getInstance(this);
 
         tvScreenTitle = findViewById(R.id.tvScreenTitle);
         tvLoginSignUp = findViewById(R.id.tvLoginSignUp);
@@ -45,6 +56,13 @@ public class LoginActivity extends AppCompatActivity {
         tvPublicOrPrivate = findViewById(R.id.tvPublicOrPrivate);
         rbtnPublic = findViewById(R.id.rbtnPublic);
         rbtnPrivate = findViewById(R.id.rbtnPrivate);
+        imgbtnPicture = findViewById(R.id.imgbtnPicture);
+        btnEnter = findViewById(R.id.btnEnter);
+        tietUsername = findViewById(R.id.tietUsername);
+        tietEmail = findViewById(R.id.tietEmail);
+        tietPassword = findViewById(R.id.tietPassword);
+
+        btnEnter.setOnClickListener(this);
 
         if ("action_profile".equals(source)){
             tvScreenTitle.setText("Your Profile");
@@ -74,5 +92,30 @@ public class LoginActivity extends AppCompatActivity {
                 LOrSChecked = true;
             }
         });
+    }
+
+
+    private ActivityResultLauncher picLauncher = registerForActivityResult(new ActivityResultContracts.TakePicturePreview()
+            , new ActivityResultCallback<Bitmap>() {
+                @Override
+                public void onActivityResult(Bitmap o) {
+                    imgbtnPicture.setImageBitmap(o);
+                }
+            });
+    public void setUserPicture(View view) {
+        picLauncher.launch(null);
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view == btnEnter){
+            if (LOrSChecked){ //Login screen
+                model.login(tietUsername.toString(), tietPassword.toString());
+            }
+            else{ // Sign Up screen
+
+                model.createUser(tietUsername, tietEmail,tietPassword, imgbtnPicture);
+            }
+        }
     }
 }

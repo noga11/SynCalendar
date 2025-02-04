@@ -21,10 +21,11 @@
         android:textSize="40sp" />
 
     <ImageButton
-        android:id="@+id/imageButton5"
+        android:id="@+id/imgbtnPicture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
+        android:onClick="setUserPicture"
         app:srcCompat="@drawable/profile_picture_placeholder" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -126,7 +127,7 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnEnter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Enter"
