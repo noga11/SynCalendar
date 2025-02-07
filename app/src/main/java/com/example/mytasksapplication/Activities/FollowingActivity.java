@@ -36,7 +36,7 @@ public class FollowingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_following);
 
-        String source = getIntent().getStringExtra("SOURCE");
+        source = getIntent().getStringExtra("SOURCE");
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

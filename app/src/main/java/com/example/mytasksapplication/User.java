@@ -1,27 +1,31 @@
 package com.example.mytasksapplication;
 
-import android.media.Image;
+import android.graphics.Bitmap;
 
 import java.util.ArrayList;
 
 public class User {
     private String uName, email, password;
-    private Image profilePic;
+    private Bitmap profilePic;
     private ArrayList<Task> tasks;
+    private Boolean privacy;
 
-    public User(String uName, String email, String password, ArrayList<Task> tasks, Image profilePic) {
+    public User(String uName, String email, String password, ArrayList<Task> tasks, Bitmap profilePic, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.password = password;
         this.tasks = tasks;
         this.profilePic = profilePic;
+        this.privacy = privacy;
     }
 
-    public Image getProfilePic() {
+    public Boolean getPrivacy() { return privacy; }
+    public void setPrivacy(Boolean privacy) { this.privacy = privacy; }
+
+    public Bitmap getProfilePic() {
         return profilePic;
     }
-
-    public void setProfilePic(Image profilePic) {
+    public void setProfilePic(Bitmap profilePic) {
         this.profilePic = profilePic;
     }
 

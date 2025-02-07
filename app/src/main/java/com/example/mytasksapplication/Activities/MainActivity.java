@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
         lstDailyTasks.setAdapter(adapter);
 
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        //temporary comment 4
         tvEmptyList = findViewById(R.id.tvEmptyList);
         if (tasks.isEmpty()) {
             tvEmptyList.setText("There are no events");

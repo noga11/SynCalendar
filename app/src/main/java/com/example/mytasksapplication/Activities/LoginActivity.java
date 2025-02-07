@@ -1,12 +1,16 @@
 package com.example.mytasksapplication.Activities;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultCallback;
@@ -31,10 +35,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button btnEnter;
     private TextInputEditText tietUsername, tietEmail, tietPassword;
     private RadioButton rbtnPublic, rbtnPrivate;
-    private boolean LOrSChecked = true;
+    private boolean LOrSChecked = true, privacy;
     private String source;
     private User currentUser;
     private Model model;
+    private ActivityResultLauncher<Intent> activityStartLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return insets;
         });
         model = Model.getInstance(this);
+        source = getIntent().getStringExtra("PROFILE");
 
         tvScreenTitle = findViewById(R.id.tvScreenTitle);
         tvLoginSignUp = findViewById(R.id.tvLoginSignUp);
@@ -63,6 +69,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         tietPassword = findViewById(R.id.tietPassword);
 
         btnEnter.setOnClickListener(this);
+        rbtnPublic.setOnClickListener(this);
+        rbtnPrivate.setOnClickListener(this);
 
         if ("action_profile".equals(source)){
             tvScreenTitle.setText("Your Profile");
@@ -92,6 +100,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 LOrSChecked = true;
             }
         });
+
+        activityStartLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // Handle result if needed
+                }
+        );
     }
 
 
@@ -108,13 +123,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
+        if (view == rbtnPublic){
+            privacy = false;
+        }
+        else if (view == rbtnPrivate){
+            privacy = true;
+        }
         if (view == btnEnter){
             if (LOrSChecked){ //Login screen
-                model.login(tietUsername.toString(), tietPassword.toString());
+                if (model.login(tietUsername.toString(), tietPassword.toString())!=null){
+                    activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                }
             }
             else{ // Sign Up screen
-
-                model.createUser(tietUsername, tietEmail,tietPassword, imgbtnPicture);
+                String username = tietUsername.getText().toString();
+                String email = tietEmail.getText().toString();
+                String password = tietPassword.getText().toString();
+                Bitmap userProfilePic = ((BitmapDrawable) imgbtnPicture.getDrawable()).getBitmap();
+                Log.d("LoginActivity", "Username: " + username + ", Email: " + email + ", Password: " + password); // Check values
+                try {
+                    model.createUser(username, email, password, userProfilePic, privacy);
+                    activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(this, "username already exists, choose a different one;", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }

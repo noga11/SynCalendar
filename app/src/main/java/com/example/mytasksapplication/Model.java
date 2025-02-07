@@ -2,7 +2,9 @@ package com.example.mytasksapplication;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.media.Image;
+import android.util.Log;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -37,11 +39,12 @@ public class Model {
         return null;
     }
 
-    public void createUser(String uName, String email, String password, Image profilePic) throws Exception {
+    public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) throws Exception {
         if (findUserByUsername(uName) != null) throw new Exception("Username already exists");
-        User newUser = new User(uName, email, password, null, profilePic);
+        User newUser = new User(uName, email, password, null, profilePic, privacy);
         allUsers.add(newUser);
         currentUser = newUser;
+        Log.d("Model", "User created successfully: " + uName); // Add a log to confirm
     }
 
     public User login(String email, String password) {
