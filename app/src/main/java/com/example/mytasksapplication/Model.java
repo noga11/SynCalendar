@@ -3,16 +3,11 @@ package com.example.mytasksapplication;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.util.Log;
 
-import java.sql.Date;
-import java.sql.Time;
 import java.util.ArrayList;
-
-import java.sql.Date;
-import java.sql.Time;
-import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Model {
     private static Model instance;
@@ -31,7 +26,7 @@ public class Model {
         return instance;
     }
 
-    //User Functions
+    // User Functions
     private User findUserByUsername(String username) {
         for (User u : allUsers) {
             if (u.getuName().equals(username)) return u;
@@ -61,7 +56,7 @@ public class Model {
         currentUser = null;
     }
 
-    //Tasks functions
+    // Tasks Functions
     public Task getTaskByTitleAndUser(String title, User user) {
         for (Task task : user.getTasks()) {
             if (task.getTitle().equals(title)) {
@@ -71,14 +66,14 @@ public class Model {
         return null;
     }
 
-    public void addTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
-                        Time remTime, Date date, Date remDate, boolean reminder, boolean important,
-                        boolean started, int progress, int colour) {
+    public void addTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+                        Date start, Date end, Date remTime, Date date, Date remDate,
+                        boolean reminder, boolean important, boolean started, int progress, int colour) {
         Task task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, started, progress, colour);
         currentUser.getTasks().add(task);
 
-        // add task for others in shareWithUser
+        // Share task with others
         if (shareWithUsers != null) {
             shareWithUsers.add(currentUser.getuName());
             for (String username : shareWithUsers) {
@@ -92,9 +87,9 @@ public class Model {
         }
     }
 
-    public void updateTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
-                           Time remTime, Date date, Date remDate, boolean reminder, boolean important,
-                           boolean started, int progress) {
+    public void updateTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+                           Date start, Date end, Date remTime, Date date, Date remDate,
+                           boolean reminder, boolean important, boolean started, int progress) {
         // Update the task for the current user
         Task task = getTaskByTitleAndUser(title, currentUser);
         if (task != null) {
@@ -140,7 +135,7 @@ public class Model {
     public void deleteTask(String title) {
         Task taskToDelete = getTaskByTitleAndUser(title, currentUser);
 
-        // delete currentUser from others shareWithUsers
+        // Remove currentUser from other users' shared list
         ArrayList<String> shareWithUsers = taskToDelete.getShareWithUsers();
         if (shareWithUsers != null) {
             for (String username : shareWithUsers) {
@@ -156,99 +151,40 @@ public class Model {
             }
         }
 
-        // delete task for current user
+        // Remove task for the current user
         currentUser.getTasks().remove(taskToDelete);
     }
 
     public ArrayList<Task> tempData() {
         ArrayList<Task> tasks = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
 
-        tasks.add(new Task(
-                "Task 1",
-                "Details for Task 1",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                Time.valueOf("09:00:00"),
-                Time.valueOf("10:00:00"),
-                Time.valueOf("08:30:00"),
-                Date.valueOf("2025-01-05"),
-                Date.valueOf("2025-01-04"),
-                true,
-                true,
-                false,
-                50,
-                0xFF00FF00 // Green color (hexadecimal representation of a color)
-        ));
+        calendar.set(2025, Calendar.FEBRUARY, 5, 9, 0);
+        Date start1 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 5, 10, 0);
+        Date end1 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 5, 8, 30);
+        Date remTime1 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 4);
+        Date remDate1 = calendar.getTime();
 
-        tasks.add(new Task(
-                "Task 2",
-                "Details for Task 2",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                Time.valueOf("11:00:00"),
-                Time.valueOf("12:00:00"),
-                Time.valueOf("10:30:00"),
-                Date.valueOf("2025-01-10"),
-                Date.valueOf("2025-01-09"),
-                false,
-                false,
-                false,
-                20,
-                0xFFFF0000 // Red color (hexadecimal representation of a color)
-        ));
+        tasks.add(new Task("Task 1", "Details for Task 1", new ArrayList<>(), new ArrayList<>(),
+                start1, end1, remTime1, start1, remDate1,
+                true, true, false, 50, 0xFF00FF00));
 
-        tasks.add(new Task(
-                "Task 3",
-                "Details for Task 3",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                Time.valueOf("13:00:00"),
-                Time.valueOf("14:00:00"),
-                Time.valueOf("12:30:00"),
-                Date.valueOf("2025-01-15"),
-                Date.valueOf("2025-01-14"),
-                true,
-                false,
-                true,
-                75,
-                0xFF0000FF // Blue color (hexadecimal representation of a color)
-        ));
+        calendar.set(2025, Calendar.FEBRUARY, 10, 11, 0);
+        Date start2 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 10, 12, 0);
+        Date end2 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 10, 10, 30);
+        Date remTime2 = calendar.getTime();
+        calendar.set(2025, Calendar.FEBRUARY, 9);
+        Date remDate2 = calendar.getTime();
 
-        tasks.add(new Task(
-                "Task 4",
-                "Details for Task 4",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                Time.valueOf("15:00:00"),
-                Time.valueOf("16:00:00"),
-                Time.valueOf("14:30:00"),
-                Date.valueOf("2025-01-20"),
-                Date.valueOf("2025-01-19"),
-                false,
-                true,
-                true,
-                100,
-                0xFFFFFF00 // Yellow color (hexadecimal representation of a color)
-        ));
-
-        tasks.add(new Task(
-                "Task 5",
-                "Details for Task 5",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                Time.valueOf("17:00:00"),
-                Time.valueOf("18:00:00"),
-                Time.valueOf("16:30:00"),
-                Date.valueOf("2025-01-25"),
-                Date.valueOf("2025-01-24"),
-                true,
-                true,
-                false,
-                10,
-                0xFF00FFFF // Cyan color (hexadecimal representation of a color)
-        ));
+        tasks.add(new Task("Task 2", "Details for Task 2", new ArrayList<>(), new ArrayList<>(),
+                start2, end2, remTime2, start2, remDate2,
+                false, false, false, 20, 0xFFFF0000));
 
         return tasks;
     }
-
 }

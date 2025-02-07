@@ -1,21 +1,18 @@
 package com.example.mytasksapplication;
 
-import java.sql.Date;
-import java.sql.Time;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Task {
     private String title, details;
     private ArrayList<String> group, shareWithUsers;
-    private Time start, end, remTime;
-    private Date date, remDate;
+    private Date start, end, remTime, date, remDate;
     private boolean reminder, important, started;
     private int progress, colour;
 
-    public Task(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers, Time start, Time end,
-                Time remTime, Date date, Date remDate, boolean reminder, boolean important,
-                boolean started, int progress, int colour) {
+    public Task(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+                Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
+                boolean important, boolean started, int progress, int colour) {
         this.title = title;
         this.details = details;
         this.group = group;
@@ -23,13 +20,13 @@ public class Task {
         this.start = start;
         this.end = end;
         this.date = date;
-        this.reminder = reminder;
         this.remTime = remTime;
         this.remDate = remDate;
+        this.reminder = reminder;
         this.important = important;
         this.started = started;
         this.progress = progress;
-        this.colour=colour;
+        this.colour = colour;
     }
 
     public String getTitle() { return title; }
@@ -44,14 +41,14 @@ public class Task {
     public ArrayList<String> getShareWithUsers() { return shareWithUsers; }
     public void setShareWithUsers(ArrayList<String> shareWithUsers) { this.shareWithUsers = shareWithUsers; }
 
-    public Time getStart() { return start; }
-    public void setStart(Time start) { this.start = start; }
+    public Date getStart() { return start; }
+    public void setStart(Date start) { this.start = start; }
 
-    public Time getEnd() { return end; }
-    public void setEnd(Time end) { this.end = end; }
+    public Date getEnd() { return end; }
+    public void setEnd(Date end) { this.end = end; }
 
-    public Time getRemTime() { return remTime; }
-    public void setRemTime(Time remTime) { this.remTime = remTime; }
+    public Date getRemTime() { return remTime; }
+    public void setRemTime(Date remTime) { this.remTime = remTime; }
 
     public Date getDate() { return date; }
     public void setDate(Date date) { this.date = date; }

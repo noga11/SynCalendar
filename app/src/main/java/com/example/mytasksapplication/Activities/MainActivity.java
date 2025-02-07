@@ -7,7 +7,6 @@ import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -61,15 +60,14 @@ public class MainActivity extends AppCompatActivity {
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
 
-        // Initialize custom calendar view
         customCalendarView = findViewById(R.id.customCalendarView);
         customCalendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            // Use Calendar to create Date (fix deprecated constructor usage)
             Calendar calendar = Calendar.getInstance();
-            calendar.set(year, month, dayOfMonth); // Month is 0-based
+            calendar.set(year, month, dayOfMonth);
             Date selectedDate = calendar.getTime();
             updateTasksForSelectedDate(selectedDate);
         });
+
         drawLines();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -102,27 +100,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
-        if (item.getItemId() == R.id.action_follow_request) {
-            intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
-            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
-            return true;
-        }
-        else if (item.getItemId() == R.id.action_users){
-            intent.putExtra("USERS", "action_users");
-            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
-            return true;
-        }
-        else if (item.getItemId() == R.id.action_following){
-            intent.putExtra("FOLLOWING", "action_following");
-            activityStartLauncher.launch(new Intent(MainActivity.this, FollowingActivity.class));
-            return true;
-        }
-        else if (item.getItemId() == R.id.action_profile){
+        if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
             activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
             return true;
-        }
-        else if (item.getItemId() == R.id.action_logout){
+        } else if (item.getItemId() == R.id.action_logout) {
             intent.putExtra("LOGOUT", "action_logout");
             activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
             finish();
@@ -133,9 +115,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateTasksForSelectedDate(Date selectedDate) {
         List<Task> filteredTasks = new ArrayList<>();
+        Calendar selectedCalendar = Calendar.getInstance();
+        selectedCalendar.setTime(selectedDate);
 
         for (Task task : tasks) {
-            if (task.getDate().equals(selectedDate)) {
+            Calendar taskCalendar = Calendar.getInstance();
+            taskCalendar.setTime(task.getDate());
+
+            if (selectedCalendar.get(Calendar.YEAR) == taskCalendar.get(Calendar.YEAR) &&
+                    selectedCalendar.get(Calendar.MONTH) == taskCalendar.get(Calendar.MONTH) &&
+                    selectedCalendar.get(Calendar.DAY_OF_MONTH) == taskCalendar.get(Calendar.DAY_OF_MONTH)) {
                 filteredTasks.add(task);
             }
         }
@@ -150,14 +139,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Draw lines based on task dates
     private void drawLines() {
         Set<Long> taskDates = new HashSet<>();
         for (Task task : tasks) {
-            taskDates.add(task.getDate().getTime()); // Add the timestamp of the task
+            taskDates.add(task.getDate().getTime());
         }
-
-        // Update custom calendar view with task dates
-        customCalendarView.setTaskDates(taskDates); // Pass task dates to the custom calendar view
+        customCalendarView.setTaskDates(taskDates);
     }
 }

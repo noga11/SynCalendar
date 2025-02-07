@@ -11,12 +11,15 @@ import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DailyTasksAdapter extends ArrayAdapter<Task> {
 
     private Context context;
     private List<Task> dailyTasks;
+    private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault()); // Format for time display
 
     public DailyTasksAdapter(Context context, List<Task> tasks) {
         super(context, 0, tasks);
@@ -36,7 +39,7 @@ public class DailyTasksAdapter extends ArrayAdapter<Task> {
         tvTitle.setText(task.getTitle());
 
         TextView tvSpacer = convertView.findViewById(R.id.tvSpacer);
-        tvTitle.setText(" ");
+        tvSpacer.setText(" ");
 
         TextView tvStart = convertView.findViewById(R.id.tvStart);
         tvStart.setText(formatTime(task.getStart()));
@@ -47,11 +50,10 @@ public class DailyTasksAdapter extends ArrayAdapter<Task> {
         return convertView;
     }
 
-    // Helper method to format the Time object (Hour and Minute only)
-    private String formatTime(java.sql.Time time) {
-        if (time != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm"); // Format to display only Hour and Minute
-            return sdf.format(new java.util.Date(time.getTime()));
+    // Helper method to format Date object to display Hour and Minute only
+    private String formatTime(Date date) {
+        if (date != null) {
+            return timeFormat.format(date);
         }
         return "";
     }
