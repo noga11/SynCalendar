@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -56,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
         tvEmptyList = findViewById(R.id.tvEmptyList);
         if (tasks.isEmpty()) {
-            tvEmptyList.setText("There are no events");
+            tvEmptyList.setText("You don't have any events, press the + button and add an event");
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
+
 
         customCalendarView = findViewById(R.id.customCalendarView);
         customCalendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
@@ -68,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             updateTasksForSelectedDate(selectedDate);
         });
 
-        drawLines();
+//        drawLines();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.nav_Add) {
@@ -113,6 +115,12 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        customCalendarView.invalidate();
+    }
+
     private void updateTasksForSelectedDate(Date selectedDate) {
         List<Task> filteredTasks = new ArrayList<>();
         Calendar selectedCalendar = Calendar.getInstance();
@@ -130,20 +138,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         adapter.clear();
-        adapter.addAll(filteredTasks);
-        adapter.notifyDataSetChanged();
-
-        if (filteredTasks.isEmpty()) {
+        if (!filteredTasks.isEmpty()) {
+            adapter.addAll(filteredTasks);
+            lstDailyTasks.setEmptyView(null);
+        } else {
             tvEmptyList.setText("You don't have any events");
             lstDailyTasks.setEmptyView(tvEmptyList);
         }
+
+        adapter.notifyDataSetChanged();
     }
 
-    private void drawLines() {
+
+/*    private void drawLines() {
         Set<Long> taskDates = new HashSet<>();
         for (Task task : tasks) {
             taskDates.add(task.getDate().getTime());
         }
         customCalendarView.setTaskDates(taskDates);
-    }
+    }*/
 }
