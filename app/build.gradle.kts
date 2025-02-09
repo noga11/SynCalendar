@@ -44,5 +44,8 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.8.0")
+    implementation("com.google.android.material:material:1.8.0")
+
 
 }
