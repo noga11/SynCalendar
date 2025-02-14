@@ -153,7 +153,6 @@ public class Model {
                     .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore", e));
         }
     }
-
     // Save task to Firestore for another user
     private void saveTaskToFirestoreForUser(String username, Task task) {
         User user = findUserByUsername(username);
@@ -183,6 +182,7 @@ public class Model {
             task.setRemDate(remDate);
             task.setImportant(important);
             task.setColour(colour);
+            updateTaskForCurrentUser(task);
         }
 
         // Update the task for the users it's shared with
@@ -208,6 +208,32 @@ public class Model {
                 }
             }
         }
+    }
+
+    private void updateTaskForCurrentUser(Task task){
+        if (firebaseUser != null) {
+            String userId = firebaseUser.getUid();
+            DocumentReference taskRef = firestore.collection("users").document(userId).collection("tasks").document(task.getId());
+            taskRef.update(
+                            "title", task.getTitle(),
+                            "details", task.getDetails(),
+                            "group", task.getGroup(),
+                            "adress", task.getAdress(),
+                            "shareWithUsers", task.getShareWithUsers(),
+                            "start", task.getStart(),
+                            "end", task.getEnd(),
+                            "reminder", task.isReminder(),
+                            "remTime", task.getRemTime(),
+                            "remDate", task.getRemDate(),
+                            "important", task.isImportant(),
+                            "colour", task.getColour()
+                    )
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task updated in Firestore"))
+                    .addOnFailureListener(e -> Log.e("Model", "Error updating task in Firestore", e));
+        }
+    }
+    private void updateTaskForSharingUsers(){
+
     }
 
     public void deleteTask(String title) {
