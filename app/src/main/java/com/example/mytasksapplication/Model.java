@@ -1,9 +1,11 @@
 package com.example.mytasksapplication;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.util.Log;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -11,14 +13,16 @@ import java.util.Date;
 
 public class Model {
     private static Model instance;
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
     private Context context;
     private User currentUser;
-    private SharedPreferences sp;
 
     private ArrayList<User> allUsers = new ArrayList<>();
 
     public Model(Context context) {
         this.context = context;
+        firebaseAuth = FirebaseAuth.getInstance();
     }
 
     public static Model getInstance(Context context) {
@@ -34,29 +38,43 @@ public class Model {
         return null;
     }
 
-    public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) throws Exception {
-        if (findUserByUsername(uName) != null) throw new Exception("Username already exists");
-        User newUser = new User(uName, email, password, null, profilePic, privacy);
-        allUsers.add(newUser);
-        currentUser = newUser;
-        Log.d("Model", "User created successfully: " + uName); // Add a log to confirm
+    public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) {
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        firebaseUser = firebaseAuth.getCurrentUser();
+                        Log.d("Model", "User created successfully: " + currentUser.getEmail());
+                        currentUser = new User(uName, email, password, null, profilePic, privacy);
+//                        allUsers.add(currentUser);
+                        // still need to save currentUsers other stuff
+
+                    } else {
+                        Log.e("Model", "User creation failed", task.getException());
+                    }
+                });
     }
 
     public User login(String email, String password) {
-        for (User u : allUsers) {
-            if (u.getuName().equals(email) && u.getPassword().equals(password)) {
-                currentUser = u;
-                return currentUser;
-            }
-        }
-        return null;
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        firebaseUser = firebaseAuth.getCurrentUser();
+                        Log.d("Model", "User logged in successfully: " + currentUser.getEmail());
+//                        currentUser = firebaseUser
+                    } else {
+                        Log.e("Model", "Login failed", task.getException());
+                    }
+                });
+        return currentUser;
     }
 
     public void logout() {
+        firebaseAuth.signOut();
+        Log.d("Model", "User logged out");
         currentUser = null;
     }
 
-    // Tasks Functions
+        // Tasks Functions
     public Task getTaskByTitleAndUser(String title, User user) {
         for (Task task : user.getTasks()) {
             if (task.getTitle().equals(title)) {
