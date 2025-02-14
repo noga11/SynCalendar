@@ -6,6 +6,8 @@ import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,6 +17,7 @@ public class Model {
     private static Model instance;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
+    private FirebaseFirestore firestore;
     private Context context;
     private User currentUser;
 
@@ -23,6 +26,7 @@ public class Model {
     public Model(Context context) {
         this.context = context;
         firebaseAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
     }
 
     public static Model getInstance(Context context) {
@@ -46,11 +50,22 @@ public class Model {
                         Log.d("Model", "User created successfully: " + currentUser.getEmail());
                         currentUser = new User(uName, email, password, null, profilePic, privacy);
 //                        allUsers.add(currentUser);
-                        // still need to save currentUsers other stuff
+                        saveUserToFirestore(firebaseUser.getUid(), uName, email, profilePic, privacy);
 
                     } else {
                         Log.e("Model", "User creation failed", task.getException());
                     }
+                });
+    }
+
+    private void saveUserToFirestore(String userId, String uName, String email, Bitmap profilePic, Boolean privacy) {
+        DocumentReference userRef = firestore.collection("users").document(userId);
+        userRef.set(new User(uName, email, null, null, profilePic, privacy))
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Model", "User details saved to Firestore.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Model", "Error saving user to Firestore", e);
                 });
     }
 
@@ -60,12 +75,26 @@ public class Model {
                     if (task.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
                         Log.d("Model", "User logged in successfully: " + currentUser.getEmail());
-//                        currentUser = firebaseUser
+                        getUserFromFirestore(firebaseUser.getUid());
                     } else {
                         Log.e("Model", "Login failed", task.getException());
                     }
                 });
         return currentUser;
+    }
+
+    private void getUserFromFirestore(String userId) {
+        DocumentReference userRef = firestore.collection("users").document(userId);
+        userRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                currentUser = documentSnapshot.toObject(User.class);
+                Log.d("Model", "User data retrieved: " + currentUser.getuName());
+            } else {
+                Log.e("Model", "No such user in Firestore");
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("Model", "Error retrieving user data from Firestore", e);
+        });
     }
 
     public void logout() {
@@ -74,8 +103,8 @@ public class Model {
         currentUser = null;
     }
 
-        // Tasks Functions
-    public Task getTaskByTitleAndUser(String title, User user) {
+    // Tasks Functions
+    public Task getTaskByIdAndUser(String title, User user) {
         for (Task task : user.getTasks()) {
             if (task.getTitle().equals(title)) {
                 return task;
@@ -109,7 +138,7 @@ public class Model {
                            Date start, Date end, Date remTime, Date date, Date remDate,
                            boolean reminder, boolean important, int colour) {
         // Update the task for the current user
-        Task task = getTaskByTitleAndUser(title, currentUser);
+        Task task = getTaskByIdAndUser(title, currentUser);
         if (task != null) {
             task.setTitle(title);
             task.setDetails(details);
@@ -130,7 +159,7 @@ public class Model {
             for (String username : shareWithUsers) {
                 User userToShareWith = findUserByUsername(username);
                 if (userToShareWith != null) {
-                    Task sharedTask = getTaskByTitleAndUser(title, userToShareWith);
+                    Task sharedTask = getTaskByIdAndUser(title, userToShareWith);
                     if (sharedTask != null) {
                         sharedTask.setTitle(title);
                         sharedTask.setDetails(details);
@@ -151,7 +180,7 @@ public class Model {
     }
 
     public void deleteTask(String title) {
-        Task taskToDelete = getTaskByTitleAndUser(title, currentUser);
+        Task taskToDelete = getTaskByIdAndUser(title, currentUser);
 
         // Remove currentUser from other users' shared list
         ArrayList<String> shareWithUsers = taskToDelete.getShareWithUsers();
@@ -159,7 +188,7 @@ public class Model {
             for (String username : shareWithUsers) {
                 User userToShareWith = findUserByUsername(username);
                 if (userToShareWith != null) {
-                    Task sharedTask = getTaskByTitleAndUser(title, userToShareWith);
+                    Task sharedTask = getTaskByIdAndUser(title, userToShareWith);
                     if (sharedTask != null) {
                         ArrayList<String> eachShare = sharedTask.getShareWithUsers();
                         eachShare.remove(currentUser);
