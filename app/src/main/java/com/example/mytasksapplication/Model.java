@@ -104,9 +104,9 @@ public class Model {
     }
 
     // Tasks Functions
-    public Task getTaskByIdAndUser(String title, User user) {
+    public Task getTaskByIdAndUser(String id, User user) {
         for (Task task : user.getTasks()) {
-            if (task.getTitle().equals(title)) {
+            if (task.getId().equals(id)) {
                 return task;
             }
         }
@@ -116,21 +116,52 @@ public class Model {
     public void addTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                         Date start, Date end, Date remTime, Date date, Date remDate,
                         boolean reminder, boolean important, int colour) {
+        // Create task object
         Task task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, colour);
         currentUser.getTasks().add(task);
 
-        // Share task with others
+        // Save task to Firestore
+        saveTaskToFirestore(task);
+
+        // Share task with other users
         if (shareWithUsers != null) {
             shareWithUsers.add(currentUser.getuName());
             for (String username : shareWithUsers) {
-                User userToShareWith = findUserByUsername(username);
+                // update shareWithUsers
                 shareWithUsers.remove(username);
-                task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
-                        reminder, important, colour);
+                task.setShareWithUsers(shareWithUsers);
+                User userToShareWith = findUserByUsername(username);
                 userToShareWith.getTasks().add(task);
+                // actually sharing
+                if (userToShareWith != null) {
+                    userToShareWith.getTasks().add(task);
+                    saveTaskToFirestoreForUser(userToShareWith.getuName(), task);
+                }
                 shareWithUsers.add(username);
             }
+        }
+    }
+
+    // Save task to Firestore
+    private void saveTaskToFirestore(Task task) {
+        if (firebaseUser != null) {
+            String userId = firebaseUser.getUid();
+            DocumentReference taskRef = firestore.collection("users").document(userId).collection("tasks").document(task.getId());
+            taskRef.set(task)
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore"))
+                    .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore", e));
+        }
+    }
+
+    // Save task to Firestore for another user
+    private void saveTaskToFirestoreForUser(String username, Task task) {
+        User user = findUserByUsername(username);
+        if (user != null) {
+            DocumentReference taskRef = firestore.collection("users").document(user.getEmail()).collection("tasks").document(task.getId());
+            taskRef.set(task)
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore for user: " + username))
+                    .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore for user: " + username, e));
         }
     }
 

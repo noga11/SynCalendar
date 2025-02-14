@@ -2,9 +2,10 @@ package com.example.mytasksapplication;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 
 public class Task {
-    private String title, details, group, adress;
+    private String title, details, group, adress, id;
     private ArrayList<String> shareWithUsers;
     private Date start, end, remTime, date, remDate;
     private boolean reminder, important;
@@ -13,6 +14,7 @@ public class Task {
     public Task(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                 Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
                 boolean important, int colour) {
+        this.id = UUID.randomUUID().toString();
         this.title = title;
         this.details = details;
         this.group = group;
@@ -27,6 +29,9 @@ public class Task {
         this.important = important;
         this.colour = colour;
     }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public String getAdress() { return adress; }
     public void setAdress(String adress) { this.adress = adress; }
