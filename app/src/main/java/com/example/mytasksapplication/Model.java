@@ -66,11 +66,11 @@ public class Model {
         return null;
     }
 
-    public void addTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+    public void addTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                         Date start, Date end, Date remTime, Date date, Date remDate,
-                        boolean reminder, boolean important, boolean started, int progress, int colour) {
-        Task task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
-                reminder, important, started, progress, colour);
+                        boolean reminder, boolean important, int colour) {
+        Task task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
+                reminder, important, colour);
         currentUser.getTasks().add(task);
 
         // Share task with others
@@ -79,23 +79,24 @@ public class Model {
             for (String username : shareWithUsers) {
                 User userToShareWith = findUserByUsername(username);
                 shareWithUsers.remove(username);
-                task = new Task(title, details, group, shareWithUsers, start, end, remTime, date, remDate,
-                        reminder, important, started, progress, colour);
+                task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
+                        reminder, important, colour);
                 userToShareWith.getTasks().add(task);
                 shareWithUsers.add(username);
             }
         }
     }
 
-    public void updateTask(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+    public void updateTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                            Date start, Date end, Date remTime, Date date, Date remDate,
-                           boolean reminder, boolean important, boolean started, int progress) {
+                           boolean reminder, boolean important, int colour) {
         // Update the task for the current user
         Task task = getTaskByTitleAndUser(title, currentUser);
         if (task != null) {
             task.setTitle(title);
             task.setDetails(details);
             task.setGroup(group);
+            task.setAdress(adress);
             task.setShareWithUsers(shareWithUsers);
             task.setStart(start);
             task.setEnd(end);
@@ -103,8 +104,7 @@ public class Model {
             task.setRemTime(remTime);
             task.setRemDate(remDate);
             task.setImportant(important);
-            task.setStarted(started);
-            task.setProgress(progress);
+            task.setColour(colour);
         }
 
         // Update the task for the users it's shared with
@@ -117,6 +117,7 @@ public class Model {
                         sharedTask.setTitle(title);
                         sharedTask.setDetails(details);
                         sharedTask.setGroup(group);
+                        sharedTask.setAdress(adress);
                         sharedTask.setShareWithUsers(shareWithUsers);
                         sharedTask.setStart(start);
                         sharedTask.setEnd(end);
@@ -124,8 +125,7 @@ public class Model {
                         sharedTask.setRemTime(remTime);
                         sharedTask.setRemDate(remDate);
                         sharedTask.setImportant(important);
-                        sharedTask.setStarted(started);
-                        sharedTask.setProgress(progress);
+                        sharedTask.setColour(colour);
                     }
                 }
             }
@@ -168,9 +168,9 @@ public class Model {
         calendar.set(2025, Calendar.FEBRUARY, 4);
         Date remDate1 = calendar.getTime();
 
-        tasks.add(new Task("Task 1", "Details for Task 1", new ArrayList<>(), new ArrayList<>(),
+        tasks.add(new Task("Task 1", "Details for Task 1", "Work", "1234 Address St", new ArrayList<>(),
                 start1, end1, remTime1, start1, remDate1,
-                true, true, false, 50, 0xFF00FF00));
+                true, true, 0xFF00FF00));
 
         calendar.set(2025, Calendar.FEBRUARY, 10, 11, 0);
         Date start2 = calendar.getTime();
@@ -181,9 +181,9 @@ public class Model {
         calendar.set(2025, Calendar.FEBRUARY, 9);
         Date remDate2 = calendar.getTime();
 
-        tasks.add(new Task("Task 2", "Details for Task 2", new ArrayList<>(), new ArrayList<>(),
+        tasks.add(new Task("Task 2", "Details for Task 2", "Home", "5678 Another Rd", new ArrayList<>(),
                 start2, end2, remTime2, start2, remDate2,
-                false, false, false, 20, 0xFFFF0000));
+                false, false, 0xFFFF0000));
 
         return tasks;
     }

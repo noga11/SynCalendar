@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Task {
-    private String title, details;
-    private ArrayList<String> group, shareWithUsers;
+    private String title, details, group, adress;
+    private ArrayList<String> shareWithUsers;
     private Date start, end, remTime, date, remDate;
-    private boolean reminder, important, started;
-    private int progress, colour;
+    private boolean reminder, important;
+    private int colour;
 
-    public Task(String title, String details, ArrayList<String> group, ArrayList<String> shareWithUsers,
+    public Task(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                 Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
-                boolean important, boolean started, int progress, int colour) {
+                boolean important, int colour) {
         this.title = title;
         this.details = details;
         this.group = group;
+        this.adress = adress;
         this.shareWithUsers = shareWithUsers;
         this.start = start;
         this.end = end;
@@ -24,10 +25,11 @@ public class Task {
         this.remDate = remDate;
         this.reminder = reminder;
         this.important = important;
-        this.started = started;
-        this.progress = progress;
         this.colour = colour;
     }
+
+    public String getAdress() { return adress; }
+    public void setAdress(String adress) { this.adress = adress; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -35,8 +37,8 @@ public class Task {
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
 
-    public ArrayList<String> getGroup() { return group; }
-    public void setGroup(ArrayList<String> group) { this.group = group; }
+    public String getGroup() { return group; }
+    public void setGroup(String group) { this.group = group; }
 
     public ArrayList<String> getShareWithUsers() { return shareWithUsers; }
     public void setShareWithUsers(ArrayList<String> shareWithUsers) { this.shareWithUsers = shareWithUsers; }
@@ -61,12 +63,6 @@ public class Task {
 
     public boolean isImportant() { return important; }
     public void setImportant(boolean important) { this.important = important; }
-
-    public boolean isStarted() { return started; }
-    public void setStarted(boolean started) { this.started = started; }
-
-    public int getProgress() { return progress; }
-    public void setProgress(int progress) { this.progress = progress; }
 
     public int getColour() { return colour; }
     public void setColour(int colour) { this.colour = colour; }
