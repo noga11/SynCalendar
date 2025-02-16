@@ -34,7 +34,7 @@ public class Model {
         return instance;
     }
 
-    // User Functions
+    // ------------------- User Functions -------------------
     private User findUserByUsername(String username) {
         for (User u : allUsers) {
             if (u.getuName().equals(username)) return u;
@@ -103,7 +103,8 @@ public class Model {
         currentUser = null;
     }
 
-    // Tasks Functions
+    // ------------------- Task Functions -------------------
+
     public Task getTaskByIdAndUser(String id, User user) {
         for (Task task : user.getTasks()) {
             if (task.getId().equals(id)) {
@@ -119,6 +120,10 @@ public class Model {
         // Create task object
         Task task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, colour);
+
+        if (currentUser.getTasks() == null) {
+            currentUser.setTasks(new ArrayList<>());
+        }
         currentUser.getTasks().add(task);
 
         // Save task to Firestore
@@ -204,59 +209,68 @@ public class Model {
                         sharedTask.setRemDate(remDate);
                         sharedTask.setImportant(important);
                         sharedTask.setColour(colour);
+                        updateTaskForSharingUsers(userToShareWith, task);
                     }
                 }
             }
         }
     }
 
-    private void updateTaskForCurrentUser(Task task){
+    private void updateTaskForCurrentUser(Task task) {
         if (firebaseUser != null) {
             String userId = firebaseUser.getUid();
-            DocumentReference taskRef = firestore.collection("users").document(userId).collection("tasks").document(task.getId());
-            taskRef.update(
-                            "title", task.getTitle(),
-                            "details", task.getDetails(),
-                            "group", task.getGroup(),
-                            "adress", task.getAdress(),
-                            "shareWithUsers", task.getShareWithUsers(),
-                            "start", task.getStart(),
-                            "end", task.getEnd(),
-                            "reminder", task.isReminder(),
-                            "remTime", task.getRemTime(),
-                            "remDate", task.getRemDate(),
-                            "important", task.isImportant(),
-                            "colour", task.getColour()
-                    )
+            DocumentReference taskRef = firestore.collection("users").document(userId)
+                    .collection("tasks").document(task.getId());
+            taskRef.set(task)
                     .addOnSuccessListener(aVoid -> Log.d("Model", "Task updated in Firestore"))
                     .addOnFailureListener(e -> Log.e("Model", "Error updating task in Firestore", e));
         }
     }
-    private void updateTaskForSharingUsers(){
-
+    private void updateTaskForSharingUsers(User otherUser, Task task) {
+        DocumentReference taskRef = firestore.collection("users")
+                .document(otherUser.getEmail()) // Consider using a unique id like uid instead of email.
+                .collection("tasks")
+                .document(task.getId());
+        taskRef.set(task)
+                .addOnSuccessListener(aVoid ->
+                        Log.d("Model", "Shared task updated for user: " + otherUser.getuName()))
+                .addOnFailureListener(e ->
+                        Log.e("Model", "Error updating shared task for user: " + otherUser.getuName(), e));
     }
 
-    public void deleteTask(String title) {
-        Task taskToDelete = getTaskByIdAndUser(title, currentUser);
+    public void deleteTask(String taskId) {
+        Task taskToDelete = getTaskByIdAndUser(taskId, currentUser);
+        if (taskToDelete != null) {
+            // Delete task from Firestore for the current user.
+            if (firebaseUser != null) {
+                String userId = firebaseUser.getUid();
+                DocumentReference taskRef = firestore.collection("users").document(userId)
+                        .collection("tasks").document(taskId);
+                taskRef.delete()
+                        .addOnSuccessListener(aVoid -> Log.d("Model", "Task deleted from Firestore"))
+                        .addOnFailureListener(e -> Log.e("Model", "Error deleting task from Firestore", e));
+            }
+            currentUser.getTasks().remove(taskToDelete);
 
-        // Remove currentUser from other users' shared list
-        ArrayList<String> shareWithUsers = taskToDelete.getShareWithUsers();
-        if (shareWithUsers != null) {
-            for (String username : shareWithUsers) {
-                User userToShareWith = findUserByUsername(username);
-                if (userToShareWith != null) {
-                    Task sharedTask = getTaskByIdAndUser(title, userToShareWith);
-                    if (sharedTask != null) {
-                        ArrayList<String> eachShare = sharedTask.getShareWithUsers();
-                        eachShare.remove(currentUser);
-                        sharedTask.setShareWithUsers(eachShare);
+            // Remove the task from any shared users.
+            ArrayList<String> sharedUsers = taskToDelete.getShareWithUsers();
+            if (sharedUsers != null && !sharedUsers.isEmpty()) {
+                for (String username : sharedUsers) {
+                    User userToShareWith = findUserByUsername(username);
+                    if (userToShareWith != null) {
+                        Task sharedTask = getTaskByIdAndUser(taskId, userToShareWith);
+                        if (sharedTask != null) {
+                            userToShareWith.getTasks().remove(sharedTask);
+                            DocumentReference sharedTaskRef = firestore.collection("users").document(userToShareWith.getEmail())
+                                    .collection("tasks").document(taskId);
+                            sharedTaskRef.delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("Model", "Shared task deleted for user: " + username))
+                                    .addOnFailureListener(e -> Log.e("Model", "Error deleting shared task for user: " + username, e));
+                        }
                     }
                 }
             }
         }
-
-        // Remove task for the current user
-        currentUser.getTasks().remove(taskToDelete);
     }
 
     public ArrayList<Task> tempData() {
