@@ -7,6 +7,7 @@ import android.util.Log;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -34,13 +35,43 @@ public class Model {
         return instance;
     }
 
-    // ------------------- User Functions -------------------
+
+    // -------------------------------------- User Functions --------------------------------------
+
     private User findUserByUsername(String username) {
         for (User u : allUsers) {
             if (u.getuName().equals(username)) return u;
         }
         return null;
     }
+
+    public void raiseUserDataChange() {
+        if (firebaseUser == null) {
+            Log.e("Model", "No user is logged in.");
+            return;
+        }
+        String userId = firebaseUser.getUid();
+
+        // Set up the real-time listener for user data
+        firestore.collection("users").document(userId)
+                .addSnapshotListener((documentSnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("Model", "Error listening to user data", e);
+                        return;
+                    }
+
+                    if (documentSnapshot != null && documentSnapshot.exists()) {
+                        // Update the current user object with the new data
+                        currentUser = documentSnapshot.toObject(User.class);
+                        if (currentUser != null) {
+                            Log.d("Model", "User data has been updated.");
+                        }
+                    } else {
+                        Log.e("Model", "No user data found.");
+                    }
+                });
+    }
+
 
     public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
@@ -103,7 +134,8 @@ public class Model {
         currentUser = null;
     }
 
-    // ------------------- Task Functions -------------------
+
+    // -------------------------------------- Task Functions --------------------------------------
 
     public Task getTaskByIdAndUser(String id, User user) {
         for (Task task : user.getTasks()) {
@@ -112,6 +144,63 @@ public class Model {
             }
         }
         return null;
+    }
+
+    public void raiseTaskDataChange() {
+        if (firebaseUser == null) {
+            Log.e("Model", "No user is logged in.");
+            return;
+        }
+        String userId = firebaseUser.getUid();
+
+        // Set up the real-time listener for tasks
+        firestore.collection("users").document(userId).collection("tasks")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e("Model", "Error listening to task data", e);
+                        return;
+                    }
+
+                    // Clear the current task list and reload the tasks
+                    currentUser.setTasks(new ArrayList<>());
+                    for (DocumentSnapshot document : snapshots) {
+                        Task task = document.toObject(Task.class);
+                        if (task != null) {
+                            currentUser.getTasks().add(task);
+                        }
+                    }
+                    Log.d("Model", "Task data has been updated.");
+                });
+    }
+
+
+    public void loadTasks() {
+        // Ensure the user is logged in
+        if (firebaseUser == null) {
+            Log.e("Model", "No user is logged in.");
+            return;
+        }
+
+        // Get the user ID
+        String userId = firebaseUser.getUid();
+
+        // Get the user's tasks from Firestore
+        firestore.collection("users").document(userId).collection("tasks").get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        currentUser.setTasks(new ArrayList<>());
+                        // Loop through the task documents and convert them to Task objects
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Task taskData = document.toObject(Task.class);
+                            if (taskData != null) {
+                                currentUser.getTasks().add(taskData);
+                            }
+                        }
+                        Log.d("Model", "Tasks loaded successfully.");
+                    } else {
+                        Log.e("Model", "Error loading tasks from Firestore", task.getException());
+                    }
+                });
     }
 
     public void addTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
@@ -141,14 +230,14 @@ public class Model {
                 // actually sharing
                 if (userToShareWith != null) {
                     userToShareWith.getTasks().add(task);
-                    saveTaskToFirestoreForUser(userToShareWith.getuName(), task);
+                    saveTaskToFirestoreForOtherUser(userToShareWith.getuName(), task);
                 }
                 shareWithUsers.add(username);
             }
         }
     }
 
-    // Save task to Firestore
+    // Save task to Firestore for currentUser
     private void saveTaskToFirestore(Task task) {
         if (firebaseUser != null) {
             String userId = firebaseUser.getUid();
@@ -159,7 +248,7 @@ public class Model {
         }
     }
     // Save task to Firestore for another user
-    private void saveTaskToFirestoreForUser(String username, Task task) {
+    private void saveTaskToFirestoreForOtherUser(String username, Task task) {
         User user = findUserByUsername(username);
         if (user != null) {
             DocumentReference taskRef = firestore.collection("users").document(user.getEmail()).collection("tasks").document(task.getId());
