@@ -5,29 +5,24 @@ import android.graphics.Bitmap;
 import java.util.ArrayList;
 
 public class User {
-    private String uName, email, password;
-    private Bitmap profilePic;
+    private String uName, email, password, profilePicUrl;
     private ArrayList<Task> tasks;
     private Boolean privacy;
 
-    public User(String uName, String email, String password, ArrayList<Task> tasks, Bitmap profilePic, Boolean privacy) {
+    public User(String uName, String email, String password, String profilePicUrl, ArrayList<Task> tasks, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.password = password;
         this.tasks = tasks;
-        this.profilePic = profilePic;
+        this.profilePicUrl = profilePicUrl;
         this.privacy = privacy;
     }
 
     public Boolean getPrivacy() { return privacy; }
     public void setPrivacy(Boolean privacy) { this.privacy = privacy; }
 
-    public Bitmap getProfilePic() {
-        return profilePic;
-    }
-    public void setProfilePic(Bitmap profilePic) {
-        this.profilePic = profilePic;
-    }
+    public String getProfilePicUrl() { return profilePicUrl; }
+    public void setProfilePicUrl(String profilePicUrl) { this.profilePicUrl = profilePicUrl; }
 
     public String getuName() { return uName; }
     public void setuName(String uName) { this.uName = uName; }

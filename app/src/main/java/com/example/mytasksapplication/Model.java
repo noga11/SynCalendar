@@ -9,6 +9,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -19,6 +21,7 @@ public class Model {
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore firestore;
+    private FirebaseStorage firebaseStorage;
     private Context context;
     private User currentUser;
 
@@ -28,13 +31,13 @@ public class Model {
         this.context = context;
         firebaseAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
     }
 
     public static Model getInstance(Context context) {
         if (instance == null) instance = new Model(context);
         return instance;
     }
-
 
     // -------------------------------------- User Functions --------------------------------------
 
@@ -72,26 +75,55 @@ public class Model {
                 });
     }
 
-
     public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
-                        Log.d("Model", "User created successfully: " + currentUser.getEmail());
-                        currentUser = new User(uName, email, password, null, profilePic, privacy);
-//                        allUsers.add(currentUser);
-                        saveUserToFirestore(firebaseUser.getUid(), uName, email, profilePic, privacy);
-
+                        Log.d("Model", "User created successfully: " + email);
+                        uploadProfilePicture(profilePic, firebaseUser.getUid(), uName, email, password, privacy);
                     } else {
                         Log.e("Model", "User creation failed", task.getException());
                     }
                 });
     }
 
-    private void saveUserToFirestore(String userId, String uName, String email, Bitmap profilePic, Boolean privacy) {
+    // Upload the profile picture to Firebase Storage
+    private void uploadProfilePicture(Bitmap profilePic, String userId, String uName, String email, String password, Boolean privacy) {
+        StorageReference storageRef = firebaseStorage.getReference();
+        StorageReference profilePicRef = storageRef.child("profile_pictures/" + userId + ".jpg");
+
+        // Upload the picture
+        profilePicRef.putBytes(BitmapUtils.bitmapToByteArray(profilePic))
+                .addOnSuccessListener(taskSnapshot -> {
+                    Log.d("Model", "Profile picture uploaded successfully!");
+
+                    // After uploading, get the download URL
+                    profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        // Save user data to Firestore, including the profile picture URL
+                        String profilePicUrl = uri.toString();
+                        saveUserToFirestore(userId, uName, email, password, profilePicUrl, privacy);
+                    }).addOnFailureListener(e -> {
+                        Log.e("Model", "Error getting download URL", e);
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Model", "Error uploading profile picture", e);
+                });
+    }
+
+    // Utility method to convert Bitmap to byte array
+    private static class BitmapUtils {
+        public static byte[] bitmapToByteArray(Bitmap bitmap) {
+            java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        }
+    }
+
+    private void saveUserToFirestore(String userId, String uName, String email, String password, String profilePicUrl, Boolean privacy) {
         DocumentReference userRef = firestore.collection("users").document(userId);
-        userRef.set(new User(uName, email, null, null, profilePic, privacy))
+        userRef.set(new User(uName, email, password, profilePicUrl, null, privacy))
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Model", "User details saved to Firestore.");
                 })
@@ -105,8 +137,8 @@ public class Model {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
-                        Log.d("Model", "User logged in successfully: " + currentUser.getEmail());
-                        getUserFromFirestore(firebaseUser.getUid());
+                        Log.d("Model", "User logged in successfully: " + firebaseUser.getEmail());
+                        getUser(firebaseUser.getUid());
                     } else {
                         Log.e("Model", "Login failed", task.getException());
                     }
@@ -114,7 +146,7 @@ public class Model {
         return currentUser;
     }
 
-    private void getUserFromFirestore(String userId) {
+    private void getUser(String userId) {
         DocumentReference userRef = firestore.collection("users").document(userId);
         userRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -133,7 +165,6 @@ public class Model {
         Log.d("Model", "User logged out");
         currentUser = null;
     }
-
 
     // -------------------------------------- Task Functions --------------------------------------
 
@@ -172,7 +203,6 @@ public class Model {
                     Log.d("Model", "Task data has been updated.");
                 });
     }
-
 
     public void loadTasks() {
         // Ensure the user is logged in
@@ -220,19 +250,21 @@ public class Model {
 
         // Share task with other users
         if (shareWithUsers != null) {
-            shareWithUsers.add(currentUser.getuName());
+            if (!shareWithUsers.contains(currentUser.getuName())) {
+                shareWithUsers.add(currentUser.getuName());
+            }
+            task.setShareWithUsers(shareWithUsers);
             for (String username : shareWithUsers) {
-                // update shareWithUsers
-                shareWithUsers.remove(username);
-                task.setShareWithUsers(shareWithUsers);
+                if (username.equals(currentUser.getuName())) continue;
                 User userToShareWith = findUserByUsername(username);
-                userToShareWith.getTasks().add(task);
-                // actually sharing
                 if (userToShareWith != null) {
+                    if (userToShareWith.getTasks() == null) {
+                        userToShareWith.setTasks(new ArrayList<>());
+                    }
                     userToShareWith.getTasks().add(task);
+                    // actually sharing
                     saveTaskToFirestoreForOtherUser(userToShareWith.getuName(), task);
                 }
-                shareWithUsers.add(username);
             }
         }
     }
@@ -247,6 +279,7 @@ public class Model {
                     .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore", e));
         }
     }
+
     // Save task to Firestore for another user
     private void saveTaskToFirestoreForOtherUser(String username, Task task) {
         User user = findUserByUsername(username);
@@ -258,11 +291,12 @@ public class Model {
         }
     }
 
-    public void updateTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
+    // Changed method signature to use taskId for proper task identification
+    public void updateTask(String taskId, String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                            Date start, Date end, Date remTime, Date date, Date remDate,
                            boolean reminder, boolean important, int colour) {
         // Update the task for the current user
-        Task task = getTaskByIdAndUser(title, currentUser);
+        Task task = getTaskByIdAndUser(taskId, currentUser);
         if (task != null) {
             task.setTitle(title);
             task.setDetails(details);
@@ -282,9 +316,10 @@ public class Model {
         // Update the task for the users it's shared with
         if (shareWithUsers != null) {
             for (String username : shareWithUsers) {
+                if (username.equals(currentUser.getuName())) continue;
                 User userToShareWith = findUserByUsername(username);
                 if (userToShareWith != null) {
-                    Task sharedTask = getTaskByIdAndUser(title, userToShareWith);
+                    Task sharedTask = getTaskByIdAndUser(taskId, userToShareWith);
                     if (sharedTask != null) {
                         sharedTask.setTitle(title);
                         sharedTask.setDetails(details);
@@ -298,7 +333,7 @@ public class Model {
                         sharedTask.setRemDate(remDate);
                         sharedTask.setImportant(important);
                         sharedTask.setColour(colour);
-                        updateTaskForSharingUsers(userToShareWith, task);
+                        updateTaskForSharingUsers(userToShareWith, sharedTask);
                     }
                 }
             }
