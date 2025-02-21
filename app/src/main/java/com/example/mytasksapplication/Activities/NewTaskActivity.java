@@ -1,6 +1,9 @@
 package com.example.mytasksapplication.Activities;
 
+import android.media.Image;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -10,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 
+import com.example.mytasksapplication.User;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointForward;
@@ -25,6 +31,9 @@ public class NewTaskActivity extends AppCompatActivity {
     private Model model;
     private EditText etTitle, etDetails;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
+    private EditText auetShare;
+    private ChipGroup chipGroup;
+    private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +49,58 @@ public class NewTaskActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         tvReminderDate = findViewById(R.id.tvReminderDate);
         tvReminderTime = findViewById(R.id.tvReminderTime);
+        auetShare = findViewById(R.id.auetShare);
+        chipGroup = findViewById(R.id.cgUsers);
 
         tvDate.setOnClickListener(view -> showDatePicker(1));
         tvReminderDate.setOnClickListener(view -> showDatePicker(2));
         tvStartTime.setOnClickListener(view -> showTimePicker(1));
         tvEndTime.setOnClickListener(view -> showTimePicker(2));
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
+
+        auetShare.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                // You can add functionality to filter usernames or show suggestions based on what the user types
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String typedUsername = editable.toString().trim();
+                if (!typedUsername.isEmpty() && isValidUsername(typedUsername)) {
+                    // Create a chip with the username
+                    addUserChip(typedUsername);
+                    auetShare.setText("");  // Clear the input field
+                }
+            }
+        });
+    }
+
+    private boolean isValidUsername(String username) {
+        for (String user : otherUsers) {
+            if (user.equalsIgnoreCase(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addUserChip(String username) {
+        Chip chip = new Chip(this);
+        chip.setText(username);
+
+        model.SetChipIconPictureFromUsername(username, chip);
+        chip.setCloseIconVisible(true);
+        chip.setCloseIconResource(android.R.drawable.ic_menu_delete);  // Set the 'X' icon
+
+        // Remove the chip when the user presses 'X'
+        chip.setOnCloseIconClickListener(v -> {
+            chipGroup.removeView(chip);
+            Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
+        });
+
+        chipGroup.addView(chip);
     }
 
     private void showDatePicker(int option) {

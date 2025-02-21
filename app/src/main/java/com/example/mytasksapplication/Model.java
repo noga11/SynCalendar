@@ -2,8 +2,14 @@ package com.example.mytasksapplication;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.util.Log;
+import android.widget.ImageView;
 
+import com.google.android.material.chip.Chip;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -47,6 +53,27 @@ public class Model {
         }
         return null;
     }
+
+
+    public void SetChipIconPictureFromUsername(String username, Chip chip) {
+        User user = findUserByUsername(username);
+        if (user == null || user.getProfilePicUrl() == null) {
+            Log.e("Model", "User not found or profile picture URL is null");
+            return;
+        }
+
+        String pictureUrl = user.getProfilePicUrl();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(pictureUrl);
+
+        storageRef.getBytes(1024 * 1024) // Download the image (limit size to 1MB)
+                .addOnSuccessListener(bytes -> {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    Drawable drawable = new BitmapDrawable(chip.getContext().getResources(), bitmap);
+                    chip.setChipIcon(drawable); // Set the profile picture
+                })
+                .addOnFailureListener(e -> Log.e("Model", "Failed to load profile picture", e));
+    }
+
 
     public void raiseUserDataChange() {
         if (firebaseUser == null) {
