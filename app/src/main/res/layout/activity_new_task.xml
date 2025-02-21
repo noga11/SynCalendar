@@ -6,7 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_margin="5dp"
     tools:context=".Activities.NewTaskActivity">
 
     <EditText
@@ -14,12 +13,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:background="#349C27B0"
+        android:background="#BCAEE1"
         android:inputType="text"
         android:textStyle="bold"
         android:textSize="40sp"
         android:hint="Title"
+        android:textColor="@color/black"
         android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="10dp">
 
     <EditText
         android:id="@+id/etDetails"
@@ -35,7 +41,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
 
         <TextView
             android:id="@+id/tvStartTime"
@@ -64,8 +71,7 @@
         android:id="@+id/tvDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:ems="10"
+        android:layout_marginTop="10dp"        android:ems="10"
         android:textSize="20sp"
         android:textStyle="italic"
         android:inputType="date"
@@ -74,10 +80,9 @@
     <!--group-->
     <Spinner
         android:id="@+id/spinnerGroup"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:textSize="20sp" />
 
     <EditText
@@ -85,6 +90,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
+        android:layout_marginTop="10dp"
         android:textSize="20sp"
         android:inputType="text"
         android:hint="Adress" />
@@ -93,6 +99,7 @@
         android:id="@+id/auetShare"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:textSize="20sp"
         android:hint="Share Task" />
 
@@ -108,12 +115,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="20sp"
-        android:text="Add Reminder" />
+        android:text="Add Reminder"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
 
         <TextView
             android:id="@+id/tvReminderDate"
@@ -142,6 +151,7 @@
         android:id="@+id/swchImportant"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:textSize="20sp"
         android:text="Important" />
 
@@ -150,7 +160,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
+        android:backgroundTint="#BBADDF"
         android:textSize="30sp"
         android:text="Add Task" />
+
+    </LinearLayout>
 
 </LinearLayout>
