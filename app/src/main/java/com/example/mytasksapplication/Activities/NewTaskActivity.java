@@ -31,6 +31,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
+
 public class NewTaskActivity extends AppCompatActivity {
 
     private Model model;
@@ -46,6 +50,7 @@ public class NewTaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_task);
 
         model = Model.getInstance(this);
+        createNotificationChannel();
 
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
@@ -179,5 +184,18 @@ public class NewTaskActivity extends AppCompatActivity {
             else if (option==3)
                 tvReminderTime.setText(formattedTime);
         });
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "ReminderChannel";
+            String description = "Channel for task reminders";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("reminderChannel", name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 }
