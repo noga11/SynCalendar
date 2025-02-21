@@ -1,19 +1,24 @@
 package com.example.mytasksapplication.Activities;
 
-import android.media.Image;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 
-import com.example.mytasksapplication.User;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -29,11 +34,11 @@ import java.util.Date;
 public class NewTaskActivity extends AppCompatActivity {
 
     private Model model;
-    private EditText etTitle, etDetails;
+    private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
-    private EditText auetShare;
+    private Switch swchReminder;
     private ChipGroup chipGroup;
-    private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model
+    private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,12 +56,35 @@ public class NewTaskActivity extends AppCompatActivity {
         tvReminderTime = findViewById(R.id.tvReminderTime);
         auetShare = findViewById(R.id.auetShare);
         chipGroup = findViewById(R.id.cgUsers);
+        swchReminder = findViewById(R.id.swchReminder);
+
+        tvReminderDate.setVisibility(View.GONE);
+        tvReminderTime.setVisibility(View.GONE);
 
         tvDate.setOnClickListener(view -> showDatePicker(1));
         tvReminderDate.setOnClickListener(view -> showDatePicker(2));
         tvStartTime.setOnClickListener(view -> showTimePicker(1));
         tvEndTime.setOnClickListener(view -> showTimePicker(2));
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
+
+        swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+                        swchReminder.setChecked(false); // Turn switch off until permission is granted
+                        return;
+                    }
+                }
+                tvReminderDate.setVisibility(View.VISIBLE);
+                tvReminderTime.setVisibility(View.VISIBLE);
+            } else {
+                tvReminderDate.setVisibility(View.GONE);
+                tvReminderTime.setVisibility(View.GONE);
+            }
+        });
+
 
         auetShare.addTextChangedListener(new TextWatcher() {
             @Override
@@ -69,7 +97,6 @@ public class NewTaskActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
                 String typedUsername = editable.toString().trim();
                 if (!typedUsername.isEmpty() && isValidUsername(typedUsername)) {
-                    // Create a chip with the username
                     addUserChip(typedUsername);
                     auetShare.setText("");  // Clear the input field
                 }
