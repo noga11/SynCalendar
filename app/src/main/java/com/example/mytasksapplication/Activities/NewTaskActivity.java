@@ -51,7 +51,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
     private Button btbAddTask;
     private Switch swchReminder;
     private ChipGroup chipGroup;
-
+    // added this so i can push
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
