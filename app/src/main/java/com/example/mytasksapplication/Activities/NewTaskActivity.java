@@ -1,6 +1,9 @@
 package com.example.mytasksapplication.Activities;
 
+import android.app.Notification;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -15,33 +18,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.mytasksapplication.Model;
+import com.example.mytasksapplication.NotificationHelper;
 import com.example.mytasksapplication.R;
 
-import com.example.mytasksapplication.ReminderBroadcastReceiver;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.datepicker.CalendarConstraints;
-import com.google.android.material.datepicker.DateValidatorPointForward;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.os.Build;
 
-import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 
@@ -49,7 +49,9 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
 
     private Model model;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
+    private NotificationHelper notificationHelper;
     private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
+
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
     private Button btbAddTask;
@@ -63,7 +65,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_new_task);
 
         model = Model.getInstance(this);
-        createNotificationChannel();
+        notificationHelper = new NotificationHelper(this);
 
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
@@ -113,18 +115,21 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
             } else {
                 tvReminderDate.setVisibility(View.GONE);
                 tvReminderTime.setVisibility(View.GONE);
-                cancelNotification();
+                notificationHelper.cancelNotification();
                 Toast.makeText(this, "Reminder canceled", Toast.LENGTH_SHORT).show();
             }
         });
 
         auetShare.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
                 // You can add functionality to filter usernames or show suggestions based on what the user types
             }
+
             @Override
             public void afterTextChanged(Editable editable) {
                 String typedUsername = editable.toString().trim();
@@ -136,17 +141,13 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         });
     }
 
-    @Override
     public void onClick(View view) {
-        // set notification
         if (view.getId() == R.id.btbAddTask) {
             String taskTitle = etTitle.getText().toString().trim();
-
             if (taskTitle.isEmpty()) {
                 Toast.makeText(this, "Task title cannot be empty", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (swchReminder.isChecked()) {
                 Calendar calendar = Calendar.getInstance();
                 calendar.set(Calendar.YEAR, selectedYear);
@@ -157,53 +158,14 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
                 calendar.set(Calendar.SECOND, 0);
 
                 long reminderTimeMillis = calendar.getTimeInMillis();
-
                 if (reminderTimeMillis > System.currentTimeMillis()) {
-                    scheduleNotification(reminderTimeMillis, taskTitle);
+                    notificationHelper.sendNotification("New Task: " + taskTitle);
                     Toast.makeText(this, "Reminder set", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
                 }
             }
-
             Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "ReminderChannel";
-            String description = "Channel for task reminders";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("reminderChannel", name, importance);
-            channel.setDescription(description);
-
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-    private void scheduleNotification(long reminderTimeMillis, String taskTitle) {
-        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
-        intent.putExtra("taskTitle", taskTitle);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (alarmManager != null) {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTimeMillis, pendingIntent);
-        }
-    }
-
-    private void cancelNotification() {
-        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (alarmManager != null) {
-            alarmManager.cancel(pendingIntent);
         }
     }
 

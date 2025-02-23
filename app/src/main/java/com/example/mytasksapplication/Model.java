@@ -262,10 +262,10 @@ public class Model {
 
     public void addTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                         Date start, Date end, Date remTime, Date date, Date remDate,
-                        boolean reminder, boolean important, int colour) {
+                        boolean reminder, boolean important, int colour, int notificationId) {
         // Create task object
         Task task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
-                reminder, important, colour);
+                reminder, important, colour, notificationId);
 
         if (currentUser.getTasks() == null) {
             currentUser.setTasks(new ArrayList<>());
@@ -439,7 +439,7 @@ public class Model {
 
         tasks.add(new Task("Task 1", "Details for Task 1", "Work", "1234 Address St", new ArrayList<>(),
                 start1, end1, remTime1, start1, remDate1,
-                true, true, 0xFF00FF00));
+                true, true, 0xFF00FF00, 0));
 
         calendar.set(2025, Calendar.FEBRUARY, 10, 11, 0);
         Date start2 = calendar.getTime();
@@ -452,7 +452,7 @@ public class Model {
 
         tasks.add(new Task("Task 2", "Details for Task 2", "Home", "5678 Another Rd", new ArrayList<>(),
                 start2, end2, remTime2, start2, remDate2,
-                false, false, 0xFFFF0000));
+                false, false, 0xFFFF0000, 0));
 
         return tasks;
     }

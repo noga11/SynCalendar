@@ -9,11 +9,11 @@ public class Task {
     private ArrayList<String> shareWithUsers;
     private Date start, end, remTime, date, remDate;
     private boolean reminder, important;
-    private int colour;
+    private int colour, notificationId;
 
     public Task(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
                 Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
-                boolean important, int colour) {
+                boolean important, int colour, int notificationId) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.details = details;
@@ -28,7 +28,11 @@ public class Task {
         this.reminder = reminder;
         this.important = important;
         this.colour = colour;
+        this.notificationId = notificationId;
     }
+
+    public int getNotificationId() { return notificationId; }
+    public void setNotificationId(int notificationId) { this.notificationId = notificationId; }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
