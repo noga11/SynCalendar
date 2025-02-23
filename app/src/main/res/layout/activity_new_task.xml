@@ -155,14 +155,14 @@
         android:textSize="20sp"
         android:text="Important" />
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:backgroundTint="#BBADDF"
-        android:textSize="30sp"
-        android:text="Add Task" />
+        <Button
+            android:id="@+id/btbAddTask"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:backgroundTint="#BBADDF"
+            android:text="Add Task"
+            android:textSize="30sp" />
 
     </LinearLayout>
 

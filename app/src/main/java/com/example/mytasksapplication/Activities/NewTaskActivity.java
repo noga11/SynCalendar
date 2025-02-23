@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -19,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 
+import com.example.mytasksapplication.ReminderBroadcastReceiver;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -35,14 +37,20 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 
-public class NewTaskActivity extends AppCompatActivity {
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+
+public class NewTaskActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Model model;
+    private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
+    private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
+    private Button btbAddTask;
     private Switch swchReminder;
     private ChipGroup chipGroup;
-    private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +70,12 @@ public class NewTaskActivity extends AppCompatActivity {
         auetShare = findViewById(R.id.auetShare);
         chipGroup = findViewById(R.id.cgUsers);
         swchReminder = findViewById(R.id.swchReminder);
+        btbAddTask = findViewById(R.id.btbAddTask);
 
         tvReminderDate.setVisibility(View.GONE);
         tvReminderTime.setVisibility(View.GONE);
+
+        btbAddTask.setOnClickListener(this);
 
         tvDate.setOnClickListener(view -> showDatePicker(1));
         tvReminderDate.setOnClickListener(view -> showDatePicker(2));
@@ -74,22 +85,23 @@ public class NewTaskActivity extends AppCompatActivity {
 
         swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                            != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-                        swchReminder.setChecked(false); // Turn switch off until permission is granted
-                        return;
-                    }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                                != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+                    swchReminder.setChecked(false);
+                    return;
                 }
                 tvReminderDate.setVisibility(View.VISIBLE);
                 tvReminderTime.setVisibility(View.VISIBLE);
             } else {
                 tvReminderDate.setVisibility(View.GONE);
                 tvReminderTime.setVisibility(View.GONE);
+                cancelNotification();
+                Toast.makeText(this, "Reminder canceled", Toast.LENGTH_SHORT).show();
             }
         });
-
 
         auetShare.addTextChangedListener(new TextWatcher() {
             @Override
@@ -107,6 +119,51 @@ public class NewTaskActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onClick(View view) {
+        // set notification
+        if (view.getId() == R.id.btbAddTask) {
+            String taskTitle = etTitle.getText().toString().trim();
+
+            if (taskTitle.isEmpty()) {
+                Toast.makeText(this, "Task title cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (swchReminder.isChecked()) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.YEAR, selectedYear);
+                calendar.set(Calendar.MONTH, selectedMonth);
+                calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
+                calendar.set(Calendar.HOUR_OF_DAY, selectedHour);
+                calendar.set(Calendar.MINUTE, selectedMinute);
+                calendar.set(Calendar.SECOND, 0);
+
+                long reminderTimeMillis = calendar.getTimeInMillis();
+
+                if (reminderTimeMillis > System.currentTimeMillis()) {
+                    scheduleNotification(reminderTimeMillis, taskTitle);
+                    Toast.makeText(this, "Reminder set", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void cancelNotification() {
+        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+        }
     }
 
     private boolean isValidUsername(String username) {
@@ -136,53 +193,52 @@ public class NewTaskActivity extends AppCompatActivity {
     }
 
     private void showDatePicker(int option) {
-        // Create an instance of MaterialDatePicker
         MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Date")
                 .build();
 
-        // Show the date picker dialog
         datePicker.show(getSupportFragmentManager(), "MATERIAL_DATE_PICKER");
 
-        // Handle date selection
         datePicker.addOnPositiveButtonClickListener(selection -> {
-            // Convert the selected date from milliseconds to a readable date format
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-            String selectedDate = sdf.format(new Date(selection));
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(selection);
+            selectedYear = calendar.get(Calendar.YEAR);
+            selectedMonth = calendar.get(Calendar.MONTH);
+            selectedDay = calendar.get(Calendar.DAY_OF_MONTH);
 
-            // Set the selected date in the tvDate TextView
-            if (option==1)
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+            String selectedDate = sdf.format(calendar.getTime());
+
+            if (option == 1) {
                 tvDate.setText(selectedDate);
-            else if (option==2)
+            } else if (option == 2) {
                 tvReminderDate.setText(selectedDate);
+            }
         });
     }
 
     private void showTimePicker(int option) {
-        // Create the MaterialTimePicker instance
         MaterialTimePicker timePicker = new MaterialTimePicker.Builder()
-                .setTimeFormat(TimeFormat.CLOCK_24H)  // Set 24-hour format, you can change to CLOCK_12H if you prefer
-                .setHour(12)  // Default hour value
-                .setMinute(0)  // Default minute value
-                .setTitleText("Select Start Time")
+                .setTimeFormat(TimeFormat.CLOCK_24H)
+                .setHour(12)
+                .setMinute(0)
+                .setTitleText("Select Time")
                 .build();
 
-        // Show the time picker
         timePicker.show(getSupportFragmentManager(), "MATERIAL_TIME_PICKER");
 
-        // Handle time selection
         timePicker.addOnPositiveButtonClickListener(selection -> {
-            int hour = timePicker.getHour();
-            int minute = timePicker.getMinute();
+            selectedHour = timePicker.getHour();
+            selectedMinute = timePicker.getMinute();
 
-            // Format the time as per your need
-            String formattedTime = String.format("%02d:%02d", hour, minute);
-            if (option==1)
+            String formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute);
+            if (option == 1) {
                 tvStartTime.setText(formattedTime);
-            else if (option==2)
+            } else if (option == 2) {
                 tvEndTime.setText(formattedTime);
-            else if (option==3)
+            } else if (option == 3) {
                 tvReminderTime.setText(formattedTime);
+            }
         });
     }
 
@@ -198,4 +254,18 @@ public class NewTaskActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
+
+    private void scheduleNotification(long reminderTimeMillis, String taskTitle) {
+        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
+        intent.putExtra("taskTitle", taskTitle);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTimeMillis, pendingIntent);
+        }
+    }
+
 }
