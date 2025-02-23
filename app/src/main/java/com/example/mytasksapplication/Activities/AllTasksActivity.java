@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mytasksapplication.Adapters.AllTasksAdapter;
 import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
@@ -27,7 +28,7 @@ import java.util.List;
 public class AllTasksActivity extends AppCompatActivity {
 
     private Model model;
-    private ListView lstAllTasks;
+    private RecyclerView lstAllTasks;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
