@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -30,8 +32,10 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -51,7 +55,8 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
     private Button btbAddTask;
     private Switch swchReminder;
     private ChipGroup chipGroup;
-    // added this so i can push
+    private AutoCompleteTextView spinnerGroup;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +76,11 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         chipGroup = findViewById(R.id.cgUsers);
         swchReminder = findViewById(R.id.swchReminder);
         btbAddTask = findViewById(R.id.btbAddTask);
+        spinnerGroup = findViewById(R.id.spinnerGroup);
+
+        List<String> groups = Arrays.asList("All", "Important");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
+        spinnerGroup.setAdapter(adapter);
 
         tvReminderDate.setVisibility(View.GONE);
         tvReminderTime.setVisibility(View.GONE);
@@ -82,6 +92,11 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         tvStartTime.setOnClickListener(view -> showTimePicker(1));
         tvEndTime.setOnClickListener(view -> showTimePicker(2));
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
+
+        spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedGroup = (String) parent.getItemAtPosition(position);
+            // Do something with selectedGroup
+        });
 
         swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
@@ -152,6 +167,32 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "ReminderChannel";
+            String description = "Channel for task reminders";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("reminderChannel", name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    private void scheduleNotification(long reminderTimeMillis, String taskTitle) {
+        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
+        intent.putExtra("taskTitle", taskTitle);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTimeMillis, pendingIntent);
         }
     }
 
@@ -241,31 +282,4 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
     }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "ReminderChannel";
-            String description = "Channel for task reminders";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel("reminderChannel", name, importance);
-            channel.setDescription(description);
-
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-    private void scheduleNotification(long reminderTimeMillis, String taskTitle) {
-        Intent intent = new Intent(this, ReminderBroadcastReceiver.class);
-        intent.putExtra("taskTitle", taskTitle);
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (alarmManager != null) {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTimeMillis, pendingIntent);
-        }
-    }
-
 }

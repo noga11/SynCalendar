@@ -78,14 +78,23 @@
         android:hint="Date"/>
 
     <!--group-->
-    <Spinner
-        android:id="@+id/spinnerGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:textSize="20sp" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:endIconMode="dropdown">
 
-    <EditText
+            <AutoCompleteTextView
+                android:id="@+id/spinnerGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:hint="Select Group"
+                android:inputType="none"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+        <EditText
         android:id="@+id/etAdress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
