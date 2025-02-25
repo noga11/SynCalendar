@@ -5,11 +5,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.util.Log;
-import android.widget.ImageView;
 
 import com.google.android.material.chip.Chip;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -21,6 +21,8 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Model {
     private static Model instance;
@@ -165,7 +167,7 @@ public class Model {
                     if (task.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
                         Log.d("Model", "User logged in successfully: " + firebaseUser.getEmail());
-                        getUser(firebaseUser.getUid());
+                        getUserFromFirebase(firebaseUser.getUid());
                     } else {
                         Log.e("Model", "Login failed", task.getException());
                     }
@@ -173,7 +175,7 @@ public class Model {
         return currentUser;
     }
 
-    private void getUser(String userId) {
+    private void getUserFromFirebase(String userId) {
         DocumentReference userRef = firestore.collection("users").document(userId);
         userRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -185,6 +187,84 @@ public class Model {
         }).addOnFailureListener(e -> {
             Log.e("Model", "Error retrieving user data from Firestore", e);
         });
+    }
+
+    public User getUser() {
+        if (currentUser!=null) {
+            return currentUser;
+        }
+        return null;
+    }
+    
+    public void updateUser(String uName, String email, String password, Bitmap profilePic, ArrayList<Task> tasks, Boolean privacy){
+        String userId = firebaseUser.getUid();
+        DocumentReference userRef = firestore.collection("users").document(userId);
+
+        currentUser.setuName(uName);
+        currentUser.setEmail(email);
+        currentUser.setPassword(password);
+        currentUser.setPrivacy(privacy);
+        currentUser.setTasks(tasks);
+
+        // Prepare a map for Firestore updates
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("uName", uName);
+        updates.put("email", email);
+        updates.put("privacy", privacy);
+        updates.put("tasks", tasks);
+
+        // Handle profile picture update
+        if (profilePic != null) {
+            uploadProfilePicture(profilePic, userId, userRef, updates);
+        } else {
+            updateFirestoreUser(userRef, updates);
+        }
+
+        // Update Firebase Authentication email and password (requires re-authentication)
+        reauthenticateAndUpdateAuthDetails(email, password);
+    }
+
+    private void uploadProfilePicture(Bitmap profilePic, String userId, DocumentReference userRef, Map<String, Object> updates) {
+        StorageReference profilePicRef = firebaseStorage.getReference().child("profile_pictures/" + userId + ".jpg");
+
+        profilePicRef.putBytes(BitmapUtils.bitmapToByteArray(profilePic))
+                .addOnSuccessListener(taskSnapshot -> {
+                    profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        updates.put("profilePicUrl", uri.toString());
+                        updateFirestoreUser(userRef, updates);
+                    });
+                })
+                .addOnFailureListener(e -> Log.e("Model", "Error uploading new profile picture", e));
+    }
+
+    private void updateFirestoreUser(DocumentReference userRef, Map<String, Object> updates) {
+        userRef.update(updates)
+                .addOnSuccessListener(aVoid -> Log.d("Model", "User profile updated successfully in Firestore"))
+                .addOnFailureListener(e -> Log.e("Model", "Error updating user profile in Firestore", e));
+    }
+
+    private void reauthenticateAndUpdateAuthDetails(String newEmail, String newPassword) {
+        if (firebaseUser == null || firebaseUser.getEmail() == null) return;
+
+        AuthCredential credential = EmailAuthProvider.getCredential(firebaseUser.getEmail(), "USER_CURRENT_PASSWORD"); // Replace with actual current password
+
+        firebaseUser.reauthenticate(credential)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("Model", "Re-authentication successful.");
+
+                    if (newEmail != null && !newEmail.equals(firebaseUser.getEmail())) {
+                        firebaseUser.verifyBeforeUpdateEmail(newEmail)
+                                .addOnSuccessListener(aVoid1 -> Log.d("Model", "Email update verification sent"))
+                                .addOnFailureListener(e -> Log.e("Model", "Error sending email update verification", e));
+                    }
+
+                    if (newPassword != null && !newPassword.isEmpty()) {
+                        firebaseUser.updatePassword(newPassword)
+                                .addOnSuccessListener(aVoid1 -> Log.d("Model", "Password updated successfully"))
+                                .addOnFailureListener(e -> Log.e("Model", "Error updating password", e));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Model", "Re-authentication failed", e));
     }
 
     public void logout() {
