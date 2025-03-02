@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,7 +51,7 @@ public class AllTasksActivity extends AppCompatActivity {
         );
 
         currentUser = model.getUser();
-        List<Task> tasks = currentUser.getTasks();
+        List<Task> tasks = currentUser.getGroups();
 
         // Setup adapter
         AllTasksAdapter adapter = new AllTasksAdapter(this, tasks);

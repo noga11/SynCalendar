@@ -1,19 +1,17 @@
 package com.example.mytasksapplication;
 
-import android.graphics.Bitmap;
-
 import java.util.ArrayList;
 
 public class User {
     private String uName, email, password, profilePicUrl;
-    private ArrayList<Task> tasks;
+    private ArrayList<Group> groups;
     private Boolean privacy;
 
-    public User(String uName, String email, String password, String profilePicUrl, ArrayList<Task> tasks, Boolean privacy) {
+    public User(String uName, String email, String password, String profilePicUrl, ArrayList<Group> groups, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.password = password;
-        this.tasks = tasks;
+        this.groups = groups;
         this.profilePicUrl = profilePicUrl;
         this.privacy = privacy;
     }
@@ -33,7 +31,7 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public ArrayList<Task> getTasks() { return tasks; }
-    public void setTasks(ArrayList<Task> tasks) { this.tasks = tasks; }
+    public ArrayList<Group> getGroups() { return groups; }
+    public void setGroups(ArrayList<Group> groups) { this.groups = groups; }
 
 }

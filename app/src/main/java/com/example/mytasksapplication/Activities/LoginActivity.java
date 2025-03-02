@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -23,7 +22,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
 import com.example.mytasksapplication.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -141,7 +139,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if ("action_profile".equals(source)) {
                 // Ensure `currentUser` is available
                 if (model.getUser() != null) {
-                    model.updateUser(username, email, password, userProfilePic, model.getUser().getTasks(), privacy);
+                    model.updateUser(username, email, password, userProfilePic, model.getUser().getGroups(), privacy);
                     Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {

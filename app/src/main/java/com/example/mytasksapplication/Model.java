@@ -195,8 +195,8 @@ public class Model {
         }
         return null;
     }
-    
-    public void updateUser(String uName, String email, String password, Bitmap profilePic, ArrayList<Task> tasks, Boolean privacy){
+
+    public void updateUser(String uName, String email, String password, Bitmap profilePic, ArrayList<Group> groups, Boolean privacy){
         String userId = firebaseUser.getUid();
         DocumentReference userRef = firestore.collection("users").document(userId);
 
@@ -204,14 +204,15 @@ public class Model {
         currentUser.setEmail(email);
         currentUser.setPassword(password);
         currentUser.setPrivacy(privacy);
-        currentUser.setTasks(tasks);
+        currentUser.setGroups(groups);
+
 
         // Prepare a map for Firestore updates
         Map<String, Object> updates = new HashMap<>();
         updates.put("uName", uName);
         updates.put("email", email);
         updates.put("privacy", privacy);
-        updates.put("tasks", tasks);
+        updates.put("groups", groups);
 
         // Handle profile picture update
         if (profilePic != null) {
@@ -274,11 +275,12 @@ public class Model {
     }
 
     // -------------------------------------- Task Functions --------------------------------------
-
     public Task getTaskByIdAndUser(String id, User user) {
-        for (Task task : user.getTasks()) {
-            if (task.getId().equals(id)) {
-                return task;
+        for (Group group : user.getGroups()) {
+            for (Task task : group.getTasks()) {
+                if (task.getId().equals(id)) {
+                    return task;
+                }
             }
         }
         return null;
@@ -292,19 +294,30 @@ public class Model {
         String userId = firebaseUser.getUid();
 
         // Set up the real-time listener for tasks
-        firestore.collection("users").document(userId).collection("tasks")
+        firestore.collection("users").document(userId).collection("groups")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
                         Log.e("Model", "Error listening to task data", e);
                         return;
                     }
 
-                    // Clear the current task list and reload the tasks
-                    currentUser.setTasks(new ArrayList<>());
-                    for (DocumentSnapshot document : snapshots) {
-                        Task task = document.toObject(Task.class);
-                        if (task != null) {
-                            currentUser.getTasks().add(task);
+                    // Clear the current user's groups and reload the groups with their tasks
+                    currentUser.setGroups(new ArrayList<>());
+                    for (DocumentSnapshot groupDoc : snapshots) {
+                        Group group = groupDoc.toObject(Group.class);
+                        if (group != null) {
+                            // Add tasks to the group
+                            firestore.collection("users").document(userId).collection("groups")
+                                    .document(group.getId()).collection("tasks")
+                                    .get().addOnSuccessListener(taskSnapshots -> {
+                                        for (DocumentSnapshot taskDoc : taskSnapshots) {
+                                            Task task = taskDoc.toObject(Task.class);
+                                            if (task != null) {
+                                                group.addTask(task);
+                                            }
+                                        }
+                                    });
+                            currentUser.getGroups().add(group);
                         }
                     }
                     Log.d("Model", "Task data has been updated.");
@@ -321,16 +334,29 @@ public class Model {
         // Get the user ID
         String userId = firebaseUser.getUid();
 
-        // Get the user's tasks from Firestore
-        firestore.collection("users").document(userId).collection("tasks").get()
+        // Get the user's groups from Firestore
+        firestore.collection("users").document(userId).collection("groups").get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        currentUser.setTasks(new ArrayList<>());
-                        // Loop through the task documents and convert them to Task objects
-                        for (DocumentSnapshot document : task.getResult()) {
-                            Task taskData = document.toObject(Task.class);
-                            if (taskData != null) {
-                                currentUser.getTasks().add(taskData);
+                        currentUser.setGroups(new ArrayList<>());
+                        // Loop through the groups and load tasks for each group
+                        for (DocumentSnapshot groupDoc : task.getResult()) {
+                            Group group = groupDoc.toObject(Group.class);
+                            if (group != null) {
+                                firestore.collection("users").document(userId)
+                                        .collection("groups").document(group.getId())
+                                        .collection("tasks").get()
+                                        .addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                for (DocumentSnapshot taskDoc1 : task1.getResult()) {
+                                                    Task taskData = taskDoc1.toObject(Task.class);
+                                                    if (taskData != null) {
+                                                        group.addTask(taskData);
+                                                    }
+                                                }
+                                            }
+                                        });
+                                currentUser.getGroups().add(group);
                             }
                         }
                         Log.d("Model", "Tasks loaded successfully.");
@@ -340,160 +366,109 @@ public class Model {
                 });
     }
 
-    public void addTask(String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
+    public void addTask(String title, String details, String groupId, String address, ArrayList<String> shareWithUsers,
                         Date start, Date end, Date remTime, Date date, Date remDate,
                         boolean reminder, boolean important, int colour, int notificationId) {
         // Create task object
-        Task task = new Task(title, details, group, adress, shareWithUsers, start, end, remTime, date, remDate,
+        Task task = new Task(title, details, groupId, address, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, colour, notificationId);
 
-        if (currentUser.getTasks() == null) {
-            currentUser.setTasks(new ArrayList<>());
-        }
-        currentUser.getTasks().add(task);
+        // Find the group to add the task to
+        Group group = findGroupById(groupId);
+        if (group != null) {
+            group.addTask(task);
+            saveTaskToFirestore(groupId, task);
 
-        // Save task to Firestore
-        saveTaskToFirestore(task);
-
-        // Share task with other users
-        if (shareWithUsers != null) {
-            if (!shareWithUsers.contains(currentUser.getuName())) {
-                shareWithUsers.add(currentUser.getuName());
-            }
-            task.setShareWithUsers(shareWithUsers);
-            for (String username : shareWithUsers) {
-                if (username.equals(currentUser.getuName())) continue;
-                User userToShareWith = findUserByUsername(username);
-                if (userToShareWith != null) {
-                    if (userToShareWith.getTasks() == null) {
-                        userToShareWith.setTasks(new ArrayList<>());
+            // Share task with other users
+            if (shareWithUsers != null) {
+                if (!shareWithUsers.contains(currentUser.getuName())) {
+                    shareWithUsers.add(currentUser.getuName());
+                }
+                task.setShareWithUsers(shareWithUsers);
+                for (String username : shareWithUsers) {
+                    if (username.equals(currentUser.getuName())) continue;
+                    User userToShareWith = findUserByUsername(username);
+                    if (userToShareWith != null) {
+                        Group sharedGroup = findGroupById(groupId, userToShareWith);
+                        if (sharedGroup != null) {
+                            sharedGroup.addTask(task);
+                            saveTaskToFirestoreForOtherUser(userToShareWith.getuName(), sharedGroup.getId(), task);
+                        }
                     }
-                    userToShareWith.getTasks().add(task);
-                    // actually sharing
-                    saveTaskToFirestoreForOtherUser(userToShareWith.getuName(), task);
                 }
             }
         }
     }
 
-    // Save task to Firestore for currentUser
-    private void saveTaskToFirestore(Task task) {
+    private Group findGroupById(String groupId) {
+        for (Group group : currentUser.getGroups()) {
+            if (group.getId().equals(groupId)) {
+                return group;
+            }
+        }
+        return null;
+    }
+
+    private Group findGroupById(String groupId, User user) {
+        for (Group group : user.getGroups()) {
+            if (group.getId().equals(groupId)) {
+                return group;
+            }
+        }
+        return null;
+    }
+
+    private void saveTaskToFirestore(String groupId, Task task) {
         if (firebaseUser != null) {
             String userId = firebaseUser.getUid();
-            DocumentReference taskRef = firestore.collection("users").document(userId).collection("tasks").document(task.getId());
+            DocumentReference taskRef = firestore.collection("users").document(userId)
+                    .collection("groups").document(groupId).collection("tasks").document(task.getId());
             taskRef.set(task)
                     .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore"))
                     .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore", e));
         }
     }
 
-    // Save task to Firestore for another user
-    private void saveTaskToFirestoreForOtherUser(String username, Task task) {
+    private void saveTaskToFirestoreForOtherUser(String username, String groupId, Task task) {
         User user = findUserByUsername(username);
         if (user != null) {
-            DocumentReference taskRef = firestore.collection("users").document(user.getEmail()).collection("tasks").document(task.getId());
+            DocumentReference taskRef = firestore.collection("users").document(user.getEmail())
+                    .collection("groups").document(groupId).collection("tasks").document(task.getId());
             taskRef.set(task)
                     .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore for user: " + username))
                     .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore for user: " + username, e));
         }
     }
 
-    // Changed method signature to use taskId for proper task identification
-    public void updateTask(String taskId, String title, String details, String group, String adress, ArrayList<String> shareWithUsers,
-                           Date start, Date end, Date remTime, Date date, Date remDate,
-                           boolean reminder, boolean important, int colour) {
-        // Update the task for the current user
-        Task task = getTaskByIdAndUser(taskId, currentUser);
-        if (task != null) {
-            task.setTitle(title);
-            task.setDetails(details);
-            task.setGroup(group);
-            task.setAdress(adress);
-            task.setShareWithUsers(shareWithUsers);
-            task.setStart(start);
-            task.setEnd(end);
-            task.setReminder(reminder);
-            task.setRemTime(remTime);
-            task.setRemDate(remDate);
-            task.setImportant(important);
-            task.setColour(colour);
-            updateTaskForCurrentUser(task);
-        }
-
-        // Update the task for the users it's shared with
-        if (shareWithUsers != null) {
-            for (String username : shareWithUsers) {
-                if (username.equals(currentUser.getuName())) continue;
-                User userToShareWith = findUserByUsername(username);
-                if (userToShareWith != null) {
-                    Task sharedTask = getTaskByIdAndUser(taskId, userToShareWith);
-                    if (sharedTask != null) {
-                        sharedTask.setTitle(title);
-                        sharedTask.setDetails(details);
-                        sharedTask.setGroup(group);
-                        sharedTask.setAdress(adress);
-                        sharedTask.setShareWithUsers(shareWithUsers);
-                        sharedTask.setStart(start);
-                        sharedTask.setEnd(end);
-                        sharedTask.setReminder(reminder);
-                        sharedTask.setRemTime(remTime);
-                        sharedTask.setRemDate(remDate);
-                        sharedTask.setImportant(important);
-                        sharedTask.setColour(colour);
-                        updateTaskForSharingUsers(userToShareWith, sharedTask);
-                    }
-                }
-            }
-        }
-    }
-
-    private void updateTaskForCurrentUser(Task task) {
-        if (firebaseUser != null) {
-            String userId = firebaseUser.getUid();
-            DocumentReference taskRef = firestore.collection("users").document(userId)
-                    .collection("tasks").document(task.getId());
-            taskRef.set(task)
-                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task updated in Firestore"))
-                    .addOnFailureListener(e -> Log.e("Model", "Error updating task in Firestore", e));
-        }
-    }
-    private void updateTaskForSharingUsers(User otherUser, Task task) {
-        DocumentReference taskRef = firestore.collection("users")
-                .document(otherUser.getEmail()) // Consider using a unique id like uid instead of email.
-                .collection("tasks")
-                .document(task.getId());
-        taskRef.set(task)
-                .addOnSuccessListener(aVoid ->
-                        Log.d("Model", "Shared task updated for user: " + otherUser.getuName()))
-                .addOnFailureListener(e ->
-                        Log.e("Model", "Error updating shared task for user: " + otherUser.getuName(), e));
-    }
-
-    public void deleteTask(String taskId) {
+    public void deleteTask(String taskId, String groupId) {
         Task taskToDelete = getTaskByIdAndUser(taskId, currentUser);
         if (taskToDelete != null) {
             // Delete task from Firestore for the current user.
             if (firebaseUser != null) {
                 String userId = firebaseUser.getUid();
                 DocumentReference taskRef = firestore.collection("users").document(userId)
-                        .collection("tasks").document(taskId);
+                        .collection("groups").document(groupId).collection("tasks").document(taskId);
                 taskRef.delete()
                         .addOnSuccessListener(aVoid -> Log.d("Model", "Task deleted from Firestore"))
                         .addOnFailureListener(e -> Log.e("Model", "Error deleting task from Firestore", e));
             }
-            currentUser.getTasks().remove(taskToDelete);
 
-            // Remove the task from any shared users.
+            Group group = findGroupById(groupId);
+            if (group != null) {
+                group.removeTask(taskToDelete);
+            }
+
+            // Remove task from shared users
             ArrayList<String> sharedUsers = taskToDelete.getShareWithUsers();
             if (sharedUsers != null && !sharedUsers.isEmpty()) {
                 for (String username : sharedUsers) {
                     User userToShareWith = findUserByUsername(username);
                     if (userToShareWith != null) {
-                        Task sharedTask = getTaskByIdAndUser(taskId, userToShareWith);
-                        if (sharedTask != null) {
-                            userToShareWith.getTasks().remove(sharedTask);
+                        Group sharedGroup = findGroupById(groupId, userToShareWith);
+                        if (sharedGroup != null) {
+                            sharedGroup.removeTask(taskToDelete);
                             DocumentReference sharedTaskRef = firestore.collection("users").document(userToShareWith.getEmail())
-                                    .collection("tasks").document(taskId);
+                                    .collection("groups").document(groupId).collection("tasks").document(taskId);
                             sharedTaskRef.delete()
                                     .addOnSuccessListener(aVoid -> Log.d("Model", "Shared task deleted for user: " + username))
                                     .addOnFailureListener(e -> Log.e("Model", "Error deleting shared task for user: " + username, e));
@@ -504,36 +479,3 @@ public class Model {
         }
     }
 
-    public ArrayList<Task> tempData() {
-        ArrayList<Task> tasks = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
-
-        calendar.set(2025, Calendar.FEBRUARY, 5, 9, 0);
-        Date start1 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 5, 10, 0);
-        Date end1 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 5, 8, 30);
-        Date remTime1 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 4);
-        Date remDate1 = calendar.getTime();
-
-        tasks.add(new Task("Task 1", "Details for Task 1", "Work", "1234 Address St", new ArrayList<>(),
-                start1, end1, remTime1, start1, remDate1,
-                true, true, 0xFF00FF00, 0));
-
-        calendar.set(2025, Calendar.FEBRUARY, 10, 11, 0);
-        Date start2 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 10, 12, 0);
-        Date end2 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 10, 10, 30);
-        Date remTime2 = calendar.getTime();
-        calendar.set(2025, Calendar.FEBRUARY, 9);
-        Date remDate2 = calendar.getTime();
-
-        tasks.add(new Task("Task 2", "Details for Task 2", "Home", "5678 Another Rd", new ArrayList<>(),
-                start2, end2, remTime2, start2, remDate2,
-                false, false, 0xFFFF0000, 0));
-
-        return tasks;
-    }
-}
