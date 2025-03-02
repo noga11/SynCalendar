@@ -190,13 +190,13 @@ public class Model {
     }
 
     public User getUser() {
-        if (currentUser!=null) {
+        if (currentUser != null) {
             return currentUser;
         }
         return null;
     }
 
-    public void updateUser(String uName, String email, String password, Bitmap profilePic, ArrayList<Group> groups, Boolean privacy){
+    public void updateUser(String uName, String email, String password, Bitmap profilePic, ArrayList<Group> groups, Boolean privacy) {
         String userId = firebaseUser.getUid();
         DocumentReference userRef = firestore.collection("users").document(userId);
 
@@ -370,7 +370,7 @@ public class Model {
                         Date start, Date end, Date remTime, Date date, Date remDate,
                         boolean reminder, boolean important, int colour, int notificationId) {
         // Create task object
-        Task task = new Task(title, details, groupId, address, shareWithUsers, start, end, remTime, date, remDate,
+        Task task = new Task(title, details, address, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, colour, notificationId);
 
         // Find the group to add the task to
@@ -478,4 +478,5 @@ public class Model {
             }
         }
     }
+}
 
