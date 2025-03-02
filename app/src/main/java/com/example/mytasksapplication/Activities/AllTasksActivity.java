@@ -15,12 +15,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mytasksapplication.Adapters.AllTasksAdapter;
+import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Task;
 import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AllTasksActivity extends AppCompatActivity {
@@ -50,8 +52,13 @@ public class AllTasksActivity extends AppCompatActivity {
                 result -> { }
         );
 
+        List<Task> tasks = new ArrayList<Task>();
         currentUser = model.getUser();
-        List<Task> tasks = currentUser.getGroups();
+        for (Group group : currentUser.getGroups()){
+            for (Task task : group.getTasks()){
+                tasks.add(task);
+            }
+        }
 
         // Setup adapter
         AllTasksAdapter adapter = new AllTasksAdapter(this, tasks);
