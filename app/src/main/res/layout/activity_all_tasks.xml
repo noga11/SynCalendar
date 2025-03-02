@@ -17,25 +17,21 @@
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
 
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/spinnerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:hint="Select a group"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-        <!--this is going to be a horisontal list-->
-        <androidx.recyclerview.widget.RecyclerView
+        <AutoCompleteTextView
+            android:id="@+id/materialSpinner"
             android:layout_width="match_parent"
-            android:layout_height="43dp"
-            android:layout_weight="1">
-        </androidx.recyclerview.widget.RecyclerView>
-
-        <Button
-            android:id="@+id/btnAddGroup"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
-            android:textSize="20sp" />
-    </LinearLayout>
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <SearchView
         android:layout_width="match_parent"

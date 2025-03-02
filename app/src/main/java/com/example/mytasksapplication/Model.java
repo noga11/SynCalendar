@@ -152,7 +152,11 @@ public class Model {
 
     private void saveUserToFirestore(String userId, String uName, String email, String password, String profilePicUrl, Boolean privacy) {
         DocumentReference userRef = firestore.collection("users").document(userId);
-        userRef.set(new User(uName, email, password, profilePicUrl, null, privacy))
+        ArrayList<Group> groups = new ArrayList<>();
+        groups.add(new Group("All", "0"));
+        groups.add(new Group("Important", "1"));
+        groups.add(new Group("Add New Group", "2"));
+        userRef.set(new User(uName, email, password, profilePicUrl, groups , privacy))
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Model", "User details saved to Firestore.");
                 })

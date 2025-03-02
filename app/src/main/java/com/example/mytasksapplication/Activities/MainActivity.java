@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         setTitle("Calendar");
 
         lstDailyTasks = findViewById(R.id.lstDailyTasks);
-        tasks = model.tempData();
+        // tasks = model.tempData();
 
         adapter = new DailyTasksAdapter(this, tasks);
         lstDailyTasks.setAdapter(adapter);

@@ -24,10 +24,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.NotificationHelper;
 import com.example.mytasksapplication.R;
 
+import com.example.mytasksapplication.User;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -35,6 +37,7 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -48,9 +51,12 @@ import android.content.Intent;
 public class NewTaskActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Model model;
+    private User currentUser;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
     private NotificationHelper notificationHelper;
     private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
+    private ArrayAdapter<String> adapter;
+    private List<String> groupNames;
 
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
@@ -59,6 +65,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
     private ChipGroup chipGroup;
     private AutoCompleteTextView spinnerGroup;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +73,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
 
         model = Model.getInstance(this);
         notificationHelper = new NotificationHelper(this);
+        currentUser = model.getUser();
 
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
@@ -80,8 +88,14 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         btbAddTask = findViewById(R.id.btbAddTask);
         spinnerGroup = findViewById(R.id.spinnerGroup);
 
-        List<String> groups = Arrays.asList("All", "Important");
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
+        ArrayList<Group> groups = currentUser.getGroups();
+        groupNames = new ArrayList<>();
+
+        for (Group group : groups) {
+            groupNames.add(group.getName());
+        }
+
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groupNames);
         spinnerGroup.setAdapter(adapter);
 
         tvReminderDate.setVisibility(View.GONE);
@@ -96,8 +110,12 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
 
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedGroup = (String) parent.getItemAtPosition(position);
-            // Do something with selectedGroup
+            String selectedGroup = groupNames.get(position);
+
+            if ("Add New Group".equals(selectedGroup)) {
+                showAddGroupDialog();
+            }
+            spinnerGroup.dismissDropDown(); // Hide the dropdown after selection
         });
 
         swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -244,4 +262,38 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
     }
+
+    private void showAddGroupDialog() {
+        // Create an input field inside the dialog
+        EditText input = new EditText(this);
+        input.setHint("Enter new group name");
+
+        // Create and show the dialog
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("New Group")
+                .setView(input)
+                .setPositiveButton("Add", (dialog, which) -> {
+                    String newGroup = input.getText().toString().trim();
+
+                    if (!newGroup.isEmpty() && !groupNames.contains(newGroup)) {
+                        addNewGroup(newGroup);
+                    } else {
+                        Toast.makeText(this, "Group already exists or invalid name", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void addNewGroup(String newGroup) {
+        // Add the new group before "Add New Group" option
+        groupNames.add(groupNames.size() - 1, newGroup);
+
+        // Notify adapter of the change
+        adapter.notifyDataSetChanged();
+
+        // Set the new group as the selected item
+        spinnerGroup.setText(newGroup, false);
+    }
+
 }
