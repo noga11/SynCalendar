@@ -1,9 +1,6 @@
 package com.example.mytasksapplication.Activities;
 
-import android.app.Notification;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -18,15 +15,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.NotificationHelper;
+import com.example.mytasksapplication.Notification.NotificationMsg;
 import com.example.mytasksapplication.R;
 
 import com.example.mytasksapplication.User;
@@ -38,22 +33,15 @@ import com.google.android.material.timepicker.TimeFormat;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-
-import android.app.PendingIntent;
-import android.content.Intent;
 
 public class NewTaskActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Model model;
     private User currentUser;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
-    private NotificationHelper notificationHelper;
+    private NotificationMsg notificationMsg;
     private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
     private ArrayAdapter<String> adapter;
     private List<String> groupNames;
@@ -72,7 +60,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_new_task);
 
         model = Model.getInstance(this);
-        notificationHelper = new NotificationHelper(this);
+        notificationMsg = new NotificationMsg(this);
         currentUser = model.getUser();
 
         etTitle = findViewById(R.id.etTitle);
@@ -133,7 +121,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
             } else {
                 tvReminderDate.setVisibility(View.GONE);
                 tvReminderTime.setVisibility(View.GONE);
-                notificationHelper.cancelNotification();
+                notificationMsg.cancelNotification();
                 Toast.makeText(this, "Reminder canceled", Toast.LENGTH_SHORT).show();
             }
         });
@@ -177,7 +165,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
 
                 long reminderTimeMillis = calendar.getTimeInMillis();
                 if (reminderTimeMillis > System.currentTimeMillis()) {
-                    notificationHelper.sendNotification("New Task: " + taskTitle);
+                    notificationMsg.sendNotification("New Task: " + taskTitle);
                     Toast.makeText(this, "Reminder set", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();

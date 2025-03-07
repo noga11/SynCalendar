@@ -1,4 +1,4 @@
-package com.example.mytasksapplication;
+package com.example.mytasksapplication.Notification;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -14,13 +14,13 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.mytasksapplication.Activities.NewTaskActivity;
 
-public class NotificationHelper {
+public class NotificationMsg {
     private static final String CHANNEL_ID = "reminderChannel";
     private static final int NOTIFICATION_ID = 1;
     private Context context;
     private NotificationManager notificationManager;
 
-    public NotificationHelper(Context context) {
+    public NotificationMsg(Context context) {
         this.context = context;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
@@ -31,8 +31,8 @@ public class NotificationHelper {
     private void createNotificationChannel() {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, "Task Notifications", NotificationManager.IMPORTANCE_HIGH);
-        channel.setDescription("Task Reminder Notifications");
+                CHANNEL_ID, "Event Notifications", NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription("Event Reminder Notifications");
         channel.enableLights(true);
         channel.setLightColor(Color.RED);
         channel.enableVibration(true);
