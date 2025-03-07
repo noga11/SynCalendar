@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
-public class Task {
+public class Event {
     private String title, details, adress, id;
     private ArrayList<String> shareWithUsers;
     private Date start, end, remTime, date, remDate;
     private boolean reminder, important;
     private int colour, notificationId;
 
-    public Task(String title, String details, String adress, ArrayList<String> shareWithUsers,
-                Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
-                boolean important, int colour, int notificationId) {
+    public Event(String title, String details, String adress, ArrayList<String> shareWithUsers,
+                 Date start, Date end, Date remTime, Date date, Date remDate, boolean reminder,
+                 boolean important, int colour, int notificationId) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.details = details;

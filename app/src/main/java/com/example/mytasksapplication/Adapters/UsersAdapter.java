@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
 import com.example.mytasksapplication.User;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class UsersAdapter   extends ArrayAdapter<User> {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.item_daily_task, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.item_daily_event, parent, false);
         }
 
         User user = users.get(position);

@@ -9,15 +9,12 @@ import android.widget.CalendarView;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class CustomCalendarView extends CalendarView {
 
-    private Set<Long> taskDates = new HashSet<>();
+    private Set<Long> eventDates = new HashSet<>();
     private int lineColor = Color.BLACK;
     private int cellWidth = 0;  // Initialize cellWidth
 
@@ -41,8 +38,8 @@ public class CustomCalendarView extends CalendarView {
         cellWidth = w / 7;  // 7 days in a week
     }
 
-    public void setTaskDates(Set<Long> taskDates) {
-        this.taskDates = taskDates;
+    public void setEventDates(Set<Long> eventDates) {
+        this.eventDates = eventDates;
         invalidate();
     }
 
@@ -58,9 +55,9 @@ public class CustomCalendarView extends CalendarView {
         paint.setColor(lineColor);
         paint.setStrokeWidth(5);
 
-        // Loop through all the task dates and draw lines under them
-        for (Long taskDate : taskDates) {
-            float x = getDateX(taskDate);  // Get X position for each task date
+        // Loop through all the event dates and draw lines under them
+        for (Long eventDate : eventDates) {
+            float x = getDateX(eventDate);  // Get X position for each event date
             float y = getHeight() - 10;   // Y position just above the bottom of the CalendarView
             canvas.drawLine(x, y, x + cellWidth, y, paint);  // Draw the line
         }

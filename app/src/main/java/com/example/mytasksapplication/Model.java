@@ -19,7 +19,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -106,13 +105,13 @@ public class Model {
 
     public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
+                .addOnCompleteListener(event -> {
+                    if (event.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
                         Log.d("Model", "User created successfully: " + email);
                         uploadProfilePicture(profilePic, firebaseUser.getUid(), uName, email, password, privacy);
                     } else {
-                        Log.e("Model", "User creation failed", task.getException());
+                        Log.e("Model", "User creation failed", event.getException());
                     }
                 });
     }
@@ -124,7 +123,7 @@ public class Model {
 
         // Upload the picture
         profilePicRef.putBytes(BitmapUtils.bitmapToByteArray(profilePic))
-                .addOnSuccessListener(taskSnapshot -> {
+                .addOnSuccessListener(eventSnapshot -> {
                     Log.d("Model", "Profile picture uploaded successfully!");
 
                     // After uploading, get the download URL
@@ -167,13 +166,13 @@ public class Model {
 
     public User login(String email, String password) {
         firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
+                .addOnCompleteListener(event -> {
+                    if (event.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
                         Log.d("Model", "User logged in successfully: " + firebaseUser.getEmail());
                         getUserFromFirebase(firebaseUser.getUid());
                     } else {
-                        Log.e("Model", "Login failed", task.getException());
+                        Log.e("Model", "Login failed", event.getException());
                     }
                 });
         return currentUser;
@@ -233,7 +232,7 @@ public class Model {
         StorageReference profilePicRef = firebaseStorage.getReference().child("profile_pictures/" + userId + ".jpg");
 
         profilePicRef.putBytes(BitmapUtils.bitmapToByteArray(profilePic))
-                .addOnSuccessListener(taskSnapshot -> {
+                .addOnSuccessListener(eventSnapshot -> {
                     profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         updates.put("profilePicUrl", uri.toString());
                         updateFirestoreUser(userRef, updates);
@@ -278,57 +277,57 @@ public class Model {
         currentUser = null;
     }
 
-    // -------------------------------------- Task Functions --------------------------------------
-    public Task getTaskByIdAndUser(String id, User user) {
+    // -------------------------------------- Event Functions --------------------------------------
+    public Event getEventByIdAndUser(String id, User user) {
         for (Group group : user.getGroups()) {
-            for (Task task : group.getTasks()) {
-                if (task.getId().equals(id)) {
-                    return task;
+            for (Event event : group.getEvents()) {
+                if (event.getId().equals(id)) {
+                    return event;
                 }
             }
         }
         return null;
     }
 
-    public void raiseTaskDataChange() {
+    public void raiseEventDataChange() {
         if (firebaseUser == null) {
             Log.e("Model", "No user is logged in.");
             return;
         }
         String userId = firebaseUser.getUid();
 
-        // Set up the real-time listener for tasks
+        // Set up the real-time listener for events
         firestore.collection("users").document(userId).collection("groups")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
-                        Log.e("Model", "Error listening to task data", e);
+                        Log.e("Model", "Error listening to event data", e);
                         return;
                     }
 
-                    // Clear the current user's groups and reload the groups with their tasks
+                    // Clear the current user's groups and reload the groups with their events
                     currentUser.setGroups(new ArrayList<>());
                     for (DocumentSnapshot groupDoc : snapshots) {
                         Group group = groupDoc.toObject(Group.class);
                         if (group != null) {
-                            // Add tasks to the group
+                            // Add events to the group
                             firestore.collection("users").document(userId).collection("groups")
-                                    .document(group.getId()).collection("tasks")
-                                    .get().addOnSuccessListener(taskSnapshots -> {
-                                        for (DocumentSnapshot taskDoc : taskSnapshots) {
-                                            Task task = taskDoc.toObject(Task.class);
-                                            if (task != null) {
-                                                group.addTask(task);
+                                    .document(group.getId()).collection("events")
+                                    .get().addOnSuccessListener(eventSnapshots -> {
+                                        for (DocumentSnapshot eventDoc : eventSnapshots) {
+                                            Event event = eventDoc.toObject(Event.class);
+                                            if (event != null) {
+                                                group.addEvent(event);
                                             }
                                         }
                                     });
                             currentUser.getGroups().add(group);
                         }
                     }
-                    Log.d("Model", "Task data has been updated.");
+                    Log.d("Model", "Event data has been updated.");
                 });
     }
 
-    public void loadTasks() {
+    public void loadEvents() {
         // Ensure the user is logged in
         if (firebaseUser == null) {
             Log.e("Model", "No user is logged in.");
@@ -340,22 +339,22 @@ public class Model {
 
         // Get the user's groups from Firestore
         firestore.collection("users").document(userId).collection("groups").get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
+                .addOnCompleteListener(event -> {
+                    if (event.isSuccessful()) {
                         currentUser.setGroups(new ArrayList<>());
-                        // Loop through the groups and load tasks for each group
-                        for (DocumentSnapshot groupDoc : task.getResult()) {
+                        // Loop through the groups and load events for each group
+                        for (DocumentSnapshot groupDoc : event.getResult()) {
                             Group group = groupDoc.toObject(Group.class);
                             if (group != null) {
                                 firestore.collection("users").document(userId)
                                         .collection("groups").document(group.getId())
-                                        .collection("tasks").get()
-                                        .addOnCompleteListener(task1 -> {
-                                            if (task1.isSuccessful()) {
-                                                for (DocumentSnapshot taskDoc1 : task1.getResult()) {
-                                                    Task taskData = taskDoc1.toObject(Task.class);
-                                                    if (taskData != null) {
-                                                        group.addTask(taskData);
+                                        .collection("events").get()
+                                        .addOnCompleteListener(event1 -> {
+                                            if (event1.isSuccessful()) {
+                                                for (DocumentSnapshot eventDoc1 : event1.getResult()) {
+                                                    Event eventData = eventDoc1.toObject(Event.class);
+                                                    if (eventData != null) {
+                                                        group.addEvent(eventData);
                                                     }
                                                 }
                                             }
@@ -363,40 +362,40 @@ public class Model {
                                 currentUser.getGroups().add(group);
                             }
                         }
-                        Log.d("Model", "Tasks loaded successfully.");
+                        Log.d("Model", "Events loaded successfully.");
                     } else {
-                        Log.e("Model", "Error loading tasks from Firestore", task.getException());
+                        Log.e("Model", "Error loading events from Firestore", event.getException());
                     }
                 });
     }
 
-    public void addTask(String title, String details, String groupId, String address, ArrayList<String> shareWithUsers,
-                        Date start, Date end, Date remTime, Date date, Date remDate,
-                        boolean reminder, boolean important, int colour, int notificationId) {
-        // Create task object
-        Task task = new Task(title, details, address, shareWithUsers, start, end, remTime, date, remDate,
+    public void addEvent(String title, String details, String groupId, String address, ArrayList<String> shareWithUsers,
+                         Date start, Date end, Date remTime, Date date, Date remDate,
+                         boolean reminder, boolean important, int colour, int notificationId) {
+        // Create event object
+        Event event = new Event(title, details, address, shareWithUsers, start, end, remTime, date, remDate,
                 reminder, important, colour, notificationId);
 
-        // Find the group to add the task to
+        // Find the group to add the event to
         Group group = findGroupById(groupId);
         if (group != null) {
-            group.addTask(task);
-            saveTaskToFirestore(groupId, task);
+            group.addEvent(event);
+            saveEventToFirestore(groupId, event);
 
-            // Share task with other users
+            // Share event with other users
             if (shareWithUsers != null) {
                 if (!shareWithUsers.contains(currentUser.getuName())) {
                     shareWithUsers.add(currentUser.getuName());
                 }
-                task.setShareWithUsers(shareWithUsers);
+                event.setShareWithUsers(shareWithUsers);
                 for (String username : shareWithUsers) {
                     if (username.equals(currentUser.getuName())) continue;
                     User userToShareWith = findUserByUsername(username);
                     if (userToShareWith != null) {
                         Group sharedGroup = findGroupById(groupId, userToShareWith);
                         if (sharedGroup != null) {
-                            sharedGroup.addTask(task);
-                            saveTaskToFirestoreForOtherUser(userToShareWith.getuName(), sharedGroup.getId(), task);
+                            sharedGroup.addEvent(event);
+                            saveEventToFirestoreForOtherUser(userToShareWith.getuName(), sharedGroup.getId(), event);
                         }
                     }
                 }
@@ -422,60 +421,60 @@ public class Model {
         return null;
     }
 
-    private void saveTaskToFirestore(String groupId, Task task) {
+    private void saveEventToFirestore(String groupId, Event event) {
         if (firebaseUser != null) {
             String userId = firebaseUser.getUid();
-            DocumentReference taskRef = firestore.collection("users").document(userId)
-                    .collection("groups").document(groupId).collection("tasks").document(task.getId());
-            taskRef.set(task)
-                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore"))
-                    .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore", e));
+            DocumentReference eventRef = firestore.collection("users").document(userId)
+                    .collection("groups").document(groupId).collection("events").document(event.getId());
+            eventRef.set(event)
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Event added to Firestore"))
+                    .addOnFailureListener(e -> Log.e("Model", "Error adding event to Firestore", e));
         }
     }
 
-    private void saveTaskToFirestoreForOtherUser(String username, String groupId, Task task) {
+    private void saveEventToFirestoreForOtherUser(String username, String groupId, Event event) {
         User user = findUserByUsername(username);
         if (user != null) {
-            DocumentReference taskRef = firestore.collection("users").document(user.getEmail())
-                    .collection("groups").document(groupId).collection("tasks").document(task.getId());
-            taskRef.set(task)
-                    .addOnSuccessListener(aVoid -> Log.d("Model", "Task added to Firestore for user: " + username))
-                    .addOnFailureListener(e -> Log.e("Model", "Error adding task to Firestore for user: " + username, e));
+            DocumentReference eventRef = firestore.collection("users").document(user.getEmail())
+                    .collection("groups").document(groupId).collection("events").document(event.getId());
+            eventRef.set(event)
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Event added to Firestore for user: " + username))
+                    .addOnFailureListener(e -> Log.e("Model", "Error adding event to Firestore for user: " + username, e));
         }
     }
 
-    public void deleteTask(String taskId, String groupId) {
-        Task taskToDelete = getTaskByIdAndUser(taskId, currentUser);
-        if (taskToDelete != null) {
-            // Delete task from Firestore for the current user.
+    public void deleteEvent(String eventId, String groupId) {
+        Event eventToDelete = getEventByIdAndUser(eventId, currentUser);
+        if (eventToDelete != null) {
+            // Delete event from Firestore for the current user.
             if (firebaseUser != null) {
                 String userId = firebaseUser.getUid();
-                DocumentReference taskRef = firestore.collection("users").document(userId)
-                        .collection("groups").document(groupId).collection("tasks").document(taskId);
-                taskRef.delete()
-                        .addOnSuccessListener(aVoid -> Log.d("Model", "Task deleted from Firestore"))
-                        .addOnFailureListener(e -> Log.e("Model", "Error deleting task from Firestore", e));
+                DocumentReference eventRef = firestore.collection("users").document(userId)
+                        .collection("groups").document(groupId).collection("events").document(eventId);
+                eventRef.delete()
+                        .addOnSuccessListener(aVoid -> Log.d("Model", "Event deleted from Firestore"))
+                        .addOnFailureListener(e -> Log.e("Model", "Error deleting event from Firestore", e));
             }
 
             Group group = findGroupById(groupId);
             if (group != null) {
-                group.removeTask(taskToDelete);
+                group.removeEvent(eventToDelete);
             }
 
-            // Remove task from shared users
-            ArrayList<String> sharedUsers = taskToDelete.getShareWithUsers();
+            // Remove event from shared users
+            ArrayList<String> sharedUsers = eventToDelete.getShareWithUsers();
             if (sharedUsers != null && !sharedUsers.isEmpty()) {
                 for (String username : sharedUsers) {
                     User userToShareWith = findUserByUsername(username);
                     if (userToShareWith != null) {
                         Group sharedGroup = findGroupById(groupId, userToShareWith);
                         if (sharedGroup != null) {
-                            sharedGroup.removeTask(taskToDelete);
-                            DocumentReference sharedTaskRef = firestore.collection("users").document(userToShareWith.getEmail())
-                                    .collection("groups").document(groupId).collection("tasks").document(taskId);
-                            sharedTaskRef.delete()
-                                    .addOnSuccessListener(aVoid -> Log.d("Model", "Shared task deleted for user: " + username))
-                                    .addOnFailureListener(e -> Log.e("Model", "Error deleting shared task for user: " + username, e));
+                            sharedGroup.removeEvent(eventToDelete);
+                            DocumentReference sharedEventRef = firestore.collection("users").document(userToShareWith.getEmail())
+                                    .collection("groups").document(groupId).collection("events").document(eventId);
+                            sharedEventRef.delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("Model", "Shared event deleted for user: " + username))
+                                    .addOnFailureListener(e -> Log.e("Model", "Error deleting shared event for user: " + username, e));
                         }
                     }
                 }

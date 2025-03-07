@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_Tasks"
+        android:id="@+id/nav_Events"
         android:icon="@drawable/baseline_list_alt_24"
         android:title="Events" />
     <item

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class NewTaskActivity extends AppCompatActivity implements View.OnClickListener {
+public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Model model;
     private User currentUser;
@@ -48,7 +48,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
 
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
-    private Button btbAddTask;
+    private Button btbAddEvent;
     private Switch swchReminder;
     private ChipGroup chipGroup;
     private AutoCompleteTextView spinnerGroup;
@@ -57,7 +57,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_new_task);
+        setContentView(R.layout.activity_new_event);
 
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
@@ -73,7 +73,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         auetShare = findViewById(R.id.auetShare);
         chipGroup = findViewById(R.id.cgUsers);
         swchReminder = findViewById(R.id.swchReminder);
-        btbAddTask = findViewById(R.id.btbAddTask);
+        btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
 
         ArrayList<Group> groups = currentUser.getGroups();
@@ -89,7 +89,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
         tvReminderDate.setVisibility(View.GONE);
         tvReminderTime.setVisibility(View.GONE);
 
-        btbAddTask.setOnClickListener(this);
+        btbAddEvent.setOnClickListener(this);
 
         tvDate.setOnClickListener(view -> showDatePicker(1));
         tvReminderDate.setOnClickListener(view -> showDatePicker(2));
@@ -148,10 +148,10 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     public void onClick(View view) {
-        if (view.getId() == R.id.btbAddTask) {
-            String taskTitle = etTitle.getText().toString().trim();
-            if (taskTitle.isEmpty()) {
-                Toast.makeText(this, "Task title cannot be empty", Toast.LENGTH_SHORT).show();
+        if (view.getId() == R.id.btbAddEvent) {
+            String eventTitle = etTitle.getText().toString().trim();
+            if (eventTitle.isEmpty()) {
+                Toast.makeText(this, "Event title cannot be empty", Toast.LENGTH_SHORT).show();
                 return;
             }
             if (swchReminder.isChecked()) {
@@ -165,7 +165,7 @@ public class NewTaskActivity extends AppCompatActivity implements View.OnClickLi
 
                 long reminderTimeMillis = calendar.getTimeInMillis();
                 if (reminderTimeMillis > System.currentTimeMillis()) {
-                    notificationMsg.sendNotification("New Task: " + taskTitle);
+                    notificationMsg.sendNotification("New Event: " + eventTitle);
                     Toast.makeText(this, "Reminder set", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();

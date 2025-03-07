@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activities.NewTaskActivity">
+    tools:context=".Activities.NewEventActivity">
 
     <EditText
         android:id="@+id/etTitle"
@@ -110,7 +110,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textSize="20sp"
-        android:hint="Share Task" />
+        android:hint="Share Event" />
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/cgUsers"
@@ -165,12 +165,12 @@
         android:text="Important" />
 
         <Button
-            android:id="@+id/btbAddTask"
+            android:id="@+id/btbAddEvent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:backgroundTint="#BBADDF"
-            android:text="Add Task"
+            android:text="Add Event"
             android:textSize="30sp" />
 
     </LinearLayout>

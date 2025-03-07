@@ -12,7 +12,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-import com.example.mytasksapplication.Activities.NewTaskActivity;
+import com.example.mytasksapplication.Activities.NewEventActivity;
 
 public class NotificationMsg {
     private static final String CHANNEL_ID = "reminderChannel";
@@ -41,13 +41,13 @@ public class NotificationMsg {
     }
 
     public void sendNotification(String message) {
-        Intent intent = new Intent(context, NewTaskActivity.class);
+        Intent intent = new Intent(context, NewEventActivity.class);
         intent.putExtra("msg", message);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setContentTitle("Task Reminder")
+                .setContentTitle("Event Reminder")
                 .setContentText(message)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentIntent(pendingIntent)

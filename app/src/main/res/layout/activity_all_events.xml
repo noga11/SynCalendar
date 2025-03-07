@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activities.AllTasksActivity">
+    tools:context=".Activities.AllEventsActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -38,11 +38,11 @@
         android:layout_height="wrap_content" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/lstAllTasks"
+        android:id="@+id/lstAllEvents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        tools:listitem="@layout/item_all_task"/>
+        tools:listitem="@layout/item_all_event"/>
 
     <TextView
         android:id="@+id/tvEmptyList"

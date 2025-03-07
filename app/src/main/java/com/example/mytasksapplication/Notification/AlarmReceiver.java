@@ -18,11 +18,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         Toast.makeText(context,"IN THE RECEIVER!",Toast.LENGTH_LONG).show();
         NotificationMsg notificationMsg= new NotificationMsg(context);
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("medicines");
-        databaseReference.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult().exists()) {
-                String tasks = task.getResult().child("tasks").getValue(String.class);
-                notificationMsg.sendNotification("Event Reminder: " + tasks);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("events");
+        databaseReference.get().addOnCompleteListener(event -> {
+            if (event.isSuccessful() && event.getResult().exists()) {
+                String events = event.getResult().child("events").getValue(String.class);
+                notificationMsg.sendNotification("Event Reminder: " + events);
             }
         });
     }

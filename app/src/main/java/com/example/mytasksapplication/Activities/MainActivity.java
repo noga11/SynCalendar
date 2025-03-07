@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -13,27 +12,25 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
+import com.example.mytasksapplication.Adapters.DailyEventsAdapter;
 import com.example.mytasksapplication.CustomCalendarView;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
+import com.example.mytasksapplication.Event;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private Model model;
-    private DailyTasksAdapter adapter;
-    private List<Task> tasks;
+    private DailyEventsAdapter adapter;
+    private List<Event> events;
     private CustomCalendarView customCalendarView;
-    private ListView lstDailyTasks;
+    private ListView lstDailyEvents;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
@@ -48,17 +45,17 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         setTitle("Calendar");
 
-        lstDailyTasks = findViewById(R.id.lstDailyTasks);
+        lstDailyEvents = findViewById(R.id.lstDailyEvents);
         // tasks = model.tempData();
 
-        adapter = new DailyTasksAdapter(this, tasks);
-        lstDailyTasks.setAdapter(adapter);
+        adapter = new DailyEventsAdapter(this, events);
+        lstDailyEvents.setAdapter(adapter);
 
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
         tvEmptyList = findViewById(R.id.tvEmptyList);
-        if (tasks.isEmpty()) {
+        if (events.isEmpty()) {
             tvEmptyList.setText("You don't have any events, press the + button and add an event");
-            lstDailyTasks.setEmptyView(tvEmptyList);
+            lstDailyEvents.setEmptyView(tvEmptyList);
         }
 
 
@@ -67,18 +64,18 @@ public class MainActivity extends AppCompatActivity {
             Calendar calendar = Calendar.getInstance();
             calendar.set(year, month, dayOfMonth);
             Date selectedDate = calendar.getTime();
-            updateTasksForSelectedDate(selectedDate);
+            updateEventsForSelectedDate(selectedDate);
         });
 
 //        drawLines();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.nav_Add) {
-                Intent intent = new Intent(MainActivity.this, NewTaskActivity.class);
+                Intent intent = new Intent(MainActivity.this, NewEventActivity.class);
                 activityStartLauncher.launch(intent);
                 return true;
-            } else if (item.getItemId() == R.id.nav_Tasks) {
-                Intent intent = new Intent(MainActivity.this, AllTasksActivity.class);
+            } else if (item.getItemId() == R.id.nav_Events) {
+                Intent intent = new Intent(MainActivity.this, AllEventsActivity.class);
                 activityStartLauncher.launch(intent);
                 return true;
             }
@@ -121,29 +118,29 @@ public class MainActivity extends AppCompatActivity {
         customCalendarView.invalidate();
     }
 
-    private void updateTasksForSelectedDate(Date selectedDate) {
-        List<Task> filteredTasks = new ArrayList<>();
+    private void updateEventsForSelectedDate(Date selectedDate) {
+        List<Event> filteredEvents = new ArrayList<>();
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
 
-        for (Task task : tasks) {
+        for (Event task : events) {
             Calendar taskCalendar = Calendar.getInstance();
             taskCalendar.setTime(task.getDate());
 
             if (selectedCalendar.get(Calendar.YEAR) == taskCalendar.get(Calendar.YEAR) &&
                     selectedCalendar.get(Calendar.MONTH) == taskCalendar.get(Calendar.MONTH) &&
                     selectedCalendar.get(Calendar.DAY_OF_MONTH) == taskCalendar.get(Calendar.DAY_OF_MONTH)) {
-                filteredTasks.add(task);
+                filteredEvents.add(task);
             }
         }
 
         adapter.clear();
-        if (!filteredTasks.isEmpty()) {
-            adapter.addAll(filteredTasks);
-            lstDailyTasks.setEmptyView(null);
+        if (!filteredEvents.isEmpty()) {
+            adapter.addAll(filteredEvents);
+            lstDailyEvents.setEmptyView(null);
         } else {
             tvEmptyList.setText("You don't have any events");
-            lstDailyTasks.setEmptyView(tvEmptyList);
+            lstDailyEvents.setEmptyView(tvEmptyList);
         }
 
         adapter.notifyDataSetChanged();

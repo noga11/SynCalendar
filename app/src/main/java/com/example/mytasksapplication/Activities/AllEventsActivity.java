@@ -14,22 +14,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.mytasksapplication.Adapters.AllTasksAdapter;
+import com.example.mytasksapplication.Adapters.AllEventsAdapter;
 import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
+import com.example.mytasksapplication.Event;
 import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllTasksActivity extends AppCompatActivity {
+public class AllEventsActivity extends AppCompatActivity {
 
     private Model model;
     private User currentUser;
-    private RecyclerView lstAllTasks;
+    private RecyclerView lstAllEvents;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
@@ -37,14 +37,14 @@ public class AllTasksActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_all_tasks);
+        setContentView(R.layout.activity_all_events);
         model = Model.getInstance(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Today");
 
-        lstAllTasks = findViewById(R.id.lstAllTasks);
+        lstAllEvents = findViewById(R.id.lstAllEvents);
         tvEmptyList = findViewById(R.id.tvEmptyList);
 
         activityStartLauncher = registerForActivityResult(
@@ -52,25 +52,25 @@ public class AllTasksActivity extends AppCompatActivity {
                 result -> { }
         );
 
-        List<Task> tasks = new ArrayList<Task>();
+        List<Event> events = new ArrayList<Event>();
         currentUser = model.getUser();
         for (Group group : currentUser.getGroups()){
-            for (Task task : group.getTasks()){
-                tasks.add(task);
+            for (Event task : group.getEvents()){
+                events.add(task);
             }
         }
 
         // Setup adapter
-        AllTasksAdapter adapter = new AllTasksAdapter(this, tasks);
-        lstAllTasks.setAdapter(adapter);
+        AllEventsAdapter adapter = new AllEventsAdapter(this, events);
+        lstAllEvents.setAdapter(adapter);
 
         // Handle empty list
-        if (tasks.isEmpty()) {
+        if (events.isEmpty()) {
             tvEmptyList.setVisibility(View.VISIBLE);
-            lstAllTasks.setVisibility(View.GONE);
+            lstAllEvents.setVisibility(View.GONE);
         } else {
             tvEmptyList.setVisibility(View.GONE);
-            lstAllTasks.setVisibility(View.VISIBLE);
+            lstAllEvents.setVisibility(View.VISIBLE);
         }
 
         // Setup bottom navigation
@@ -78,11 +78,11 @@ public class AllTasksActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Intent intent = new Intent();
             if (item.getItemId() == R.id.nav_Add) {
-                intent.setClass(AllTasksActivity.this, NewTaskActivity.class);
+                intent.setClass(AllEventsActivity.this, NewEventActivity.class);
                 activityStartLauncher.launch(intent);
                 return true;
             } else if (item.getItemId() == R.id.nav_Today) {
-                intent.setClass(AllTasksActivity.this, MainActivity.class);
+                intent.setClass(AllEventsActivity.this, MainActivity.class);
                 activityStartLauncher.launch(intent);
                 return true;
             }
@@ -101,27 +101,27 @@ public class AllTasksActivity extends AppCompatActivity {
         Intent intent = new Intent();
         if (item.getItemId() == R.id.action_follow_request) {
             intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
-            intent.setClass(AllTasksActivity.this, FollowingActivity.class);
+            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_users) {
             intent.putExtra("USERS", "action_users");
-            intent.setClass(AllTasksActivity.this, FollowingActivity.class);
+            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_following) {
             intent.putExtra("FOLLOWING", "action_following");
-            intent.setClass(AllTasksActivity.this, FollowingActivity.class);
+            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
-            intent.setClass(AllTasksActivity.this, LoginActivity.class);
+            intent.setClass(AllEventsActivity.this, LoginActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_logout) {
             intent.putExtra("LOGOUT", "action_logout");
-            intent.setClass(AllTasksActivity.this, LoginActivity.class);
+            intent.setClass(AllEventsActivity.this, LoginActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         }

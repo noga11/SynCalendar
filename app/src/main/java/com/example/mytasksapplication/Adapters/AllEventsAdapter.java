@@ -10,39 +10,39 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
+import com.example.mytasksapplication.Event;
 
 import java.util.List;
 
-public class AllTasksAdapter extends RecyclerView.Adapter<AllTasksAdapter.ViewHolder> {
+public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.ViewHolder> {
     private Context context;
-    private List<Task> allTasks;
+    private List<Event> allEvents;
 
-    public AllTasksAdapter(Context context, List<Task> tasks) {
+    public AllEventsAdapter(Context context, List<Event> events) {
         this.context = context;
-        this.allTasks = tasks;
+        this.allEvents = events;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_daily_task, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_daily_event, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Task task = allTasks.get(position);
-        holder.tvTitle.setText(task.getTitle());
-        holder.tvDetails.setText(task.getDetails());
-        holder.tvDate.setText(task.getDate().toString());
-        holder.tvStart.setText(task.getStart().toString());
-        holder.tvEnd.setText(task.getEnd().toString());  // Fixed start->end bug
+        Event event = allEvents.get(position);
+        holder.tvTitle.setText(event.getTitle());
+        holder.tvDetails.setText(event.getDetails());
+        holder.tvDate.setText(event.getDate().toString());
+        holder.tvStart.setText(event.getStart().toString());
+        holder.tvEnd.setText(event.getEnd().toString());  // Fixed start->end bug
     }
 
     @Override
     public int getItemCount() {
-        return allTasks.size();
+        return allEvents.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

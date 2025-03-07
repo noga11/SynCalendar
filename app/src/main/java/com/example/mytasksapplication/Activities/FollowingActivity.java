@@ -12,11 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.mytasksapplication.Adapters.DailyTasksAdapter;
 import com.example.mytasksapplication.Adapters.UsersAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Task;
 import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -69,15 +67,15 @@ public class FollowingActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
-                    startActivity(new Intent(FollowingActivity.this, NewTaskActivity.class));
+                    startActivity(new Intent(FollowingActivity.this, NewEventActivity.class));
                     finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Today) {
                     startActivity(new Intent(FollowingActivity.this, MainActivity.class));
                     finish();
                     return true;
-                } else if (item.getItemId() == R.id.nav_Tasks) {
-                    startActivity(new Intent(FollowingActivity.this, AllTasksActivity.class));
+                } else if (item.getItemId() == R.id.nav_Events) {
+                    startActivity(new Intent(FollowingActivity.this, AllEventsActivity.class));
                     finish();
                     return true;
                 }

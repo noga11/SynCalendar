@@ -3,22 +3,22 @@ package com.example.mytasksapplication;
 import java.util.ArrayList;
 
 public class Group {
-    private ArrayList<Task> tasks;
+    private ArrayList<Event> events;
     private String name, id;
 
     public Group(String name, String id) {
-        this.tasks = new ArrayList<>();
+        this.events = new ArrayList<>();
         this.name = name;
         this.id = id;
     }
 
     // ------------------------------------------------------- Getters and setters ----------------------------------------------------------------------
-    public ArrayList<Task> getTasks() {
-        return tasks;
+    public ArrayList<Event> getEvents() {
+        return events;
     }
 
-    public void setTasks(ArrayList<Task> tasks) {
-        this.tasks = tasks;
+    public void setEvents(ArrayList<Event> events) {
+        this.events = events;
     }
 
     public String getName() {
@@ -37,42 +37,42 @@ public class Group {
         this.id = id;
     }
 
-    // Add a task to the group
-    public void addTask(Task task) {
-        if (task != null && !tasks.contains(task)) {
-            tasks.add(task);
+    // Add a event to the group
+    public void addEvent(Event event) {
+        if (event != null && !events.contains(event)) {
+            events.add(event);
         }
     }
 
-    // -------------------------------------------------- Task Functions ---------------------------------------------------------
-    public void removeTask(Task task) {
-        if (task != null) {
-            tasks.remove(task);
+    // -------------------------------------------------- Event Functions ---------------------------------------------------------
+    public void removeEvent(Event event) {
+        if (event != null) {
+            events.remove(event);
         }
     }
 
-    public Task getTaskById(String taskId) {
-        for (Task task : tasks) {
-            if (task.getId().equals(taskId)) {
-                return task;
+    public Event getEventById(String eventId) {
+        for (Event event : events) {
+            if (event.getId().equals(eventId)) {
+                return event;
             }
         }
         return null;
     }
 
-    public void updateTask(Task updatedTask) {
-        Task task = getTaskById(updatedTask.getId());
-        if (task != null) {
-            int index = tasks.indexOf(task);
-            tasks.set(index, updatedTask);
+    public void updateEvent(Event updatedEvent) {
+        Event event = getEventById(updatedEvent.getId());
+        if (event != null) {
+            int index = events.indexOf(event);
+            events.set(index, updatedEvent);
         }
     }
 
-    public boolean containsTask(Task task) {
-        return tasks.contains(task);
+    public boolean containsEvent(Event event) {
+        return events.contains(event);
     }
 
-    public void clearTasks() {
-        tasks.clear();
+    public void clearEvents() {
+        events.clear();
     }
 }
