@@ -21,10 +21,39 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <TextView
+        android:id="@+id/tvFollowRequest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:visibility="gone"
+        android:text="Follow Request" />
+
+    <ListView
+        android:id="@+id/lstFollowRequest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_margin="10dp"
+        android:visibility="gone"
+        tools:listitem="@layout/item_following"/>
+
+    <TextView
+        android:id="@+id/tvNoRequest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="50sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="" />
+
     <ListView
         android:id="@+id/lstUsers"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_margin="10dp"
         tools:listitem="@layout/item_following"/>

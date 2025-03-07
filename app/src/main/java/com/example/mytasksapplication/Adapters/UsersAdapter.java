@@ -41,19 +41,15 @@ public class UsersAdapter   extends ArrayAdapter<User> {
         // Set button behavior based on the source
         if ("action_Following".equals(source)) {
             taskButton.setText("Following");
-            taskButton.setOnClickListener(v -> {
+            /*taskButton.setOnClickListener(v -> {
                 // Handle button click
-            });
+            });*/
         } else if ("action_FindUser".equals(source)) {
             taskButton.setText("Follow");
-            taskButton.setOnClickListener(v -> {
-                // Handle button click
-            });
         } else if ("action_FollowRequest".equals(source)) {
             taskButton.setText("Accept");
-            taskButton.setOnClickListener(v -> {
-                // Handle button click
-            });
+        } else if("action_Followers".equals((source))){
+            taskButton.setText("Unfollow");
         }
 
         return convertView;

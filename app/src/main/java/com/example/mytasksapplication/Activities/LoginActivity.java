@@ -154,7 +154,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             } else { // Sign Up screen
                 try {
-                    model.createUser(username, email, password, userProfilePic, privacy);
+                    model.createUser(username, email, password, userProfilePic, null, null, privacy);
                     activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
                     finish();
                 } catch (Exception e) {

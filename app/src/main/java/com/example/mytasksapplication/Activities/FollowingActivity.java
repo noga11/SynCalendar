@@ -38,7 +38,13 @@ public class FollowingActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        setTitle("Following");
+        if ("action_Following".equals(source)) {
+            setTitle("Following");
+        } else if ("action_FindUser".equals(source)) {
+            setTitle("Search Users");
+        } else if ("action_FollowRequest".equals(source)) {
+            setTitle("Followers");
+        }
 
         lstUsers = findViewById(R.id.lstUsers);
         List<User> users = new ArrayList<>();

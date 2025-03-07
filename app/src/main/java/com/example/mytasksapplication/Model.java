@@ -103,13 +103,13 @@ public class Model {
                 });
     }
 
-    public void createUser(String uName, String email, String password, Bitmap profilePic, Boolean privacy) {
+    public void createUser(String uName, String email, String password, Bitmap profilePic, ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(event -> {
                     if (event.isSuccessful()) {
                         firebaseUser = firebaseAuth.getCurrentUser();
                         Log.d("Model", "User created successfully: " + email);
-                        uploadProfilePicture(profilePic, firebaseUser.getUid(), uName, email, password, privacy);
+                        uploadProfilePicture(profilePic, firebaseUser.getUid(), uName, email, password, following, followers, privacy);
                     } else {
                         Log.e("Model", "User creation failed", event.getException());
                     }
@@ -117,7 +117,7 @@ public class Model {
     }
 
     // Upload the profile picture to Firebase Storage
-    private void uploadProfilePicture(Bitmap profilePic, String userId, String uName, String email, String password, Boolean privacy) {
+    private void uploadProfilePicture(Bitmap profilePic, String userId, String uName, String email, String password, ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
         StorageReference storageRef = firebaseStorage.getReference();
         StorageReference profilePicRef = storageRef.child("profile_pictures/" + userId + ".jpg");
 
@@ -130,7 +130,7 @@ public class Model {
                     profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         // Save user data to Firestore, including the profile picture URL
                         String profilePicUrl = uri.toString();
-                        saveUserToFirestore(userId, uName, email, password, profilePicUrl, privacy);
+                        saveUserToFirestore(userId, uName, email, password, profilePicUrl, following, followers, privacy);
                     }).addOnFailureListener(e -> {
                         Log.e("Model", "Error getting download URL", e);
                     });
@@ -149,13 +149,13 @@ public class Model {
         }
     }
 
-    private void saveUserToFirestore(String userId, String uName, String email, String password, String profilePicUrl, Boolean privacy) {
+    private void saveUserToFirestore(String userId, String uName, String email, String password, String profilePicUrl, ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
         DocumentReference userRef = firestore.collection("users").document(userId);
         ArrayList<Group> groups = new ArrayList<>();
         groups.add(new Group("All", "0"));
         groups.add(new Group("Important", "1"));
         groups.add(new Group("Add New Group", "2"));
-        userRef.set(new User(uName, email, password, profilePicUrl, groups , privacy))
+        userRef.set(new User(uName, email, password, profilePicUrl, userId, groups ,following, followers, privacy))
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Model", "User details saved to Firestore.");
                 })
