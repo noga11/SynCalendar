@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.mytasksapplication.Adapters.RequestAdapter;
 import com.example.mytasksapplication.Adapters.UsersAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
@@ -24,9 +26,9 @@ import java.util.List;
 public class FollowingActivity extends AppCompatActivity {
 
     private Model model;
-    private ListView lstUsers;
+    private ListView lstUsers, lstFollowRequest;
     private String source;
-    private TextView tvEmptyList;
+    private TextView tvEmptyList, tvFollowRequest;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -34,37 +36,53 @@ public class FollowingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_following);
 
+        model = Model.getInstance(this);
         source = getIntent().getStringExtra("SOURCE");
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if ("action_Following".equals(source)) {
-            setTitle("Following");
-        } else if ("action_FindUser".equals(source)) {
-            setTitle("Search Users");
-        } else if ("action_FollowRequest".equals(source)) {
-            setTitle("Followers");
-        }
-
+        tvEmptyList = findViewById(R.id.tvEmptyList);
+        tvFollowRequest = findViewById(R.id.tvFollowRequest);
         lstUsers = findViewById(R.id.lstUsers);
+        lstFollowRequest = findViewById(R.id.lstFollowRequest);
         List<User> users = new ArrayList<>();
+        List<User> followRequests = new ArrayList<>();
 
-        UsersAdapter adapter = new UsersAdapter(this, users, source);
-        lstUsers.setAdapter(adapter);
+        UsersAdapter usersAdapter = new UsersAdapter(this, users);
+        RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
+        lstUsers.setAdapter(usersAdapter);
+        lstFollowRequest.setAdapter(requestAdapter);
 
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        tvEmptyList = findViewById(R.id.tvEmptyList);
-        if (users.isEmpty()) {
-            if ("action_Following".equals(source)) {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        if ("action_Following".equals(source)) {
+            setTitle("Following");
+            if (users.isEmpty()) {
                 tvEmptyList.setText("You dont follow anyone");
                 lstUsers.setEmptyView(tvEmptyList);
-            } else if ("action_FindUser".equals(source)) {
+            }
+
+        } else if ("action_FindUser".equals(source)) {
+            setTitle("Search Users");
+            if (users.isEmpty()) {
                 tvEmptyList.setText("There aren't any other users");
                 lstUsers.setEmptyView(tvEmptyList);
-            } else if ("action_FollowRequest".equals(source)) {
+            }
+
+        } else if ("action_FollowRequest".equals(source)) {
+            setTitle("Followers");
+            if (users.isEmpty()) {
                 tvEmptyList.setText("You dont have any Following requests");
                 lstUsers.setEmptyView(tvEmptyList);
+            }
+            if(model.getUser().getPendingFollowRequests().isEmpty()){
+                tvFollowRequest.setVisibility(View.GONE);
+                lstFollowRequest.setVisibility(View.GONE);
+            }else{
+                tvFollowRequest.setVisibility(View.VISIBLE);
+                lstFollowRequest.setVisibility(View.VISIBLE);
             }
 
         }

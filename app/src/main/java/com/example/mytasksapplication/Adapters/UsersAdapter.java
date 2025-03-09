@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
 
@@ -16,13 +17,13 @@ import java.util.List;
 public class UsersAdapter   extends ArrayAdapter<User> {
     private Context context;
     private List<User> users;
-    private String source;
+    private Model model;
+    private User currentUser;
 
-    public UsersAdapter(Context context, List<User> users, String source) {
+    public UsersAdapter(Context context, List<User> users) {
         super(context, 0, users);
         this.context = context;
         this.users = users;
-        this.source = source;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -30,27 +31,50 @@ public class UsersAdapter   extends ArrayAdapter<User> {
             convertView = LayoutInflater.from(context).inflate(R.layout.item_daily_event, parent, false);
         }
 
-        User user = users.get(position);
+        model = Model.getInstance(context);
+        currentUser = model.getUser();
+        User otherUser = users.get(position);
 
-        // Set up the title text
         TextView tvUName = convertView.findViewById(R.id.tvUName);
-        tvUName.setText(user.getuName());
+        tvUName.setText(otherUser.getuName());
 
         Button taskButton = convertView.findViewById(R.id.btnAction);
 
-        // Set button behavior based on the source
-        if ("action_Following".equals(source)) {
+        // Get the follow status of the other user
+        User.FollowStatus followStatus = currentUser.getUserFollowStatus(otherUser.getId());
+
+        // Set button text based on follow status
+        if (followStatus == User.FollowStatus.FOLLOW) {
             taskButton.setText("Following");
-            /*taskButton.setOnClickListener(v -> {
-                // Handle button click
-            });*/
-        } else if ("action_FindUser".equals(source)) {
+        } else if (followStatus == User.FollowStatus.REQUEST) {
+            taskButton.setText("Request Sent");
+        } else {
             taskButton.setText("Follow");
-        } else if ("action_FollowRequest".equals(source)) {
-            taskButton.setText("Accept");
-        } else if("action_Followers".equals((source))){
-            taskButton.setText("Unfollow");
         }
+
+        // Set button click behavior
+        taskButton.setOnClickListener(v -> {
+            if (followStatus == User.FollowStatus.FOLLOW) {
+                // Unfollow logic
+                currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.UNFOLLOW);
+                taskButton.setText("Follow");
+            } else if (followStatus == User.FollowStatus.REQUEST) {
+                // Cancel request
+                currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.UNFOLLOW);
+                taskButton.setText("Follow");
+            } else {
+                // Follow logic
+                if (!otherUser.getPrivacy()) {
+                    currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.FOLLOW);
+                    otherUser.addFollower(currentUser.getId());
+                    taskButton.setText("Following");
+                } else {
+                    currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.REQUEST);
+                    taskButton.setText("Request Sent");
+                }
+            }
+            notifyDataSetChanged();
+        });
 
         return convertView;
     }
