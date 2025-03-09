@@ -46,11 +46,6 @@ public class FollowingActivity extends AppCompatActivity {
         List<User> users = new ArrayList<>();
         List<User> followRequests = new ArrayList<>();
 
-        UsersAdapter usersAdapter = new UsersAdapter(this, users);
-        RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
-        lstUsers.setAdapter(usersAdapter);
-        lstFollowRequest.setAdapter(requestAdapter);
-
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -71,7 +66,7 @@ public class FollowingActivity extends AppCompatActivity {
                 lstUsers.setEmptyView(tvEmptyList);
             }
 
-        } else if ("action_FollowRequest".equals(source)) {
+        } else if ("action_Followers".equals(source)) {
             setTitle("Followers");
             if (users.isEmpty()) {
                 tvEmptyList.setText("You dont have any Following requests");
@@ -84,8 +79,12 @@ public class FollowingActivity extends AppCompatActivity {
                 tvFollowRequest.setVisibility(View.VISIBLE);
                 lstFollowRequest.setVisibility(View.VISIBLE);
             }
-
         }
+
+        UsersAdapter usersAdapter = new UsersAdapter(this, users);
+        RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
+        lstUsers.setAdapter(usersAdapter);
+        lstFollowRequest.setAdapter(requestAdapter);
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -106,6 +105,7 @@ public class FollowingActivity extends AppCompatActivity {
                 return false;
             }
         });
+
     }
 
     @Override
@@ -117,8 +117,8 @@ public class FollowingActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
-        if (item.getItemId() == R.id.action_follow_request) {
-            intent.putExtra("REQUEST", "action_FollowRequest");
+        if (item.getItemId() == R.id.action_followers) {
+            intent.putExtra("FOLLOWERS", "action_Followers");
             startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
             return true;
         }

@@ -34,6 +34,16 @@ public class User {
         return pendingRequests;
     }
 
+    public List<String> getPendingFollowing() {
+        List<String> pendingRequests = new ArrayList<>();
+        for (Map.Entry<String, FollowStatus> entry : followStatus.entrySet()) {
+            if (entry.getValue() == FollowStatus.FOLLOW) {
+                pendingRequests.add(entry.getKey());
+            }
+        }
+        return pendingRequests;
+    }
+
     public FollowStatus getUserFollowStatus(String otherUserId) { return followStatus.getOrDefault(otherUserId, null); }
     public void setUserFollowStatus(String otherUserId, FollowStatus status) { followStatus.put(otherUserId, status); }
 

@@ -99,7 +99,7 @@ public class AllEventsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
-        if (item.getItemId() == R.id.action_follow_request) {
+        if (item.getItemId() == R.id.action_followers) {
             intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
             intent.setClass(AllEventsActivity.this, FollowingActivity.class);
             activityStartLauncher.launch(intent);
