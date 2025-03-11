@@ -42,9 +42,14 @@ public class RequestAdapter   extends ArrayAdapter<User> {
         taskButton.setText("Accept Request");
 
         taskButton.setOnClickListener(v -> {
-            otherUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.FOLLOW);
-            currentUser.addFollower(currentUser.getId());
-            taskButton.setText("Following");
+            if (currentUser.getUserFollowStatus(otherUser.getId()) == User.FollowStatus.REQUEST){
+                otherUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.FOLLOW);
+                currentUser.addFollower(currentUser.getId());
+                taskButton.setText("Following");
+            }
+            else {
+
+            }
             notifyDataSetChanged();
         });
 

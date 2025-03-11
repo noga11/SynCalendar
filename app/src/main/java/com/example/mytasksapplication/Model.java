@@ -55,7 +55,6 @@ public class Model {
         return null;
     }
 
-
     public void SetChipIconPictureFromUsername(String username, Chip chip) {
         User user = findUserByUsername(username);
         if (user == null || user.getProfilePicUrl() == null) {
@@ -151,10 +150,6 @@ public class Model {
 
     private void saveUserToFirestore(String userId, String uName, String email, String password, String profilePicUrl, ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
         DocumentReference userRef = firestore.collection("users").document(userId);
-        ArrayList<Group> groups = new ArrayList<>();
-        groups.add(new Group("All", "0"));
-        groups.add(new Group("Important", "1"));
-        groups.add(new Group("Add New Group", "2"));
         userRef.set(new User(uName, email, password, profilePicUrl, userId, groups ,following, followers, privacy))
                 .addOnSuccessListener(aVoid -> {
                     Log.d("Model", "User details saved to Firestore.");
@@ -387,7 +382,7 @@ public class Model {
                 if (!shareWithUsers.contains(currentUser.getuName())) {
                     shareWithUsers.add(currentUser.getuName());
                 }
-                event.setShareWithUsers(shareWithUsers);
+                event.setUsers(shareWithUsers);
                 for (String username : shareWithUsers) {
                     if (username.equals(currentUser.getuName())) continue;
                     User userToShareWith = findUserByUsername(username);
@@ -462,7 +457,7 @@ public class Model {
             }
 
             // Remove event from shared users
-            ArrayList<String> sharedUsers = eventToDelete.getShareWithUsers();
+            ArrayList<String> sharedUsers = eventToDelete.getUsers();
             if (sharedUsers != null && !sharedUsers.isEmpty()) {
                 for (String username : sharedUsers) {
                     User userToShareWith = findUserByUsername(username);

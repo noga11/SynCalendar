@@ -7,18 +7,18 @@ import java.util.Map;
 
 public class User {
     private String uName, email, password, profilePicUrl, id;
-    private ArrayList<Group> groups;
+//    private ArrayList<Group> groups;
     private HashMap<String, FollowStatus> followStatus;
     private ArrayList<String> followers;
     private Boolean privacy;
 
-    public User(String uName, String email, String password, String profilePicUrl, String id, ArrayList<Group> groups, HashMap<String, FollowStatus> followStatus, ArrayList<String> followers, Boolean privacy) {
+    public User(String uName, String email, String password, String profilePicUrl, String id/*, ArrayList<Group> groups*/, HashMap<String, FollowStatus> followStatus, ArrayList<String> followers, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.password = password;
         this.profilePicUrl = profilePicUrl;
         this.id = id;
-        this.groups = groups;
+//        this.groups = groups;
         this.followStatus = (followStatus != null) ? followStatus : new HashMap<>();
         this.followers = (followers != null) ? followers : new ArrayList<>();
         this.privacy = privacy;
@@ -72,8 +72,8 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public ArrayList<Group> getGroups() { return groups; }
-    public void setGroups(ArrayList<Group> groups) { this.groups = groups; }
+   /* public ArrayList<Group> getGroups() { return groups; }
+    public void setGroups(ArrayList<Group> groups) { this.groups = groups; }*/
 
     public enum FollowStatus {
         FOLLOW, UNFOLLOW, REQUEST

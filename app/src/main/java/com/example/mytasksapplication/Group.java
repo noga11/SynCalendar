@@ -1,3 +1,4 @@
+/*
 package com.example.mytasksapplication;
 
 import java.util.ArrayList;
@@ -75,4 +76,4 @@ public class Group {
     public void clearEvents() {
         events.clear();
     }
-}
+}*/
