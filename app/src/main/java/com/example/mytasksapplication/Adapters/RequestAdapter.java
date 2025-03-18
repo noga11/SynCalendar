@@ -32,7 +32,7 @@ public class RequestAdapter   extends ArrayAdapter<User> {
         }
 
         model = Model.getInstance(context);
-        currentUser = model.getUser();
+        currentUser = model.getCurrentUser();
         User otherUser = users.get(position);
 
         TextView tvUName = convertView.findViewById(R.id.tvUName);

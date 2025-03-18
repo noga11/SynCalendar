@@ -13,6 +13,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -22,20 +23,25 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 
-public class Model { // temporary class
+public class Model {
+    private static final String TAG = "Model";
     private static Model instance;
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore firestore;
     private FirebaseStorage firebaseStorage;
+    private CollectionReference eventRef;
     private Context context;
     private User currentUser;
+
+    private ArrayList<Event> events = new ArrayList<>();
 
     public Model(Context context) {
         this.context = context;
         firebaseAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
+        eventRef = firestore.collection("Events");
     }
 
     public static Model getInstance(Context context) {
@@ -58,7 +64,7 @@ public class Model { // temporary class
                     // After uploading, get the download URL
                     profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         String profilePicUrl = uri.toString();
-                        return profilePicUrl; // doesnt work because it is asynchronous
+                        return profilePicUrl; // doesnt work because it's asynchronous
                     }).addOnFailureListener(e -> {
                         Log.e("Model", "Error getting download URL", e);
                     });
@@ -81,6 +87,7 @@ public class Model { // temporary class
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
+
                         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                         UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
                                 .setDisplayName(uName).build();
@@ -215,11 +222,17 @@ public class Model { // temporary class
         // Update the user document in Firestore
         DocumentReference userRef = firestore.collection("users").document(firebaseUser.getUid());
         userRef.set(currentUser)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("Model", "User details updated in Firestore.");
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("Model", "User details updated in Firestore.");
+                    }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("Model", "Error updating user in Firestore", e);
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Model", "Error updating user in Firestore", e);
+                    }
                 });
     }
 
@@ -227,10 +240,18 @@ public class Model { // temporary class
     // -------------------------------------- Event Functions --------------------------------------
 
     public void createEvent(Event event) {
-        DocumentReference eventRef = firestore.collection("events").document(event.getId());
+        eventRef.add(event)
+                .addOnSuccessListener(documentReference -> {
+                    event.setId(documentReference.getId());
+                    events.add(event);
+                    raiseEventDataChange();
+                }).addOnFailureListener(ex ->{
+                    Log.e(TAG, "createEvent: failed ", ex );
+                });
+        /*DocumentReference eventRef = firestore.collection("events").document(event.getId());
         eventRef.set(event)
                 .addOnSuccessListener(aVoid -> Log.d("Model", "Event created successfully."))
-                .addOnFailureListener(e -> Log.e("Model", "Error creating event", e));
+                .addOnFailureListener(e -> Log.e("Model", "Error creating event", e));*/
     }
 
     public void deleteEvent(String eventId) {

@@ -1,5 +1,7 @@
 package com.example.mytasksapplication;
 
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +9,6 @@ import java.util.Map;
 
 public class User {
     private String uName, email, password, profilePicUrl, id;
-//    private ArrayList<Group> groups;
     private HashMap<String, FollowStatus> followStatus;
     private ArrayList<String> followers;
     private Boolean privacy;
@@ -18,10 +19,14 @@ public class User {
         this.password = password;
         this.profilePicUrl = profilePicUrl;
         this.id = id;
-//        this.groups = groups;
         this.followStatus = (followStatus != null) ? followStatus : new HashMap<>();
         this.followers = (followers != null) ? followers : new ArrayList<>();
         this.privacy = privacy;
+    }
+
+    public User(FirebaseUser firebaseUser){
+        this.uName = firebaseUser.getDisplayName();
+        this.email = firebaseUser.getEmail();
     }
 
     public List<String> getPendingFollowRequests() {
@@ -71,9 +76,6 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
-   /* public ArrayList<Group> getGroups() { return groups; }
-    public void setGroups(ArrayList<Group> groups) { this.groups = groups; }*/
 
     public enum FollowStatus {
         FOLLOW, UNFOLLOW, REQUEST

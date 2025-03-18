@@ -12,7 +12,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
+        android:background="#C2A870B3"
         android:minHeight="?attr/actionBarSize"
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
@@ -28,7 +28,8 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:padding="10dp"
-        tools:listitem="@layout/item_daily_event"/>
+        tools:listitem="@layout/item_daily_event"
+        android:background="#26F2DFD8"/>
 
     <TextView
         android:id="@+id/tvEmptyList"
@@ -46,6 +47,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         app:menu="@menu/menu_bottom_nav"
-        android:background="?android:attr/windowBackground"/>
+        android:background="#50A774B0"/>
 
 </LinearLayout>

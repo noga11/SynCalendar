@@ -19,6 +19,7 @@ import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.search.SearchBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class FollowingActivity extends AppCompatActivity {
     private ListView lstUsers, lstFollowRequest;
     private String source;
     private TextView tvEmptyList, tvFollowRequest;
+    private SearchBar search;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -43,6 +45,7 @@ public class FollowingActivity extends AppCompatActivity {
         tvFollowRequest = findViewById(R.id.tvFollowRequest);
         lstUsers = findViewById(R.id.lstUsers);
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
+        search = findViewById(R.id.search);
         List<User> users = new ArrayList<>();
         List<User> followRequests = new ArrayList<>();
 
@@ -50,7 +53,6 @@ public class FollowingActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
         if ("action_Following".equals(source)) {
             setTitle("Following");
@@ -72,7 +74,7 @@ public class FollowingActivity extends AppCompatActivity {
                 tvEmptyList.setText("You dont have any Following requests");
                 lstUsers.setEmptyView(tvEmptyList);
             }
-            if(model.getUser().getPendingFollowRequests().isEmpty()){
+            if(model.getCurrentUser().getPendingFollowRequests().isEmpty()){
                 tvFollowRequest.setVisibility(View.GONE);
                 lstFollowRequest.setVisibility(View.GONE);
             }else{
@@ -80,6 +82,8 @@ public class FollowingActivity extends AppCompatActivity {
                 lstFollowRequest.setVisibility(View.VISIBLE);
             }
         }
+
+        search.seton
 
         UsersAdapter usersAdapter = new UsersAdapter(this, users);
         RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
