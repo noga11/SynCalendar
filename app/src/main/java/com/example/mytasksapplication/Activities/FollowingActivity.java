@@ -3,6 +3,8 @@ package com.example.mytasksapplication.Activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.mytasksapplication.Adapters.RequestAdapter;
 import com.example.mytasksapplication.Adapters.UsersAdapter;
+import com.example.mytasksapplication.Event;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
@@ -31,6 +34,8 @@ public class FollowingActivity extends AppCompatActivity {
     private String source;
     private TextView tvEmptyList, tvFollowRequest;
     private SearchBar search;
+    private UsersAdapter usersAdapter;
+    private List<User> allUsers;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -83,9 +88,18 @@ public class FollowingActivity extends AppCompatActivity {
             }
         }
 
-        search.seton
+        search.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                filterEvents(charSequence.toString());
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {}
+        });
 
-        UsersAdapter usersAdapter = new UsersAdapter(this, users);
+        usersAdapter = new UsersAdapter(this, users);
         RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
         lstUsers.setAdapter(usersAdapter);
         lstFollowRequest.setAdapter(requestAdapter);
@@ -109,7 +123,6 @@ public class FollowingActivity extends AppCompatActivity {
                 return false;
             }
         });
-
     }
 
     @Override
@@ -148,4 +161,18 @@ public class FollowingActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    private void filterEvents(String query) {
+        List<User> filteredUsers = new ArrayList<>();
+        for (User user : allUsers) {
+            if (user.getuName().toLowerCase().contains(query.toLowerCase()) ||
+                    user.getEmail().toLowerCase().contains(query.toLowerCase())) {
+                filteredUsers.add(user);
+            }
+        }
+        usersAdapter.clear();
+        usersAdapter.addAll(filteredUsers);
+        usersAdapter.notifyDataSetChanged();
+    }
+
 }
