@@ -35,6 +35,7 @@ public class FollowingActivity extends AppCompatActivity {
     private TextView tvEmptyList, tvFollowRequest;
     private SearchBar search;
     private UsersAdapter usersAdapter;
+    private RequestAdapter requestAdapter;
     private List<User> allUsers;
 
     @SuppressLint("MissingInflatedId")
@@ -88,6 +89,11 @@ public class FollowingActivity extends AppCompatActivity {
             }
         }
 
+        usersAdapter = new UsersAdapter(this, users);
+        requestAdapter = new RequestAdapter(this, followRequests);
+        lstUsers.setAdapter(usersAdapter);
+        lstFollowRequest.setAdapter(requestAdapter);
+
         search.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -98,11 +104,6 @@ public class FollowingActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {}
         });
-
-        usersAdapter = new UsersAdapter(this, users);
-        RequestAdapter requestAdapter = new RequestAdapter(this, followRequests);
-        lstUsers.setAdapter(usersAdapter);
-        lstFollowRequest.setAdapter(requestAdapter);
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
