@@ -12,7 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Event;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.ViewHolder> {
     private Context context;
@@ -35,9 +38,16 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.View
         Event event = allEvents.get(position);
         holder.tvTitle.setText(event.getTitle());
         holder.tvDetails.setText(event.getDetails());
-        holder.tvDate.setText(event.getDate().toString());
-        holder.tvStart.setText(event.getStart().toString());
-        holder.tvEnd.setText(event.getEnd().toString());  // Fixed start->end bug
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+        holder.tvDate.setText(dateFormat.format(event.getStart()));
+
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm a", Locale.getDefault());
+        holder.tvStart.setText(timeFormat.format(event.getStart()));
+
+        long endTimeInMillis = event.getStart().getTime() + (event.getDuration() * 60 * 1000); // Convert minutes to milliseconds
+        Date endDate = new Date(endTimeInMillis);
+        holder.tvEnd.setText(timeFormat.format(endDate));
     }
 
     @Override

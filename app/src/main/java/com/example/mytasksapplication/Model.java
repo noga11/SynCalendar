@@ -268,19 +268,28 @@ public class Model {
                 .addOnFailureListener(e -> Log.e("Model", "Error updating event", e));
     }
 
-    public void getEventsByUserId(String userId, OnSuccessListener<ArrayList<Event>> onSuccess, OnFailureListener onFailure) {
+    public ArrayList<Event> getEventsByUserId(String userId) {
         firestore.collection("events")
                 .whereArrayContains("users", userId)
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    ArrayList<Event> events = new ArrayList<>();
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        Event event = doc.toObject(Event.class);
-                        events.add(event);
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        events = new ArrayList<>();
+                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            Event event = doc.toObject(Event.class);
+                            events.add(event);
+                        }
                     }
-                    onSuccess.onSuccess(events);
                 })
-                .addOnFailureListener(onFailure);
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Model", "Error updating user in Firestore", e);
+                    }
+                });
+
+        return events;
     }
 
     public void raiseEventDataChange() {

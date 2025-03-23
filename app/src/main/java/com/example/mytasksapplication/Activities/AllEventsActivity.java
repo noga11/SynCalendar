@@ -15,7 +15,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mytasksapplication.Adapters.AllEventsAdapter;
-import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Event;
@@ -32,6 +31,7 @@ public class AllEventsActivity extends AppCompatActivity {
     private RecyclerView lstAllEvents;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
+    private ArrayList<Event> events;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -53,19 +53,14 @@ public class AllEventsActivity extends AppCompatActivity {
         );
 
         List<Event> events = new ArrayList<Event>();
-        currentUser = model.getUser();
-        for (Group group : currentUser.getGroups()){
-            for (Event task : group.getEvents()){
-                events.add(task);
-            }
-        }
+        currentUser = model.getCurrentUser();
+        events = model.getEventsByUserId(currentUser.getId());
 
         // Setup adapter
         AllEventsAdapter adapter = new AllEventsAdapter(this, events);
         lstAllEvents.setAdapter(adapter);
 
-        // Handle empty list
-        if (events.isEmpty()) {
+        if (events.isEmpty()) { // Handle empty list
             tvEmptyList.setVisibility(View.VISIBLE);
             lstAllEvents.setVisibility(View.GONE);
         } else {
