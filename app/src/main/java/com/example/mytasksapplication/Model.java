@@ -17,7 +17,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -26,19 +25,18 @@ import java.util.ArrayList;
 public class Model {
     private static final String TAG = "Model";
     private static Model instance;
-    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth mAuth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore firestore;
     private FirebaseStorage firebaseStorage;
     private CollectionReference eventRef;
     private Context context;
     private User currentUser;
-
     private ArrayList<Event> events = new ArrayList<>();
 
     public Model(Context context) {
         this.context = context;
-        firebaseAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         eventRef = firestore.collection("Events");
@@ -83,12 +81,12 @@ public class Model {
     }
 
     public void createUser(String uName, String email, String password, boolean privacy, Bitmap profilePic) throws Exception {
-        firebaseAuth.createUserWithEmailAndPassword(email,password)
+        mAuth.createUserWithEmailAndPassword(email,password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
 
-                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
                                 .setDisplayName(uName).build();
                         String profilePicUrl = getProfilePictureUrl(profilePic, firebaseUser.getUid());
@@ -113,11 +111,11 @@ public class Model {
     }
 
     public User login(String email, String password) {
-        firebaseAuth.signInWithEmailAndPassword(email,password)
+        mAuth.signInWithEmailAndPassword(email,password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        FirebaseUser firebaseUser= firebaseAuth.getCurrentUser();
+                        FirebaseUser firebaseUser= mAuth.getCurrentUser();
                         getUserFromFirebase(firebaseUser.getUid());
 //                            raiseUserUpdate();
                     }
@@ -144,14 +142,14 @@ public class Model {
     }
 
     public void logout() {
-        firebaseAuth.signOut();
+        mAuth.signOut();
         Log.d("Model", "User logged out");
         currentUser = null;
 //        raiseUserUpdate();
     }
 
     public void updateUser(String uName, String email, String password, boolean privacy, Bitmap profilePic) {
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();  // Get the current FirebaseUser
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();  // Get the current FirebaseUser
 
         // Update display name in Firebase Authentication
         if (uName != null && !uName.isEmpty()) {
@@ -304,5 +302,16 @@ public class Model {
                     }
                 });
     }
+
+    public static ArrayList<String> getTopics() {
+        ArrayList<String> topics = new ArrayList<>();
+        for (Event event : events) {
+            if (event.getTopic() != null && !topics.contains(event.getTopic())) {
+                topics.add(event.getTopic());
+            }
+        }
+        return topics;
+    }
+
 
 }

@@ -34,7 +34,6 @@ import com.google.android.material.timepicker.TimeFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -43,8 +42,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
     private NotificationMsg notificationMsg;
     private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
-    private ArrayAdapter<String> adapter;
-    private List<String> groupNames;
+    private ArrayAdapter<String> spinnerAdapter;
+    private ArrayList<String> topics;
 
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
@@ -61,7 +60,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
-        currentUser = model.getUser();
+        currentUser = model.getCurrentUser();
 
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
@@ -76,15 +75,10 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
 
-        ArrayList<Group> groups = currentUser.getGroups();
-        groupNames = new ArrayList<>();
+        topics = new ArrayList<>();
 
-        for (Group group : groups) {
-            groupNames.add(group.getName());
-        }
-
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groupNames);
-        spinnerGroup.setAdapter(adapter);
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, topics);
+        spinnerGroup.setAdapter(spinnerAdapter);
 
         tvReminderDate.setVisibility(View.GONE);
         tvReminderTime.setVisibility(View.GONE);
@@ -98,7 +92,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
 
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedGroup = groupNames.get(position);
+            String selectedGroup = topics.get(position);
 
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
@@ -263,7 +257,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 .setPositiveButton("Add", (dialog, which) -> {
                     String newGroup = input.getText().toString().trim();
 
-                    if (!newGroup.isEmpty() && !groupNames.contains(newGroup)) {
+                    if (!newGroup.isEmpty() && !topics.contains(newGroup)) {
                         addNewGroup(newGroup);
                     } else {
                         Toast.makeText(this, "Group already exists or invalid name", Toast.LENGTH_SHORT).show();
@@ -275,10 +269,10 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
     private void addNewGroup(String newGroup) {
         // Add the new group before "Add New Group" option
-        groupNames.add(groupNames.size() - 1, newGroup);
+        topics.add(topics.size() - 1, newGroup);
 
         // Notify adapter of the change
-        adapter.notifyDataSetChanged();
+        spinnerAdapter.notifyDataSetChanged();
 
         // Set the new group as the selected item
         spinnerGroup.setText(newGroup, false);
