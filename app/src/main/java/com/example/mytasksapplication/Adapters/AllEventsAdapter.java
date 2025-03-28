@@ -67,4 +67,9 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.View
             tvEnd = itemView.findViewById(R.id.tvEnd);
         }
     }
+
+    public void removeItem(int position) {
+        events.remove(position);
+        notifyItemRemoved(position);
+    }
 }

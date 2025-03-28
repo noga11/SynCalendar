@@ -18,12 +18,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mytasksapplication.Adapters.AllEventsAdapter;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.Event;
+import com.example.mytasksapplication.SwipeToDeleteCallback;
 import com.example.mytasksapplication.User;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -62,15 +65,22 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                 result -> { }
         );
 
-        List<Event> events = new ArrayList<Event>();
         currentUser = model.getCurrentUser();
         events = model.getEventsByUserId(currentUser.getId());
 
-        // Setup adapter
+        // Setup RecyclerView
+        lstAllEvents = findViewById(R.id.lstAllEvents);
+        lstAllEvents.setLayoutManager(new LinearLayoutManager(this));
+
+        List<Event> events = model.getEventsByUserId(model.getCurrentUser().getId());
         AllEventsAdapter adapter = new AllEventsAdapter(this, events);
         lstAllEvents.setAdapter(adapter);
 
-        if (events.isEmpty()) { // Handle empty list
+        // Attach swipe-to-delete functionality
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(adapter, events, this));
+        itemTouchHelper.attachToRecyclerView(lstAllEvents);
+
+        if (events.isEmpty()) {
             tvEmptyList.setVisibility(View.VISIBLE);
             lstAllEvents.setVisibility(View.GONE);
         } else {
@@ -228,5 +238,4 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         return true; // Indicate that the event was handled
     }
-
 }
