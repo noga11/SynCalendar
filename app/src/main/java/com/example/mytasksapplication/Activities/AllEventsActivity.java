@@ -33,14 +33,14 @@ import com.google.android.material.navigation.NavigationBarView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllEventsActivity extends AppCompatActivity implements View.OnLongClickListener {
+public class AllEventsActivity extends AppCompatActivity implements View.OnLongClickListener, View.OnClickListener {
 
     private Model model;
     private User currentUser;
     private RecyclerView lstAllEvents;
     private TextView tvEmptyList;
     private ActivityResultLauncher<Intent> activityStartLauncher;
-    private ArrayList<Event> events;
+    private ArrayList<Event> events, filterdEvents;
     private ArrayAdapter<String> spinnerAdapter;
     private AutoCompleteTextView spinnerTopic;
     private ArrayList<String> topics;
@@ -67,13 +67,15 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         currentUser = model.getCurrentUser();
         events = model.getEventsByUserId(currentUser.getId());
+        filterdEvents= model.getEventsByUserId(currentUser.getId());
 
         // Setup RecyclerView
         lstAllEvents = findViewById(R.id.lstAllEvents);
         lstAllEvents.setLayoutManager(new LinearLayoutManager(this));
+        lstAllEvents.setOnClickListener(this);
 
         List<Event> events = model.getEventsByUserId(model.getCurrentUser().getId());
-        AllEventsAdapter adapter = new AllEventsAdapter(this, events);
+        AllEventsAdapter adapter = new AllEventsAdapter(this, filterdEvents);
         lstAllEvents.setAdapter(adapter);
 
         // Attach swipe-to-delete functionality
@@ -95,13 +97,19 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         spinnerTopic.setOnItemClickListener((parent, view, position, id) -> {
             String selectedGroup = topics.get(position);
-
-            // set normal add click filter
+            filterdEvents.clear();
 
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
+                spinnerTopic.dismissDropDown();
+            } else {
+                for (Event event : events) {
+                    if (event.getTopic().equals(selectedGroup)) {
+                        filterdEvents.add(event);
+                    }
+                }
+                adapter.notifyDataSetChanged();
             }
-            spinnerTopic.dismissDropDown(); // Hide the dropdown after selection
         });
 
         spinnerTopic.setOnLongClickListener(this);
@@ -237,5 +245,17 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         });
 
         return true; // Indicate that the event was handled
+    }
+
+    @Override
+    public void onClick(View view) {
+        int position = lstAllEvents.getChildAdapterPosition(view);
+        if (position != RecyclerView.NO_POSITION) {
+            Event event = filterdEvents.get(position);
+            Intent intent = new Intent(NewEventActivity.this, AllEventsActivity.class);
+            activityStartLauncher.launch(intent);
+            //push and stuff
+        }
+
     }
 }

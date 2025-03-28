@@ -123,14 +123,14 @@ public class MainActivity extends AppCompatActivity {
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
 
-        for (Event task : events) {
-            Calendar taskCalendar = Calendar.getInstance();
-            taskCalendar.setTime(task.getDate());
+        for (Event event : events) {
+            Calendar eventCalendar = Calendar.getInstance();
+            eventCalendar.setTime(event.getDate());
 
-            if (selectedCalendar.get(Calendar.YEAR) == taskCalendar.get(Calendar.YEAR) &&
-                    selectedCalendar.get(Calendar.MONTH) == taskCalendar.get(Calendar.MONTH) &&
-                    selectedCalendar.get(Calendar.DAY_OF_MONTH) == taskCalendar.get(Calendar.DAY_OF_MONTH)) {
-                filteredEvents.add(task);
+            if (selectedCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
+                    selectedCalendar.get(Calendar.MONTH) == eventCalendar.get(Calendar.MONTH) &&
+                    selectedCalendar.get(Calendar.DAY_OF_MONTH) == eventCalendar.get(Calendar.DAY_OF_MONTH)) {
+                filteredEvents.add(event);
             }
         }
 

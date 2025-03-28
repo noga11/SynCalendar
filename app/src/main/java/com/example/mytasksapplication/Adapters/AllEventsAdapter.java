@@ -69,7 +69,7 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.View
     }
 
     public void removeItem(int position) {
-        events.remove(position);
+        allEvents.remove(position);
         notifyItemRemoved(position);
     }
 }
