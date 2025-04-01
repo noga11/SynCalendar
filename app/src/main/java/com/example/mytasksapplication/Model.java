@@ -30,6 +30,7 @@ public class Model {
     private FirebaseFirestore firestore;
     private FirebaseStorage firebaseStorage;
     private CollectionReference eventRef;
+    private CollectionReference userRef;
     private Context context;
     private User currentUser;
     private ArrayList<Event> events = new ArrayList<>();
@@ -40,6 +41,7 @@ public class Model {
         firestore = FirebaseFirestore.getInstance();
         firebaseStorage = FirebaseStorage.getInstance();
         eventRef = firestore.collection("Events");
+        userRef = firestore.collection("Users");
     }
 
     public static Model getInstance(Context context) {
@@ -49,30 +51,6 @@ public class Model {
 
     // -------------------------------------- User Functions --------------------------------------
 
-    // Upload the profile picture to Firebase Storage
-    private String getProfilePictureUrl(Bitmap profilePic, String userId) {
-        StorageReference storageRef = firebaseStorage.getReference();
-        StorageReference profilePicRef = storageRef.child("profile_pictures/" + userId + ".jpg");
-
-        // Upload the picture
-        profilePicRef.putBytes(Model.BitmapUtils.bitmapToByteArray(profilePic))
-                .addOnSuccessListener(eventSnapshot -> {
-                    Log.d("Model", "Profile picture uploaded successfully!");
-
-                    // After uploading, get the download URL
-                    profilePicRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        String profilePicUrl = uri.toString();
-                        return profilePicUrl; // doesnt work because it's asynchronous
-                    }).addOnFailureListener(e -> {
-                        Log.e("Model", "Error getting download URL", e);
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Model", "Error uploading profile picture", e);
-                });
-        return null;
-    }
-
     public User getCurrentUser(){
         if (currentUser != null) {
             return currentUser;
@@ -80,27 +58,22 @@ public class Model {
         return null;
     }
 
-    public void createUser(String uName, String email, String password, boolean privacy, Bitmap profilePic) throws Exception {
+    public void createUser(String displayName, String email, String password, boolean privacy, Bitmap profilePic) throws Exception {
         mAuth.createUserWithEmailAndPassword(email,password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(uName).build();
-                        String profilePicUrl = getProfilePictureUrl(profilePic, firebaseUser.getUid());
-
-                        currentUser = new User(uName, email, password, profilePicUrl, firebaseUser.getUid(), null, null, privacy);
-                        DocumentReference userRef = firestore.collection("users").document(firebaseUser.getUid());
-                        userRef.set(currentUser)
+                        currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, privacy);
+                        DocumentReference userDoc = firestore.collection("users").document(firebaseUser.getUid());
+                        userDoc.set(currentUser)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d("Model", "User details saved to Firestore.");
+                                    //raise User changed
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e("Model", "Error saving user to Firestore", e);
                                 });
-                        //                        raiseUserUpdate();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -208,14 +181,8 @@ public class Model {
         currentUser.setPrivacy(privacy);
         currentUser.setuName(uName);
         currentUser.setEmail(email);
-        currentUser.setPassword(password);
         currentUser.setPrivacy(privacy);
-
-        // Upload profile picture and update the URL if a new profile picture is provided
-        if (profilePic != null) {
-            String profilePicUrl = getProfilePictureUrl(profilePic, firebaseUser.getUid());
-            currentUser.setProfilePicUrl(profilePicUrl);
-        }
+        currentUser.setProfilePic(profilePic);
 
         // Update the user document in Firestore
         DocumentReference userRef = firestore.collection("users").document(firebaseUser.getUid());
@@ -273,7 +240,6 @@ public class Model {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        events = new ArrayList<>();
                         for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                             Event event = doc.toObject(Event.class);
                             events.add(event);

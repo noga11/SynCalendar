@@ -6,7 +6,8 @@ import java.util.Date;
 
 public class Event {
     private String title, details, address, id, topic;
-    private ArrayList<String> users;
+    private ArrayList<String> usersId;
+    //add users display name or use collection of users
     private Repeat repeat;
     private Status status;
     private Date start, remTime;
@@ -19,7 +20,7 @@ public class Event {
         this.address = address;
         this.id = id;
         this.topic = topic;
-        this.users = users;
+        this.usersId = users;
         this.repeat = repeat;
         this.status = status;
         this.start = start;
@@ -58,8 +59,8 @@ public class Event {
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
 
-    public ArrayList<String> getUsers() { return users; }
-    public void setUsers(ArrayList<String> users) { this.users = users; }
+    public ArrayList<String> getUsersId() { return usersId; }
+    public void setUsersId(ArrayList<String> usersId) { this.usersId = usersId; }
 
     public Date getStart() { return start; }
     public void setStart(Date start) { this.start = start; }
