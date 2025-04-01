@@ -252,10 +252,9 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         int position = lstAllEvents.getChildAdapterPosition(view);
         if (position != RecyclerView.NO_POSITION) {
             Event event = filterdEvents.get(position);
-            Intent intent = new Intent(NewEventActivity.this, AllEventsActivity.class);
+            Intent intent = new Intent(AllEventsActivity.this, NewEventActivity.class);
+            intent.putExtra("Event", event.getId());
             activityStartLauncher.launch(intent);
-            //push and stuff
         }
-
     }
 }

@@ -32,6 +32,7 @@ public class PhotoHelper {
         return img;
 
     }
+
     //from image to string
     public static String getEncodedString(Bitmap bitmap){
 

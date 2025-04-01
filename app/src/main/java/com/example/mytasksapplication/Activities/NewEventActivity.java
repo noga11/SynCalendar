@@ -58,6 +58,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
+        // need to create edit screen
+
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
         currentUser = model.getCurrentUser();
