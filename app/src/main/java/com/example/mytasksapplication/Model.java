@@ -17,8 +17,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 
@@ -28,7 +26,6 @@ public class Model {
     private FirebaseAuth mAuth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore firestore;
-    private FirebaseStorage firebaseStorage;
     private CollectionReference eventRef;
     private CollectionReference userRef;
     private Context context;
@@ -39,7 +36,6 @@ public class Model {
         this.context = context;
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
-        firebaseStorage = FirebaseStorage.getInstance();
         eventRef = firestore.collection("Events");
         userRef = firestore.collection("Users");
     }
@@ -269,7 +265,7 @@ public class Model {
                 });
     }
 
-    public static ArrayList<String> getTopics() {
+    public ArrayList<String> getTopics() {
         ArrayList<String> topics = new ArrayList<>();
         for (Event event : events) {
             if (event.getTopic() != null && !topics.contains(event.getTopic())) {

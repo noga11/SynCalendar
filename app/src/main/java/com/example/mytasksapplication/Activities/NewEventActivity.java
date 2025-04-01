@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.mytasksapplication.Group;
 import com.example.mytasksapplication.Model;
 import com.example.mytasksapplication.Notification.NotificationMsg;
 import com.example.mytasksapplication.R;
@@ -184,9 +183,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         Chip chip = new Chip(this);
         chip.setText(username);
 
-        model.SetChipIconPictureFromUsername(username, chip);
+        // need to set chip icon profilePic
         chip.setCloseIconVisible(true);
-        chip.setCloseIconResource(android.R.drawable.ic_menu_delete);  // Set the 'X' icon
+        chip.setCloseIconResource(R.drawable.baseline_close_24);  // Set the 'X' icon
 
         // Remove the chip when the user presses 'X'
         chip.setOnCloseIconClickListener(v -> {
