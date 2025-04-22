@@ -42,8 +42,8 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     private ActivityResultLauncher<Intent> activityStartLauncher;
     private ArrayList<Event> events, filterdEvents;
     private ArrayAdapter<String> spinnerAdapter;
-    private AutoCompleteTextView spinnerTopic;
-    private ArrayList<String> topics;
+    private AutoCompleteTextView spinnerGroup;
+    private ArrayList<String> groups;
 
 
     @SuppressLint("MissingInflatedId")
@@ -90,21 +90,21 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             lstAllEvents.setVisibility(View.VISIBLE);
         }
 
-        topics = model.getTopics();
-        spinnerTopic = findViewById(R.id.spinnerTopic);
-        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, topics);
-        spinnerTopic.setAdapter(spinnerAdapter);
+        groups = model.getGroups();
+        spinnerGroup = findViewById(R.id.spinnerGroup);
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
+        spinnerGroup.setAdapter(spinnerAdapter);
 
-        spinnerTopic.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedGroup = topics.get(position);
+        spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedGroup = groups.get(position);
             filterdEvents.clear();
 
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
-                spinnerTopic.dismissDropDown();
+                spinnerGroup.dismissDropDown();
             } else {
                 for (Event event : events) {
-                    if (event.getTopic().equals(selectedGroup)) {
+                    if (event.getGroup().equals(selectedGroup)) {
                         filterdEvents.add(event);
                     }
                 }
@@ -112,7 +112,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             }
         });
 
-        spinnerTopic.setOnLongClickListener(this);
+        spinnerGroup.setOnLongClickListener(this);
 
         // Setup bottom navigation
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -171,13 +171,13 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
     private void addNewGroup(String newGroup) {
         // Add the new group before "Add New Group" option
-        topics.add(topics.size() - 1, newGroup);
+        groups.add(groups.size() - 1, newGroup);
 
         // Notify adapter of the change
         spinnerAdapter.notifyDataSetChanged();
 
         // Set the new group as the selected item
-        spinnerTopic.setText(newGroup, false);
+        spinnerGroup.setText(newGroup, false);
     }
 
     private void showAddGroupDialog() {
@@ -192,7 +192,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                 .setPositiveButton("Add", (dialog, which) -> {
                     String newGroup = input.getText().toString().trim();
 
-                    if (!newGroup.isEmpty() && !topics.contains(newGroup)) {
+                    if (!newGroup.isEmpty() && !groups.contains(newGroup)) {
                         addNewGroup(newGroup);
                     } else {
                         Toast.makeText(this, "Group already exists or invalid name", Toast.LENGTH_SHORT).show();
@@ -205,43 +205,43 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     @Override
     public boolean onLongClick(View view) {
         int position = lstAllEvents.getChildAdapterPosition(view); // Get the clicked position
-        if (position == RecyclerView.NO_POSITION || position >= topics.size()) {
+        if (position == RecyclerView.NO_POSITION || position >= groups.size()) {
             return false; // Invalid position, ignore
         }
 
-        String selectedTopic = topics.get(position);
+        String selectedGroup = groups.get(position);
         LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_delete_topic, null);
+        View dialogView = inflater.inflate(R.layout.dialog_delete_group, null);
 
         // Initialize dialog components
         TextView textViewNo = dialogView.findViewById(R.id.textView4);
         TextView textViewYes = dialogView.findViewById(R.id.textView5);
 
         // Create and show the AlertDialog
-        AlertDialog topicDialog = new AlertDialog.Builder(this)
+        AlertDialog groupDialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
 
-        topicDialog.show();
+        groupDialog.show();
 
         // No button
-        textViewNo.setOnClickListener(v -> topicDialog.dismiss());
+        textViewNo.setOnClickListener(v -> groupDialog.dismiss());
 
         // Yes button
         textViewYes.setOnClickListener(v -> {
             ArrayList<Event> eventsToRemove = new ArrayList<>();
             for (Event event : events) {
-                if (event.getTopic().equals(selectedTopic)) {
+                if (event.getGroup().equals(selectedGroup)) {
                     eventsToRemove.add(event);
                 }
             }
             events.removeAll(eventsToRemove);
 
-            // Remove topic from the list
-            topics.remove(selectedTopic);
+            // Remove group from the list
+            groups.remove(selectedGroup);
             spinnerAdapter.notifyDataSetChanged();
-            topicDialog.dismiss();
+            groupDialog.dismiss();
         });
 
         return true; // Indicate that the event was handled

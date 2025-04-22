@@ -14,7 +14,7 @@ import com.example.mytasksapplication.User;
 
 import java.util.List;
 
-public class RequestAdapter   extends ArrayAdapter<User> {
+public class RequestAdapter extends ArrayAdapter<User> {
     private Context context;
     private List<User> users;
     private Model model;
@@ -26,6 +26,7 @@ public class RequestAdapter   extends ArrayAdapter<User> {
         this.users = users;
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.item_daily_event, parent, false);
@@ -33,22 +34,18 @@ public class RequestAdapter   extends ArrayAdapter<User> {
 
         model = Model.getInstance(context);
         currentUser = model.getCurrentUser();
-        User otherUser = users.get(position);
+        User requester = users.get(position); // This user sent the request
 
         TextView tvUName = convertView.findViewById(R.id.tvUName);
-        tvUName.setText(otherUser.getuName());
+        tvUName.setText(requester.getuName());
 
-        Button taskButton = convertView.findViewById(R.id.btnAction);
-        taskButton.setText("Accept Request");
+        Button btnAccept = convertView.findViewById(R.id.btnAction);
+        btnAccept.setText("Accept Request");
 
-        taskButton.setOnClickListener(v -> {
-            if (currentUser.getUserFollowStatus(otherUser.getId()) == User.FollowStatus.REQUEST){
-                otherUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.FOLLOW);
-                currentUser.addFollower(currentUser.getId());
-                taskButton.setText("Following");
-            }
-            else {
-
+        btnAccept.setOnClickListener(v -> {
+            if (currentUser.getRequests().contains(requester.getId())) {
+                currentUser.approveFollowRequest(requester.getId());
+                btnAccept.setText("Following");
             }
             notifyDataSetChanged();
         });

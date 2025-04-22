@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         setMonthView();
 
         lstDailyEvents = findViewById(R.id.lstDailyEvents);
-        // tasks = model.tempData();
 
         adapter = new DailyEventsAdapter(this, events);
         lstDailyEvents.setAdapter(adapter);

@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:textSize="30sp"
         android:textStyle="bold"
-        android:text="Delete Topic" />
+        android:text="Delete group" />
 
     <TextView
         android:id="@+id/textView2"
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textSize="22sp"
-        android:text="Are you sure you want to delete this topic? \nall events in this topic will be deleted as well." />
+        android:text="Are you sure you want to delete this group? \nall events in this group will be deleted as well." />
 
 
     <LinearLayout

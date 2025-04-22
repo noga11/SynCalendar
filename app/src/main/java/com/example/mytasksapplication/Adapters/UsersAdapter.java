@@ -14,7 +14,7 @@ import com.example.mytasksapplication.User;
 
 import java.util.List;
 
-public class UsersAdapter   extends ArrayAdapter<User> {
+public class UsersAdapter extends ArrayAdapter<User> {
     private Context context;
     private List<User> users;
     private Model model;
@@ -38,41 +38,38 @@ public class UsersAdapter   extends ArrayAdapter<User> {
         TextView tvUName = convertView.findViewById(R.id.tvUName);
         tvUName.setText(otherUser.getuName());
 
-        Button taskButton = convertView.findViewById(R.id.btnAction);
+        Button btnFollow = convertView.findViewById(R.id.btnAction);
 
-        // Get the follow status of the other user
-        User.FollowStatus followStatus = currentUser.getUserFollowStatus(otherUser.getId());
+        boolean isFollowing = otherUser.getFollowers().contains(currentUser.getId());
+        boolean hasSentRequest = otherUser.getRequests().contains(currentUser.getId());
 
-        // Set button text based on follow status
-        if (followStatus == User.FollowStatus.FOLLOW) {
-            taskButton.setText("Following");
-        } else if (followStatus == User.FollowStatus.REQUEST) {
-            taskButton.setText("Request Sent");
+        // Set button text based on current status
+        if (isFollowing) {
+            btnFollow.setText("Following");
+        } else if (hasSentRequest) {
+            btnFollow.setText("Request Sent");
         } else {
-            taskButton.setText("Follow");
+            btnFollow.setText("Follow");
         }
 
         // Set button click behavior
-        taskButton.setOnClickListener(v -> {
-            if (followStatus == User.FollowStatus.FOLLOW) {
-                // Unfollow logic
-                currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.UNFOLLOW);
-                taskButton.setText("Follow");
-            } else if (followStatus == User.FollowStatus.REQUEST) {
-                // Cancel request
-                currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.UNFOLLOW);
-                taskButton.setText("Follow");
+        btnFollow.setOnClickListener(v -> {
+            if (isFollowing) {
+                otherUser.getFollowers().remove(currentUser.getId());
+                btnFollow.setText("Follow");
+            } else if (hasSentRequest) {
+                otherUser.getRequests().remove(currentUser.getId());
+                btnFollow.setText("Follow");
             } else {
-                // Follow logic
                 if (!otherUser.getPrivacy()) {
-                    currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.FOLLOW);
-                    otherUser.addFollower(currentUser.getId());
-                    taskButton.setText("Following");
+                    otherUser.getFollowers().add(currentUser.getId());
+                    btnFollow.setText("Following");
                 } else {
-                    currentUser.setUserFollowStatus(otherUser.getId(), User.FollowStatus.REQUEST);
-                    taskButton.setText("Request Sent");
+                    otherUser.getRequests().add(currentUser.getId());
+                    btnFollow.setText("Request Sent");
                 }
             }
+
             notifyDataSetChanged();
         });
 

@@ -14,9 +14,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -117,7 +119,7 @@ public class Model {
 //        raiseUserUpdate();
     }
 
-    public void updateUser(String uName, String email, String password, boolean privacy, Bitmap profilePic) {
+    public void updateUser(String uName, String email, boolean privacy, Bitmap profilePic) {
         FirebaseUser firebaseUser = mAuth.getCurrentUser();  // Get the current FirebaseUser
 
         // Update display name in Firebase Authentication
@@ -153,22 +155,6 @@ public class Model {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             Log.e("Model", "Failed to update email in Firebase Authentication.", e);
-                        }
-                    });
-        }
-
-        if (password != null && !password.isEmpty()) {
-            firebaseUser.updatePassword(password)
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            Log.d("Model", "User password updated in Firebase Authentication.");
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("Model", "Failed to update password in Firebase Authentication.", e);
                         }
                     });
         }
@@ -209,17 +195,21 @@ public class Model {
                 }).addOnFailureListener(ex ->{
                     Log.e(TAG, "createEvent: failed ", ex );
                 });
-        /*DocumentReference eventRef = firestore.collection("events").document(event.getId());
-        eventRef.set(event)
-                .addOnSuccessListener(aVoid -> Log.d("Model", "Event created successfully."))
-                .addOnFailureListener(e -> Log.e("Model", "Error creating event", e));*/
     }
 
-    public void deleteEvent(String eventId) {
-        DocumentReference eventRef = firestore.collection("events").document(eventId);
-        eventRef.delete()
-                .addOnSuccessListener(aVoid -> Log.d("Model", "Event deleted successfully."))
-                .addOnFailureListener(e -> Log.e("Model", "Error deleting event", e));
+    public void deleteEvent(Event event) {
+        // delete event for current user
+        String eventId = event.getId();
+        event.getUsersId().remove(currentUser.getId());
+        updateEvent(event);
+
+        //delete event for everyone
+        if(event.getUsersId().isEmpty()) {
+            DocumentReference eventRef = firestore.collection("events").document(eventId);
+            eventRef.delete()
+                    .addOnSuccessListener(aVoid -> Log.d("Model", "Event deleted successfully."))
+                    .addOnFailureListener(e -> Log.e("Model", "Error deleting event", e));
+        }
     }
 
     public void updateEvent(Event event) {
@@ -233,12 +223,12 @@ public class Model {
         firestore.collection("events")
                 .whereArrayContains("users", userId)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                            Event event = doc.toObject(Event.class);
-                            events.add(event);
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        for(DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()){
+                           Event event = documentChange.getDocument().toObject(Event.class);
+                           event.setId(documentChange.getDocument().getId());
                         }
                     }
                 })
@@ -265,11 +255,11 @@ public class Model {
                 });
     }
 
-    public ArrayList<String> getTopics() {
+    public ArrayList<String> getGroups() {
         ArrayList<String> topics = new ArrayList<>();
         for (Event event : events) {
-            if (event.getTopic() != null && !topics.contains(event.getTopic())) {
-                topics.add(event.getTopic());
+            if (event.getGroup() != null && !topics.contains(event.getGroup())) {
+                topics.add(event.getGroup());
             }
         }
         return topics;

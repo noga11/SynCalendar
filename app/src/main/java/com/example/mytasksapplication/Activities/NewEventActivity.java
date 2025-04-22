@@ -1,6 +1,9 @@
 package com.example.mytasksapplication.Activities;
 
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -42,7 +45,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private NotificationMsg notificationMsg;
     private String[] otherUsers = {"user1", "user2", "user3", "user4"};// need to connect to the model (temporary)
     private ArrayAdapter<String> spinnerAdapter;
-    private ArrayList<String> topics;
+    private ArrayList<String> groups;
 
     private EditText etTitle, etDetails, auetShare;
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
@@ -76,9 +79,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
 
-        topics = new ArrayList<>();
+        groups = new ArrayList<>();
 
-        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, topics);
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
         spinnerGroup.setAdapter(spinnerAdapter);
 
         tvReminderDate.setVisibility(View.GONE);
@@ -93,7 +96,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
 
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedGroup = topics.get(position);
+            String selectedGroup = groups.get(position);
 
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
@@ -183,11 +186,16 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         Chip chip = new Chip(this);
         chip.setText(username);
 
-        // need to set chip icon profilePic
-        chip.setCloseIconVisible(true);
-        chip.setCloseIconResource(R.drawable.baseline_close_24);  // Set the 'X' icon
+        Bitmap profileBitmap = getUser(username).getProfilePic();
+        if (profileBitmap != null) {
+            Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
+            chip.setChipIcon(drawable);
+            chip.setChipIconSize(48f); // Optional: adjust as needed
+        }
 
-        // Remove the chip when the user presses 'X'
+        chip.setCloseIconVisible(true);
+        chip.setCloseIconResource(R.drawable.baseline_close_24);
+
         chip.setOnCloseIconClickListener(v -> {
             chipGroup.removeView(chip);
             Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
@@ -195,6 +203,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         chipGroup.addView(chip);
     }
+
 
     private void showDatePicker(int option) {
         MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
@@ -258,7 +267,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 .setPositiveButton("Add", (dialog, which) -> {
                     String newGroup = input.getText().toString().trim();
 
-                    if (!newGroup.isEmpty() && !topics.contains(newGroup)) {
+                    if (!newGroup.isEmpty() && !groups.contains(newGroup)) {
                         addNewGroup(newGroup);
                     } else {
                         Toast.makeText(this, "Group already exists or invalid name", Toast.LENGTH_SHORT).show();
@@ -270,7 +279,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
     private void addNewGroup(String newGroup) {
         // Add the new group before "Add New Group" option
-        topics.add(topics.size() - 1, newGroup);
+        groups.add(groups.size() - 1, newGroup);
 
         // Notify adapter of the change
         spinnerAdapter.notifyDataSetChanged();
