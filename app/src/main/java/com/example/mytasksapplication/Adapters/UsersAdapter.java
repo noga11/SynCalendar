@@ -13,6 +13,7 @@ import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
 
 import java.util.List;
+import java.util.Map;
 
 public class UsersAdapter extends ArrayAdapter<User> {
     private Context context;
@@ -40,8 +41,12 @@ public class UsersAdapter extends ArrayAdapter<User> {
 
         Button btnFollow = convertView.findViewById(R.id.btnAction);
 
-        boolean isFollowing = otherUser.getFollowers().contains(currentUser.getId());
-        boolean hasSentRequest = otherUser.getRequests().contains(currentUser.getId());
+        // Check if currentUser is following the otherUser or has sent a request
+        Map<String, String> followers = otherUser.getFollowers();
+        Map<String, String> requests = otherUser.getRequests();
+
+        boolean isFollowing = followers.containsKey(currentUser.getId());
+        boolean hasSentRequest = requests.containsKey(currentUser.getId());
 
         // Set button text based on current status
         if (isFollowing) {
@@ -55,21 +60,22 @@ public class UsersAdapter extends ArrayAdapter<User> {
         // Set button click behavior
         btnFollow.setOnClickListener(v -> {
             if (isFollowing) {
-                otherUser.getFollowers().remove(currentUser.getId());
+                followers.remove(currentUser.getId());
                 btnFollow.setText("Follow");
             } else if (hasSentRequest) {
-                otherUser.getRequests().remove(currentUser.getId());
+                requests.remove(currentUser.getId());
                 btnFollow.setText("Follow");
             } else {
                 if (!otherUser.getPrivacy()) {
-                    otherUser.getFollowers().add(currentUser.getId());
+                    followers.put(currentUser.getId(), currentUser.getuName());
                     btnFollow.setText("Following");
                 } else {
-                    otherUser.getRequests().add(currentUser.getId());
+                    requests.put(currentUser.getId(), currentUser.getuName());
                     btnFollow.setText("Request Sent");
                 }
             }
 
+            // Notify the adapter that the data has changed
             notifyDataSetChanged();
         });
 

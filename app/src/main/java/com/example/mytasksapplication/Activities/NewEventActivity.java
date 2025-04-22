@@ -186,7 +186,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         Chip chip = new Chip(this);
         chip.setText(username);
 
-        Bitmap profileBitmap = getUser(username).getProfilePic();
+        Bitmap profileBitmap = (username).getProfilePic();
         if (profileBitmap != null) {
             Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
             chip.setChipIcon(drawable);

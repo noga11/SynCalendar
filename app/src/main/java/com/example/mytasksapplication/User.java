@@ -1,73 +1,73 @@
 package com.example.mytasksapplication;
 
 import android.graphics.Bitmap;
-
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.Exclude;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class User {
     private String uName, email, id;
-    private ArrayList<String> pendingRequests; // users requesting to follow this user
-    private ArrayList<String> following;       // users this user follows
-    private ArrayList<String> followers;       // users who follow this user
     private Boolean privacy;
     private Bitmap profilePic;
+    // userID -> username
+    private HashMap<String, String> pendingRequests;     // users requesting to follow this user
+    private HashMap<String, String> following;       // users this user follows
+    private HashMap<String, String> followers;       // users who follow this user
 
     public User(String uName, String email, Bitmap profilePic, String id,
-                ArrayList<String> pendingRequests, ArrayList<String> following,
-                ArrayList<String> followers, Boolean privacy) {
+                HashMap<String, String> pendingRequests, HashMap<String, String> following,
+                HashMap<String, String> followers, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.profilePic = profilePic;
         this.id = id;
-        this.pendingRequests = (pendingRequests != null) ? pendingRequests : new ArrayList<>();
-        this.following = (following != null) ? following : new ArrayList<>();
-        this.followers = (followers != null) ? followers : new ArrayList<>();
+        this.pendingRequests = (pendingRequests != null) ? pendingRequests : new HashMap<>();
+        this.following = (following != null) ? following : new HashMap<>();
+        this.followers = (followers != null) ? followers : new HashMap<>();
         this.privacy = privacy;
     }
 
     public User(FirebaseUser firebaseUser) {
         this.uName = firebaseUser.getDisplayName();
         this.email = firebaseUser.getEmail();
-        this.pendingRequests = new ArrayList<>();
-        this.following = new ArrayList<>();
-        this.followers = new ArrayList<>();
+        this.pendingRequests = new HashMap<>();
+        this.following = new HashMap<>();
+        this.followers = new HashMap<>();
     }
 
     // --- Follow Management ---
-    public List<String> getRequests() {
+    public Map<String, String> getRequests() {
         return pendingRequests;
     }
 
-    public void addPendingRequest(String userId) {
-        if (!pendingRequests.contains(userId)) pendingRequests.add(userId);
+    public void addPendingRequest(String userId, String username) {
+        pendingRequests.put(userId, username);
     }
 
     public void removePendingRequest(String userId) {
         pendingRequests.remove(userId);
     }
 
-    public List<String> getFollowing() {
+    public Map<String, String> getFollowing() {
         return following;
     }
 
-    public void addFollowing(String userId) {
-        if (!following.contains(userId)) following.add(userId);
+    public void addFollowing(String userId, String username) {
+        following.put(userId, username);
     }
 
     public void removeFollowing(String userId) {
         following.remove(userId);
     }
 
-    public List<String> getFollowers() {
+    public Map<String, String> getFollowers() {
         return followers;
     }
 
-    public void addFollower(String userId) {
-        if (!followers.contains(userId)) followers.add(userId);
+    public void addFollower(String userId, String username) {
+        followers.put(userId, username);
     }
 
     public void removeFollower(String userId) {
@@ -107,11 +107,10 @@ public class User {
 
     // Approves a follow request: move from pendingRequests to followers
     public void approveFollowRequest(String userId) {
-        if (pendingRequests.contains(userId)) {
+        if (pendingRequests.containsKey(userId)) {
+            String username = pendingRequests.get(userId);
             pendingRequests.remove(userId);
-            if (!followers.contains(userId)) {
-                followers.add(userId);
-            }
+            followers.put(userId, username);
         }
     }
 
@@ -119,5 +118,4 @@ public class User {
     public void denyFollowRequest(String userId) {
         pendingRequests.remove(userId);
     }
-
 }

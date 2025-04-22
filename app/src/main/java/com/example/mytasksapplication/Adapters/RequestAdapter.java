@@ -13,6 +13,7 @@ import com.example.mytasksapplication.R;
 import com.example.mytasksapplication.User;
 
 import java.util.List;
+import java.util.Map;
 
 public class RequestAdapter extends ArrayAdapter<User> {
     private Context context;
@@ -43,7 +44,10 @@ public class RequestAdapter extends ArrayAdapter<User> {
         btnAccept.setText("Accept Request");
 
         btnAccept.setOnClickListener(v -> {
-            if (currentUser.getRequests().contains(requester.getId())) {
+            // Check if the user is in the pendingRequests HashMap
+            Map<String, String> requests = currentUser.getRequests();
+            if (requests.containsKey(requester.getId())) {
+                String username = requests.get(requester.getId());
                 currentUser.approveFollowRequest(requester.getId());
                 btnAccept.setText("Following");
             }
