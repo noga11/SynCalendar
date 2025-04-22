@@ -36,6 +36,7 @@ import com.google.android.material.timepicker.TimeFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -186,7 +187,14 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         Chip chip = new Chip(this);
         chip.setText(username);
 
-        Bitmap profileBitmap = (username).getProfilePic();
+        for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
+            if (entry.getValue().equals(username)) {
+                String userId = entry.getKey();
+            }
+        }
+        User chipUser = getUserById(); //need to make in model;
+
+        Bitmap profileBitmap = chipUser.getProfilePic();
         if (profileBitmap != null) {
             Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
             chip.setChipIcon(drawable);

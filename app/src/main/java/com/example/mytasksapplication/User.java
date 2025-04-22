@@ -11,10 +11,11 @@ public class User {
     private String uName, email, id;
     private Boolean privacy;
     private Bitmap profilePic;
-    // userID -> username
+        // userID -> username
     private HashMap<String, String> pendingRequests;     // users requesting to follow this user
     private HashMap<String, String> following;       // users this user follows
     private HashMap<String, String> followers;       // users who follow this user
+    private HashMap<String, String> mutuals;
 
     public User(String uName, String email, Bitmap profilePic, String id,
                 HashMap<String, String> pendingRequests, HashMap<String, String> following,
@@ -38,43 +39,23 @@ public class User {
     }
 
     // --- Follow Management ---
-    public Map<String, String> getRequests() {
-        return pendingRequests;
-    }
 
-    public void addPendingRequest(String userId, String username) {
-        pendingRequests.put(userId, username);
-    }
+    public Map<String, String> getRequests() { return pendingRequests; }
+    public void setPendingRequests(HashMap<String, String> pendingRequests) { this.pendingRequests = pendingRequests; }
+    public void addPendingRequest(String userId, String username) { pendingRequests.put(userId, username); }
+    public void removePendingRequest(String userId) { pendingRequests.remove(userId); }
 
-    public void removePendingRequest(String userId) {
-        pendingRequests.remove(userId);
-    }
+    public Map<String, String> getFollowing() { return following; }
+    public void setFollowing(HashMap<String, String> following) { this.following = following; }
+    public void addFollowing(String userId, String username) { following.put(userId, username); }
+    public void removeFollowing(String userId) { following.remove(userId); }
 
-    public Map<String, String> getFollowing() {
-        return following;
-    }
+    public Map<String, String> getFollowers() { return followers; }
+    public void setFollowers(HashMap<String, String> followers) { this.followers = followers; }
+    public void addFollower(String userId, String username) { followers.put(userId, username); }
+    public void removeFollower(String userId) { followers.remove(userId); }
 
-    public void addFollowing(String userId, String username) {
-        following.put(userId, username);
-    }
-
-    public void removeFollowing(String userId) {
-        following.remove(userId);
-    }
-
-    public Map<String, String> getFollowers() {
-        return followers;
-    }
-
-    public void addFollower(String userId, String username) {
-        followers.put(userId, username);
-    }
-
-    public void removeFollower(String userId) {
-        followers.remove(userId);
-    }
-
-    // --- Getters & Setters ---
+    // --- Other Getters & Setters ---
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -87,6 +68,25 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public HashMap<String, String> getMutuals() { return mutuals; }
+    public void setMutuals(HashMap<String, String> mutuals) { this.mutuals = mutuals;}
+    public void updateMutuals() {
+        if (mutuals == null) {
+            mutuals = new HashMap<>();
+        } else {
+            mutuals.clear();
+        }
+
+        for (Map.Entry<String, String> entry : following.entrySet()) {
+            String userId = entry.getKey();
+            String username = entry.getValue();
+
+            if (followers.containsKey(userId)) {
+                mutuals.put(userId, username);
+            }
+        }
+    }
 
     @Exclude
     public Bitmap getProfilePic() {
