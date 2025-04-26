@@ -13,7 +13,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#C2A870B3"
+        android:background="@color/menu_main"
         android:minHeight="?attr/actionBarSize"
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
@@ -169,5 +169,5 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         app:menu="@menu/menu_bottom_nav"
-        android:background="#50A774B0"/>
+        android:background="@color/menu_bottom_nav"/>
 </LinearLayout>

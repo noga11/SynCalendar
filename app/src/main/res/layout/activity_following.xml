@@ -12,7 +12,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
+        android:background="@color/menu_main"
         android:minHeight="?attr/actionBarSize"
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
@@ -77,6 +77,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         app:menu="@menu/menu_bottom_nav"
-        android:background="?android:attr/windowBackground"/>
+        android:background="@color/menu_bottom_nav"/>
 
 </LinearLayout>
