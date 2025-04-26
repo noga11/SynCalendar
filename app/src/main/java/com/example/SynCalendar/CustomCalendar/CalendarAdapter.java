@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.CustomCalendar;
+package com.example.SynCalendar.CustomCalendar;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.mytasksapplication.R;
+import com.example.SynCalendar.R;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Notification;
+package com.example.SynCalendar.Notification;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,7 +12,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
-import com.example.mytasksapplication.Activities.NewEventActivity;
+import com.example.SynCalendar.Activities.NewEventActivity;
 
 public class NotificationMsg {
     private static final String CHANNEL_ID = "reminderChannel";

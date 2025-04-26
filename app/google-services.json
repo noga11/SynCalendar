@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:544106390186:android:0b5edb03bc62c8f21566d3",
+        "android_client_info": {
+          "package_name": "com.example.SynCalendar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe70xfDJqbq-8yBJ_TLzi-xrz1_lN1rac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:544106390186:android:8eb739360b56f4121566d3",
         "android_client_info": {
           "package_name": "com.example.mytasksapplication"

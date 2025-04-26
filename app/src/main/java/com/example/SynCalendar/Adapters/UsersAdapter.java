@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Adapters;
+package com.example.SynCalendar.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,9 +8,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.User;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.User;
 
 import java.util.List;
 import java.util.Map;

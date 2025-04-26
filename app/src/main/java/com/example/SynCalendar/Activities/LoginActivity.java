@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Activities;
+package com.example.SynCalendar.Activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,9 +20,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.User;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 

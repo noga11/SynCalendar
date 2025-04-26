@@ -1,4 +1,4 @@
-package com.example.mytasksapplication;
+package com.example.SynCalendar;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -16,7 +16,6 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -62,7 +61,7 @@ public class Model {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, privacy);
+                        currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, null, privacy);
                         DocumentReference userDoc = firestore.collection("users").document(firebaseUser.getUid());
                         userDoc.set(currentUser)
                                 .addOnSuccessListener(aVoid -> {

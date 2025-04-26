@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Activities;
+package com.example.SynCalendar.Activities;
 
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -22,11 +22,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.Notification.NotificationMsg;
-import com.example.mytasksapplication.R;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.Notification.NotificationMsg;
+import com.example.SynCalendar.R;
 
-import com.example.mytasksapplication.User;
+import com.example.SynCalendar.User;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.datepicker.MaterialDatePicker;

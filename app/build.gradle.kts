@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mytasksapplication"
+    namespace = "com.example.SynCalendar"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.mytasksapplication"
+        applicationId = "com.example.SynCalendar"
         minSdk = 25
         targetSdk = 34
         versionCode = 1

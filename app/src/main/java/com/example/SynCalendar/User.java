@@ -1,4 +1,4 @@
-package com.example.mytasksapplication;
+package com.example.SynCalendar;
 
 import android.graphics.Bitmap;
 import com.google.firebase.auth.FirebaseUser;

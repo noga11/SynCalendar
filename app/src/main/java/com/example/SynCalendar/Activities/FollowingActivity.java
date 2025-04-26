@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Activities;
+package com.example.SynCalendar.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -15,12 +15,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.mytasksapplication.Adapters.RequestAdapter;
-import com.example.mytasksapplication.Adapters.UsersAdapter;
-import com.example.mytasksapplication.Event;
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.User;
+import com.example.SynCalendar.Adapters.RequestAdapter;
+import com.example.SynCalendar.Adapters.UsersAdapter;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.User;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.search.SearchBar;
 

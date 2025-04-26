@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Activities;
+package com.example.SynCalendar.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -22,12 +22,12 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.mytasksapplication.Adapters.AllEventsAdapter;
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Event;
-import com.example.mytasksapplication.SwipeToDeleteCallback;
-import com.example.mytasksapplication.User;
+import com.example.SynCalendar.Adapters.AllEventsAdapter;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.Event;
+import com.example.SynCalendar.SwipeToDeleteCallback;
+import com.example.SynCalendar.User;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;

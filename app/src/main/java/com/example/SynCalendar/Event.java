@@ -1,4 +1,4 @@
-package com.example.mytasksapplication;
+package com.example.SynCalendar;
 
 import java.util.ArrayList;
 import java.util.Calendar;

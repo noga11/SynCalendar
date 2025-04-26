@@ -1,10 +1,8 @@
-package com.example.mytasksapplication.Notification;
+package com.example.SynCalendar.Notification;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;

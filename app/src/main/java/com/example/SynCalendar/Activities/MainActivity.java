@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Activities;
+package com.example.SynCalendar.Activities;
 
 import android.content.Intent;
 import android.os.Build;
@@ -17,11 +17,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.mytasksapplication.Adapters.DailyEventsAdapter;
-import com.example.mytasksapplication.CustomCalendar.CalendarAdapter;
-import com.example.mytasksapplication.Model;
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Event;
+import com.example.SynCalendar.Adapters.DailyEventsAdapter;
+import com.example.SynCalendar.CustomCalendar.CalendarAdapter;
+import com.example.SynCalendar.Model;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.Event;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.time.LocalDate;

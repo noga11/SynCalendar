@@ -1,13 +1,12 @@
-package com.example.mytasksapplication;
+package com.example.SynCalendar;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.mytasksapplication.Adapters.AllEventsAdapter;
-import com.example.mytasksapplication.Event;
+import com.example.SynCalendar.Adapters.AllEventsAdapter;
 import com.google.android.material.snackbar.Snackbar;
 import java.util.List;
 

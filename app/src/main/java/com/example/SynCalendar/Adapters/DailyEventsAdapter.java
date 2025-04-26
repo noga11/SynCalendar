@@ -1,4 +1,4 @@
-package com.example.mytasksapplication.Adapters;
+package com.example.SynCalendar.Adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,8 +7,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.example.mytasksapplication.R;
-import com.example.mytasksapplication.Event;
+import com.example.SynCalendar.R;
+import com.example.SynCalendar.Event;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

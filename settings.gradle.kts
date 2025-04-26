@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "My Tasks Application"
+rootProject.name = "SynCalendar"
 include(":app")
  
