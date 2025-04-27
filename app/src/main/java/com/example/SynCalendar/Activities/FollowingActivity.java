@@ -22,6 +22,7 @@ import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.search.SearchBar;
+import com.google.android.material.search.SearchView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,8 @@ public class FollowingActivity extends AppCompatActivity {
     private ListView lstUsers, lstFollowRequest;
     private String source;
     private TextView tvEmptyList, tvFollowRequest;
-    private SearchBar search;
+    private SearchBar searchBar;
+    private SearchView searchView;
     private UsersAdapter usersAdapter;
     private RequestAdapter requestAdapter;
     private List<User> allUsers;
@@ -50,7 +52,24 @@ public class FollowingActivity extends AppCompatActivity {
         tvFollowRequest = findViewById(R.id.tvFollowRequest);
         lstUsers = findViewById(R.id.lstUsers);
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
-        search = findViewById(R.id.search);
+        searchBar = findViewById(R.id.searchBar);
+        searchView = findViewById(R.id.searchView);
+
+        searchBar.setOnClickListener(v -> searchView.show());
+
+        searchView.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterEvents(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
         List<User> users = new ArrayList<>();
         List<User> followRequests = new ArrayList<>();
 
@@ -79,7 +98,7 @@ public class FollowingActivity extends AppCompatActivity {
                 tvEmptyList.setText("You dont have any Following requests");
                 lstUsers.setEmptyView(tvEmptyList);
             }
-            if(model.getCurrentUser().getPendingFollowRequests().isEmpty()){
+            if(model.getCurrentUser().getRequests().isEmpty()){
                 tvFollowRequest.setVisibility(View.GONE);
                 lstFollowRequest.setVisibility(View.GONE);
             }else{
@@ -92,17 +111,6 @@ public class FollowingActivity extends AppCompatActivity {
         requestAdapter = new RequestAdapter(this, followRequests);
         lstUsers.setAdapter(usersAdapter);
         lstFollowRequest.setAdapter(requestAdapter);
-
-        search.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                filterEvents(charSequence.toString());
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {}
-        });
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override

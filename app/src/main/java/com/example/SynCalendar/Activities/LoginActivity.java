@@ -138,8 +138,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             if ("action_profile".equals(source)) {
                 // Ensure `currentUser` is available
-                if (model.getUser() != null) {
-                    model.updateUser(username, email, password, userProfilePic, model.getUser().getGroups(), privacy);
+                if (model.getCurrentUser() != null) {
+                    model.updateUser(username, email, privacy, userProfilePic);
                     Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
@@ -154,7 +154,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             } else { // Sign Up screen
                 try {
-                    model.createUser(username, email, password, userProfilePic, null, null, privacy);
+                    model.createUser(username, email, password, privacy, userProfilePic);
                     activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
                     finish();
                 } catch (Exception e) {
