@@ -44,7 +44,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     private ArrayAdapter<String> spinnerAdapter;
     private AutoCompleteTextView spinnerGroup;
     private ArrayList<String> groups;
-
+    // temporary to push
 
     @SuppressLint("MissingInflatedId")
     @Override
