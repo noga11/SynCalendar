@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -187,29 +188,46 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         Chip chip = new Chip(this);
         chip.setText(username);
 
+        String userId = null;
         for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
             if (entry.getValue().equals(username)) {
-                String userId = entry.getKey();
+                userId = entry.getKey();
+                break;
             }
         }
-        User chipUser = getUserById(); //need to make in model;
 
-        Bitmap profileBitmap = chipUser.getProfilePic();
-        if (profileBitmap != null) {
-            Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
-            chip.setChipIcon(drawable);
-            chip.setChipIconSize(48f); // Optional: adjust as needed
+        if (userId != null) {
+            model.getUserById(userId,
+                    user -> {
+                        if (user != null) {
+                            Bitmap profileBitmap = user.getProfilePic();
+                            if (profileBitmap != null) {
+                                Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
+                                chip.setChipIcon(drawable);
+                                chip.setChipIconSize(48f); // Optional: adjust as needed
+                            }
+
+                            chip.setCloseIconVisible(true);
+                            chip.setCloseIconResource(R.drawable.baseline_close_24);
+
+                            chip.setOnCloseIconClickListener(v -> {
+                                chipGroup.removeView(chip);
+                                Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
+                            });
+
+                            chipGroup.addView(chip);
+                        } else {
+                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    e -> {
+                        Log.e("NewEventActivity", "Error getting user data", e);
+                        Toast.makeText(this, "Error getting user data", Toast.LENGTH_SHORT).show();
+                    }
+            );
+        } else {
+            Toast.makeText(this, "User not found in your network", Toast.LENGTH_SHORT).show();
         }
-
-        chip.setCloseIconVisible(true);
-        chip.setCloseIconResource(R.drawable.baseline_close_24);
-
-        chip.setOnCloseIconClickListener(v -> {
-            chipGroup.removeView(chip);
-            Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
-        });
-
-        chipGroup.addView(chip);
     }
 
 

@@ -66,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 
         lstDailyEvents = findViewById(R.id.lstDailyEvents);
 
+        // Initialize the events list
+        events = new ArrayList<>();
+
         adapter = new DailyEventsAdapter(this, events);
         lstDailyEvents.setAdapter(adapter);
 

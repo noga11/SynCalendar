@@ -112,4 +112,14 @@ public class Event {
         }
         return occurrences;
     }
+
+    public Date getEnd() {
+        if (start == null) {
+            return null;
+        }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(start);
+        calendar.add(Calendar.MINUTE, duration);
+        return calendar.getTime();
+    }
 }

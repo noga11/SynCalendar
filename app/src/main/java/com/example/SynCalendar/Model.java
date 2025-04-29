@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -18,6 +19,9 @@ import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 
@@ -66,12 +70,18 @@ public class Model {
                         currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, null, privacy);
                         DocumentReference userDoc = firestore.collection(USERS_COLLECTION).document(firebaseUser.getUid());
                         userDoc.set(currentUser)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d("Model", "User details saved to Firestore.");
-                                    //raise User changed
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d("Model", "User details saved to Firestore.");
+                                        //raise User changed
+                                    }
                                 })
-                                .addOnFailureListener(e -> {
-                                    Log.e("Model", "Error saving user to Firestore", e);
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e("Model", "Error saving user to Firestore", e);
+                                    }
                                 });
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -101,27 +111,36 @@ public class Model {
     }
     private void getUserFromFirebase(String userId) {
         DocumentReference userRef = firestore.collection(USERS_COLLECTION).document(userId);
-        userRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                currentUser = documentSnapshot.toObject(User.class);
-                Log.d("Model", "User data retrieved: " + currentUser.getuName());
-            } else {
-                Log.e("Model", "No such user in Firestore");
+        userRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()) {
+                    currentUser = documentSnapshot.toObject(User.class);
+                    Log.d("Model", "User data retrieved: " + currentUser.getuName());
+                } else {
+                    Log.e("Model", "No such user in Firestore");
+                }
             }
-        }).addOnFailureListener(e -> {
-            Log.e("Model", "Error retrieving user data from Firestore", e);
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("Model", "Error retrieving user data from Firestore", e);
+            }
         });
     }
 
     public void getUserById(String userId, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
         DocumentReference userDocRef = firestore.collection(USERS_COLLECTION).document(userId);
         userDocRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        onSuccess.onSuccess(user);
-                    } else {
-                        onSuccess.onSuccess(null); // User not found
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            User user = documentSnapshot.toObject(User.class);
+                            onSuccess.onSuccess(user);
+                        } else {
+                            onSuccess.onSuccess(null); // User not found
+                        }
                     }
                 })
                 .addOnFailureListener(onFailure);
@@ -203,12 +222,19 @@ public class Model {
 
     public void createEvent(Event event) {
         eventRef.add(event)
-                .addOnSuccessListener(documentReference -> {
-                    event.setId(documentReference.getId());
-                    events.add(event);
-                    raiseEventDataChange();
-                }).addOnFailureListener(ex ->{
-                    Log.e(TAG, "createEvent: failed ", ex );
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        event.setId(documentReference.getId());
+                        events.add(event);
+                        raiseEventDataChange();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception ex) {
+                        Log.e(TAG, "createEvent: failed ", ex);
+                    }
                 });
     }
 
@@ -222,16 +248,36 @@ public class Model {
         if(event.getUsersId().isEmpty()) {
             DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(eventId);
             eventRef.delete()
-                    .addOnSuccessListener(aVoid -> Log.d("Model", "Event deleted successfully."))
-                    .addOnFailureListener(e -> Log.e("Model", "Error deleting event", e));
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d("Model", "Event deleted successfully.");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("Model", "Error deleting event", e);
+                        }
+                    });
         }
     }
 
     public void updateEvent(Event event) {
         DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(event.getId());
         eventRef.set(event)
-                .addOnSuccessListener(aVoid -> Log.d("Model", "Event updated successfully."))
-                .addOnFailureListener(e -> Log.e("Model", "Error updating event", e));
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("Model", "Event updated successfully.");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Model", "Error updating event", e);
+                    }
+                });
     }
 
     public ArrayList<Event> getEventsByUserId(String userId) {
@@ -259,13 +305,16 @@ public class Model {
 
     public void raiseEventDataChange() {
         firestore.collection(EVENTS_COLLECTION)
-                .addSnapshotListener((querySnapshot, e) -> {
-                    if (e != null) {
-                        Log.e("Model", "Error listening for event changes", e);
-                        return;
-                    }
-                    if (querySnapshot != null) {
-                        Log.d("Model", "Events updated.");
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot querySnapshot, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.e("Model", "Error listening for event changes", e);
+                            return;
+                        }
+                        if (querySnapshot != null) {
+                            Log.d("Model", "Events updated.");
+                        }
                     }
                 });
     }
