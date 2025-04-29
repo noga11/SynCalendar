@@ -139,7 +139,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/calendarRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="300dp"/>
     </LinearLayout>
 
     <!-- Daily Events ListView -->
