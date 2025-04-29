@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 public class Model {
     private static final String TAG = "Model";
+    private static final String EVENTS_COLLECTION = "events";
+    private static final String USERS_COLLECTION = "users";
     private static Model instance;
     private FirebaseAuth mAuth;
     private FirebaseUser firebaseUser;
@@ -37,8 +39,8 @@ public class Model {
         this.context = context;
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
-        eventRef = firestore.collection("Events");
-        userRef = firestore.collection("Users");
+        eventRef = firestore.collection(EVENTS_COLLECTION);
+        userRef = firestore.collection(USERS_COLLECTION);
     }
 
     public static Model getInstance(Context context) {
@@ -62,7 +64,7 @@ public class Model {
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, null, privacy);
-                        DocumentReference userDoc = firestore.collection("users").document(firebaseUser.getUid());
+                        DocumentReference userDoc = firestore.collection(USERS_COLLECTION).document(firebaseUser.getUid());
                         userDoc.set(currentUser)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d("Model", "User details saved to Firestore.");
@@ -98,7 +100,7 @@ public class Model {
         return null;
     }
     private void getUserFromFirebase(String userId) {
-        DocumentReference userRef = firestore.collection("users").document(userId);
+        DocumentReference userRef = firestore.collection(USERS_COLLECTION).document(userId);
         userRef.get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
                 currentUser = documentSnapshot.toObject(User.class);
@@ -111,11 +113,25 @@ public class Model {
         });
     }
 
+    public void getUserById(String userId, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
+        DocumentReference userDocRef = firestore.collection(USERS_COLLECTION).document(userId);
+        userDocRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        onSuccess.onSuccess(user);
+                    } else {
+                        onSuccess.onSuccess(null); // User not found
+                    }
+                })
+                .addOnFailureListener(onFailure);
+    }
+
     public void logout() {
         mAuth.signOut();
         Log.d("Model", "User logged out");
         currentUser = null;
-//        raiseUserUpdate();
+        //      raiseUserUpdate();
     }
 
     public void updateUser(String uName, String email, boolean privacy, Bitmap profilePic) {
@@ -166,7 +182,7 @@ public class Model {
         currentUser.setProfilePic(profilePic);
 
         // Update the user document in Firestore
-        DocumentReference userRef = firestore.collection("users").document(firebaseUser.getUid());
+        DocumentReference userRef = firestore.collection(USERS_COLLECTION).document(firebaseUser.getUid());
         userRef.set(currentUser)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -204,7 +220,7 @@ public class Model {
 
         //delete event for everyone
         if(event.getUsersId().isEmpty()) {
-            DocumentReference eventRef = firestore.collection("events").document(eventId);
+            DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(eventId);
             eventRef.delete()
                     .addOnSuccessListener(aVoid -> Log.d("Model", "Event deleted successfully."))
                     .addOnFailureListener(e -> Log.e("Model", "Error deleting event", e));
@@ -212,22 +228,22 @@ public class Model {
     }
 
     public void updateEvent(Event event) {
-        DocumentReference eventRef = firestore.collection("events").document(event.getId());
+        DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(event.getId());
         eventRef.set(event)
                 .addOnSuccessListener(aVoid -> Log.d("Model", "Event updated successfully."))
                 .addOnFailureListener(e -> Log.e("Model", "Error updating event", e));
     }
 
     public ArrayList<Event> getEventsByUserId(String userId) {
-        firestore.collection("events")
+        firestore.collection(EVENTS_COLLECTION)
                 .whereArrayContains("users", userId)
                 .get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         for(DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()){
-                           Event event = documentChange.getDocument().toObject(Event.class);
-                           event.setId(documentChange.getDocument().getId());
+                            Event event = documentChange.getDocument().toObject(Event.class);
+                            event.setId(documentChange.getDocument().getId());
                         }
                     }
                 })
@@ -242,7 +258,7 @@ public class Model {
     }
 
     public void raiseEventDataChange() {
-        firestore.collection("events")
+        firestore.collection(EVENTS_COLLECTION)
                 .addSnapshotListener((querySnapshot, e) -> {
                     if (e != null) {
                         Log.e("Model", "Error listening for event changes", e);
