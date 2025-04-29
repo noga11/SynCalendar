@@ -22,7 +22,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="5dp">
 
         <!-- Calendar Control Header with Navigation Buttons -->
         <LinearLayout
@@ -139,10 +140,20 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/calendarRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="300dp"/>
+            android:layout_height="250dp"/>
+
     </LinearLayout>
 
     <!-- Daily Events ListView -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textSize="30sp"
+        android:background="#3FD9CFFA"
+        android:text="Events" />
+
     <ListView
         android:id="@+id/lstDailyEvents"
         android:layout_width="match_parent"
@@ -170,4 +181,5 @@
         android:layout_alignParentBottom="true"
         app:menu="@menu/menu_bottom_nav"
         android:background="@color/menu_bottom_nav"/>
+
 </LinearLayout>

@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
         tvEmptyList = findViewById(R.id.tvEmptyList);
         if (events.isEmpty()) {
-            tvEmptyList.setText("You don't have any events, press the + button and add an event");
+            tvEmptyList.setText("No Items");
             lstDailyEvents.setEmptyView(tvEmptyList);
         }
 

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTasksApplication"
         tools:targetApi="31">
+        <activity
+            android:name=".SplashActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.FollowingActivity"
             android:exported="false" />
@@ -36,7 +39,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".ReminderBroadcastReceiver" android:exported="false"/>
+
+        <receiver
+            android:name=".ReminderBroadcastReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
