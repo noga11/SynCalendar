@@ -50,9 +50,19 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
+        
+        // Check if user is logged in
         model = Model.getInstance(this);
+        if (model.getCurrentUser() == null) {
+            // User is not logged in, redirect to login screen
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish(); // Close MainActivity
+            return;
+        }
+        
+        // User is logged in, continue with normal initialization
+        setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

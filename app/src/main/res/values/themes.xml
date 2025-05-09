@@ -6,4 +6,9 @@
     </style>
 
     <style name="Theme.MyTasksApplication" parent="Base.Theme.MyTasksApplication" />
+
+    <style name="Theme.MyTasksApplication.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>
