@@ -61,8 +61,8 @@ public class Model {
         return null;
     }
 
-    public void createUser(String displayName, String email, String password, boolean privacy, Bitmap profilePic) throws Exception {
-        mAuth.createUserWithEmailAndPassword(email,password)
+    public void createUser(String displayName, String email, String password, boolean privacy, Bitmap profilePic, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
+        mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
@@ -74,59 +74,44 @@ public class Model {
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         Log.d("Model", "User details saved to Firestore.");
-                                        //raise User changed
+                                        onSuccess.onSuccess(currentUser);
                                     }
                                 })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.e("Model", "Error saving user to Firestore", e);
-                                    }
-                                });
+                                .addOnFailureListener(onFailure);
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(context,"create currentUser failed"+ e.getMessage(),Toast.LENGTH_SHORT);
-                    }
-                });
+                })
+                .addOnFailureListener(onFailure);
     }
 
-    public User login(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email,password)
+    public void login(String email, String password, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
+        mAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        FirebaseUser firebaseUser= mAuth.getCurrentUser();
-                        getUserFromFirebase(firebaseUser.getUid());
-//                            raiseUserUpdate();
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        getUserFromFirebase(firebaseUser.getUid(), onSuccess, onFailure);
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(context, "login failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
-        return null;
+                })
+                .addOnFailureListener(onFailure);
     }
-    private void getUserFromFirebase(String userId) {
+
+    private void getUserFromFirebase(String userId, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
         DocumentReference userRef = firestore.collection(USERS_COLLECTION).document(userId);
-        userRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()) {
-                    currentUser = documentSnapshot.toObject(User.class);
-                    Log.d("Model", "User data retrieved: " + currentUser.getuName());
-                } else {
-                    Log.e("Model", "No such user in Firestore");
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Model", "Error retrieving user data from Firestore", e);
-            }
-        });
+        userRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            currentUser = documentSnapshot.toObject(User.class);
+                            Log.d("Model", "User data retrieved: " + currentUser.getuName());
+                            onSuccess.onSuccess(currentUser);
+                        } else {
+                            Log.e("Model", "No such user in Firestore");
+                            onFailure.onFailure(new Exception("User not found in database"));
+                        }
+                    }
+                })
+                .addOnFailureListener(onFailure);
     }
 
     public void getUserById(String userId, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {

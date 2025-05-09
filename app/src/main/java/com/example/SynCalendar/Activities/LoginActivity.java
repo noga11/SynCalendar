@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private Button btnEnter;
     private TextInputEditText tietUsername, tietEmail, tietPassword;
     private RadioButton rbtnPublic, rbtnPrivate;
-    private boolean LOrSChecked = true, privacy;
+    private boolean LOrSChecked = true, privacy = true;
     private String source;
     private User currentUser;
     private Model model;
@@ -105,6 +105,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     // Handle result if needed
                 }
         );
+
+        // Set private as default
+        rbtnPrivate.setChecked(true);
+        rbtnPublic.setChecked(false);
     }
 
     private ActivityResultLauncher picLauncher = registerForActivityResult(new ActivityResultContracts.TakePicturePreview()
@@ -145,22 +149,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 } else {
                     Toast.makeText(this, "Error: User not found.", Toast.LENGTH_SHORT).show();
                 }
-            } else if (LOrSChecked) { // Login screen
-                if (model.login(username, password) != null) {
-                    activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
-                    finish();
-                } else {
-                    Toast.makeText(this, "Invalid login credentials", Toast.LENGTH_SHORT).show();
+            } else if (!LOrSChecked) { // Login screen
+                if (username.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+                model.login(username, password,
+                    user -> {
+                        // Success callback
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        activityStartLauncher.launch(intent);
+                        finish();
+                    },
+                    e -> {
+                        // Failure callback
+                        Toast.makeText(LoginActivity.this, "Invalid login credentials", Toast.LENGTH_SHORT).show();
+                    }
+                );
             } else { // Sign Up screen
-                try {
-                    model.createUser(username, email, password, privacy, userProfilePic);
-                    activityStartLauncher.launch(new Intent(LoginActivity.this, MainActivity.class));
-                    finish();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Username already exists, choose a different one;", Toast.LENGTH_SHORT).show();
+                if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+                model.createUser(username, email, password, privacy, userProfilePic,
+                    user -> {
+                        // Success callback
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        activityStartLauncher.launch(intent);
+                        finish();
+                    },
+                    e -> {
+                        // Failure callback
+                        Toast.makeText(LoginActivity.this, "Error creating account: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                );
             }
         }
     }
