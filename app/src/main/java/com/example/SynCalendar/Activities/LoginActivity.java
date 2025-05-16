@@ -57,7 +57,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         tvLoginSignUp = findViewById(R.id.tvLoginSignUp);
         tvQuestion = findViewById(R.id.tvQuestion);
         tilEmail = findViewById(R.id.tilEmail);
-        tietUsername = findViewById(R.id.tietUsername);
         tvPublicOrPrivate = findViewById(R.id.tvPublicOrPrivate);
         rbtnPublic = findViewById(R.id.rbtnPublic);
         rbtnPrivate = findViewById(R.id.rbtnPrivate);
@@ -82,7 +81,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 tvScreenTitle.setText("Login");
                 tvLoginSignUp.setText("Sign up");
                 tvQuestion.setText("Don't have an account?");
-                tilEmail.setVisibility(View.GONE);
+                tietUsername.setVisibility(View.GONE);
                 tvPublicOrPrivate.setVisibility(View.GONE);
                 rbtnPublic.setVisibility(View.GONE);
                 rbtnPrivate.setVisibility(View.GONE);
@@ -91,7 +90,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 tvScreenTitle.setText("Sign Up");
                 tvLoginSignUp.setText("Login");
                 tvQuestion.setText("Already have an account?");
-                tilEmail.setVisibility(View.VISIBLE);
+                tietUsername.setVisibility(View.VISIBLE);
                 tvPublicOrPrivate.setVisibility(View.VISIBLE);
                 rbtnPublic.setVisibility(View.VISIBLE);
                 rbtnPrivate.setVisibility(View.VISIBLE);
@@ -150,7 +149,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Toast.makeText(this, "Error: User not found.", Toast.LENGTH_SHORT).show();
                 }
             } else if (!LOrSChecked) { // Login screen
-                String loginEmail = username; // Using username field for email during login
+                String loginEmail = email;
                 if (loginEmail.isEmpty() || password.isEmpty()) {
                     Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
