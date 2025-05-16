@@ -16,7 +16,6 @@ public class User {
     private HashMap<String, String> pendingRequests;     // users requesting to follow this user
     private ArrayList<String> following;       // users this user follows
     private ArrayList<String> followers;       // users who follow this user
-//    private ArrayList<String> events;
     private HashMap<String, String> mutuals;
 
     public User() {
@@ -24,16 +23,13 @@ public class User {
     }
 
     public User(String uName, String email, Bitmap profilePic, String id,
-                ArrayList<String> following, ArrayList<String> followers,
-//                ArrayList<String> events,
-                Boolean privacy) {
+                ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
         this.uName = uName;
         this.email = email;
         this.profilePicString = PhotoHelper.bitmapToString(profilePic);
         this.id = id;
         this.following = following != null ? following : new ArrayList<>();
         this.followers = followers != null ? followers : new ArrayList<>();
-//        this.events = events != null ? events : new ArrayList<>();
         this.privacy = privacy;
     }
 
@@ -75,9 +71,6 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-
-    /*public ArrayList<String> getEvents() { return events; }
-    public void setEvents(ArrayList<String> events) { this.events = events; }*/
 
     public HashMap<String, String> getMutuals() { return mutuals; }
     public void setMutuals(HashMap<String, String> mutuals) { this.mutuals = mutuals;}
