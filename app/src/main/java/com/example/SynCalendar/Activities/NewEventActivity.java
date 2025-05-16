@@ -172,6 +172,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 }
             }
             Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
+            finish(); // Return to previous screen
         }
     }
 
