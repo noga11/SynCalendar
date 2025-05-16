@@ -12,6 +12,7 @@ import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,10 +43,10 @@ public class UsersAdapter extends ArrayAdapter<User> {
         Button btnFollow = convertView.findViewById(R.id.btnAction);
 
         // Check if currentUser is following the otherUser or has sent a request
-        Map<String, String> followers = otherUser.getFollowers();
+        ArrayList<String> followers = otherUser.getFollowers();
         Map<String, String> requests = otherUser.getRequests();
 
-        boolean isFollowing = followers.containsKey(currentUser.getId());
+        boolean isFollowing = followers.contains(currentUser.getId());
         boolean hasSentRequest = requests.containsKey(currentUser.getId());
 
         // Set button text based on current status
@@ -67,7 +68,7 @@ public class UsersAdapter extends ArrayAdapter<User> {
                 btnFollow.setText("Follow");
             } else {
                 if (!otherUser.getPrivacy()) {
-                    followers.put(currentUser.getId(), currentUser.getuName());
+                    followers.add(currentUser.getId());
                     btnFollow.setText("Following");
                 } else {
                     requests.put(currentUser.getId(), currentUser.getuName());

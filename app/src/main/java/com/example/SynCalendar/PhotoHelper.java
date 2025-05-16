@@ -16,48 +16,50 @@ import java.net.URLConnection;
 
 public class PhotoHelper {
     private static Context _context;
-    public static void setContext(Context context) {_context = context;}
-    public static Bitmap getBitmapFromDrawable(int drawableId){
-        Bitmap bitmap = BitmapFactory.decodeResource(_context.getResources(), drawableId);
-        return bitmap;
+    
+    public static void setContext(Context context) {
+        _context = context;
     }
-    //deal with image
-    //deal with from string to image
-    public static Bitmap getBitmapFromEncodedString(String encodedString){
-
-        byte[] arr = Base64.decode(encodedString, Base64.URL_SAFE);
-
-        Bitmap img = BitmapFactory.decodeByteArray(arr, 0, arr.length);
-
-        return img;
-
+    
+    public static Bitmap getBitmapFromDrawable(int drawableId) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap = BitmapFactory.decodeResource(_context.getResources(), drawableId, options);
+        return ensureSoftwareBitmap(bitmap);
     }
 
-    //from image to string
-    public static String getEncodedString(Bitmap bitmap){
+    public static Bitmap getBitmapFromEncodedString(String encodedString) {
+        if (encodedString == null) return null;
+        try {
+            byte[] arr = Base64.decode(encodedString, Base64.DEFAULT);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = BitmapFactory.decodeByteArray(arr, 0, arr.length, options);
+            return ensureSoftwareBitmap(bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
+    public static String getEncodedString(Bitmap bitmap) {
+        if (bitmap == null) return null;
+        bitmap = ensureSoftwareBitmap(bitmap);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-
-        bitmap.compress(Bitmap.CompressFormat.JPEG,40, os);
-
-      /* or use below if you want 32 bit images
-
-       bitmap.compress(Bitmap.CompressFormat.PNG, (0–100 compression), os);*/
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 40, os);
         byte[] imageArr = os.toByteArray();
-        return Base64.encodeToString(imageArr, Base64.URL_SAFE);
-
+        return Base64.encodeToString(imageArr, Base64.DEFAULT);
     }
+
     public static URL stringToURL(String picLink) {
         try {
-            URL url = new URL(picLink);
-            return url;
+            return new URL(picLink);
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
-    // convert url into bitmap
     public static Bitmap urlToBitmap(String url) {
         try {
             URL imageUrl = new URL(url);
@@ -65,7 +67,10 @@ public class PhotoHelper {
             InputStream inputStream = urlConnection.getInputStream();
             byte[] bytes = new byte[inputStream.available()];
             inputStream.read(bytes);
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+            return ensureSoftwareBitmap(bitmap);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -78,7 +83,10 @@ public class PhotoHelper {
         try {
             inputStream = context.getContentResolver().openInputStream(uri);
             if (inputStream != null) {
-                bitmap = BitmapFactory.decodeStream(inputStream);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                bitmap = BitmapFactory.decodeStream(inputStream, null, options);
+                bitmap = ensureSoftwareBitmap(bitmap);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -92,5 +100,45 @@ public class PhotoHelper {
             }
         }
         return bitmap;
+    }
+
+    private static Bitmap ensureSoftwareBitmap(Bitmap bitmap) {
+        if (bitmap == null) return null;
+        
+        // If the bitmap is already a software bitmap, return it as is
+        if (!bitmap.getConfig().equals(Bitmap.Config.HARDWARE)) {
+            return bitmap;
+        }
+        
+        // Convert hardware bitmap to software bitmap
+        Bitmap softwareBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        if (bitmap != softwareBitmap) {
+            bitmap.recycle();
+        }
+        return softwareBitmap;
+    }
+
+    public static String bitmapToString(Bitmap bitmap) {
+        if (bitmap == null) return null;
+        
+        bitmap = ensureSoftwareBitmap(bitmap);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+        byte[] b = baos.toByteArray();
+        return Base64.encodeToString(b, Base64.DEFAULT);
+    }
+
+    public static Bitmap stringToBitmap(String encodedString) {
+        if (encodedString == null) return null;
+        
+        try {
+            byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            return BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

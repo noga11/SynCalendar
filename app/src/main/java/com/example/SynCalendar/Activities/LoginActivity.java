@@ -150,11 +150,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Toast.makeText(this, "Error: User not found.", Toast.LENGTH_SHORT).show();
                 }
             } else if (!LOrSChecked) { // Login screen
-                if (username.isEmpty() || password.isEmpty()) {
+                String loginEmail = username; // Using username field for email during login
+                if (loginEmail.isEmpty() || password.isEmpty()) {
                     Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                model.login(username, password,
+                model.login(loginEmail, password,
                     user -> {
                         // Success callback
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

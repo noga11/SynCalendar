@@ -4,29 +4,36 @@ import android.graphics.Bitmap;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.Exclude;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class User {
     private String uName, email, id;
     private Boolean privacy;
-    private Bitmap profilePic;
-        // userID -> username
+    private String profilePicString;
+    // userID -> username
     private HashMap<String, String> pendingRequests;     // users requesting to follow this user
-    private HashMap<String, String> following;       // users this user follows
-    private HashMap<String, String> followers;       // users who follow this user
+    private ArrayList<String> following;       // users this user follows
+    private ArrayList<String> followers;       // users who follow this user
+//    private ArrayList<String> events;
     private HashMap<String, String> mutuals;
 
+    public User() {
+        // Required empty constructor for Firestore
+    }
+
     public User(String uName, String email, Bitmap profilePic, String id,
-                HashMap<String, String> pendingRequests, HashMap<String, String> following,
-                HashMap<String, String> followers, Boolean privacy) {
+                ArrayList<String> following, ArrayList<String> followers,
+//                ArrayList<String> events,
+                Boolean privacy) {
         this.uName = uName;
         this.email = email;
-        this.profilePic = profilePic;
+        this.profilePicString = PhotoHelper.bitmapToString(profilePic);
         this.id = id;
-        this.pendingRequests = (pendingRequests != null) ? pendingRequests : new HashMap<>();
-        this.following = (following != null) ? following : new HashMap<>();
-        this.followers = (followers != null) ? followers : new HashMap<>();
+        this.following = following != null ? following : new ArrayList<>();
+        this.followers = followers != null ? followers : new ArrayList<>();
+//        this.events = events != null ? events : new ArrayList<>();
         this.privacy = privacy;
     }
 
@@ -34,8 +41,8 @@ public class User {
         this.uName = firebaseUser.getDisplayName();
         this.email = firebaseUser.getEmail();
         this.pendingRequests = new HashMap<>();
-        this.following = new HashMap<>();
-        this.followers = new HashMap<>();
+        this.following = new ArrayList<>();
+        this.followers = new ArrayList<>();
     }
 
     // --- Follow Management ---
@@ -45,14 +52,14 @@ public class User {
     public void addPendingRequest(String userId, String username) { pendingRequests.put(userId, username); }
     public void removePendingRequest(String userId) { pendingRequests.remove(userId); }
 
-    public Map<String, String> getFollowing() { return following; }
-    public void setFollowing(HashMap<String, String> following) { this.following = following; }
-    public void addFollowing(String userId, String username) { following.put(userId, username); }
+    public ArrayList<String> getFollowing() { return following; }
+    public void setFollowing(ArrayList<String> following) { this.following = following; }
+    public void addFollowing(String userId, String username) { following.add(userId); }
     public void removeFollowing(String userId) { following.remove(userId); }
 
-    public Map<String, String> getFollowers() { return followers; }
-    public void setFollowers(HashMap<String, String> followers) { this.followers = followers; }
-    public void addFollower(String userId, String username) { followers.put(userId, username); }
+    public ArrayList<String> getFollowers() { return followers; }
+    public void setFollowers(ArrayList<String> followers) { this.followers = followers; }
+    public void addFollower(String userId, String username) { followers.add(userId); }
     public void removeFollower(String userId) { followers.remove(userId); }
 
     // --- Other Getters & Setters ---
@@ -69,6 +76,9 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
+    /*public ArrayList<String> getEvents() { return events; }
+    public void setEvents(ArrayList<String> events) { this.events = events; }*/
+
     public HashMap<String, String> getMutuals() { return mutuals; }
     public void setMutuals(HashMap<String, String> mutuals) { this.mutuals = mutuals;}
     public void updateMutuals() {
@@ -78,31 +88,25 @@ public class User {
             mutuals.clear();
         }
 
-        for (Map.Entry<String, String> entry : following.entrySet()) {
-            String userId = entry.getKey();
-            String username = entry.getValue();
-
-            if (followers.containsKey(userId)) {
-                mutuals.put(userId, username);
-            }
+        for (String userId : following) {
+            mutuals.put(userId, userId);
         }
     }
-
     @Exclude
     public Bitmap getProfilePic() {
-        return profilePic;
+        return null;// PhotoHelper.stringToBitmap(profilePicString);
     }
 
     public void setProfilePic(Bitmap profilePic) {
-        this.profilePic = profilePic;
+        this.profilePicString = PhotoHelper.bitmapToString(profilePic);
     }
 
-    public String getBitmapStr() {
-        return PhotoHelper.getEncodedString(profilePic);
+    public String getProfilePicString() {
+        return profilePicString;
     }
 
-    public void setBitmapStr(String bmpStr) {
-        this.profilePic = PhotoHelper.getBitmapFromEncodedString(bmpStr);
+    public void setProfilePicString(String profilePicString) {
+        this.profilePicString = profilePicString;
     }
 
     // Approves a follow request: move from pendingRequests to followers
@@ -110,7 +114,7 @@ public class User {
         if (pendingRequests.containsKey(userId)) {
             String username = pendingRequests.get(userId);
             pendingRequests.remove(userId);
-            followers.put(userId, username);
+            followers.add(userId);
         }
     }
 
