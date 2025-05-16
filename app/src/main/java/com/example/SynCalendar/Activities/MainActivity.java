@@ -24,15 +24,14 @@ import com.example.SynCalendar.R;
 import com.example.SynCalendar.Event;
 import com.google.android.material.navigation.NavigationBarView;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import androidx.recyclerview.widget.GridLayoutManager;
-import java.time.YearMonth;
 
 public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener{
     private Model model;
@@ -44,9 +43,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     private TextView tvEmptyList;
     private TextView monthYearText;
     private RecyclerView calendarRecyclerView;
-    private LocalDate selectedDate;
+    private Date selectedDate;
+    private SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,9 +68,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         setTitle("Calendar");
 
         initWidgets();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            selectedDate = LocalDate.now();
-        }
+        selectedDate = new Date();
         setMonthView();
 
         lstDailyEvents = findViewById(R.id.lstDailyEvents);
@@ -172,10 +169,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         monthYearText = findViewById(R.id.monthYearTV);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void setMonthView()
     {
-        monthYearText.setText(monthYearFromDate(selectedDate));
+        monthYearText.setText(monthYearFormat.format(selectedDate));
         ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
 
         CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
@@ -184,59 +180,48 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         calendarRecyclerView.setAdapter(calendarAdapter);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private ArrayList<String> daysInMonthArray(LocalDate date)
-    {
+    private ArrayList<String> daysInMonthArray(Date date) {
         ArrayList<String> daysInMonthArray = new ArrayList<>();
-        YearMonth yearMonth = YearMonth.from(date);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        
+        // Get the first day of the month
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        int firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        
+        // Get the number of days in the month
+        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        int daysInMonth = yearMonth.lengthOfMonth();
-
-        LocalDate firstOfMonth = selectedDate.withDayOfMonth(1);
-        int dayOfWeek = firstOfMonth.getDayOfWeek().getValue();
-
-        for(int i = 1; i <= 42; i++)
-        {
-            if(i <= dayOfWeek || i > daysInMonth + dayOfWeek)
-            {
+        for(int i = 1; i <= 42; i++) {
+            if(i < firstDayOfWeek || i > daysInMonth + firstDayOfWeek - 1) {
                 daysInMonthArray.add("");
-            }
-            else
-            {
-                daysInMonthArray.add(String.valueOf(i - dayOfWeek));
+            } else {
+                daysInMonthArray.add(String.valueOf(i - firstDayOfWeek + 1));
             }
         }
-        return  daysInMonthArray;
+        return daysInMonthArray;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private String monthYearFromDate(LocalDate date)
-    {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        return date.format(formatter);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void previousMonthAction(View view)
-    {
-        selectedDate = selectedDate.minusMonths(1);
+    public void previousMonthAction(View view) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(selectedDate);
+        calendar.add(Calendar.MONTH, -1);
+        selectedDate = calendar.getTime();
         setMonthView();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void nextMonthAction(View view)
-    {
-        selectedDate = selectedDate.plusMonths(1);
+    public void nextMonthAction(View view) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(selectedDate);
+        calendar.add(Calendar.MONTH, 1);
+        selectedDate = calendar.getTime();
         setMonthView();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onItemClick(int position, String dayText)
-    {
-        if(!dayText.equals(""))
-        {
-            String message = "Selected Date " + dayText + " " + monthYearFromDate(selectedDate);
+    public void onItemClick(int position, String dayText) {
+        if(!dayText.equals("")) {
+            String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
     }
