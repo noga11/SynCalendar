@@ -114,6 +114,22 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        if (item.getItemId() == R.id.action_followers) {
+            intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
+            intent.setClass(MainActivity.this, FollowingActivity.class);
+            activityStartLauncher.launch(intent);
+            return true;
+        } else if (item.getItemId() == R.id.action_users) {
+            intent.putExtra("USERS", "action_users");
+            intent.setClass(MainActivity.this, FollowingActivity.class);
+            activityStartLauncher.launch(intent);
+            return true;
+        } else if (item.getItemId() == R.id.action_following) {
+            intent.putExtra("FOLLOWING", "action_following");
+            intent.setClass(MainActivity.this, FollowingActivity.class);
+            activityStartLauncher.launch(intent);
+            return true;
+        }
         if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
             activityStartLauncher.launch(intent);
@@ -126,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         }
         return false;
     }
+
 
     @Override
     protected void onResume() {
