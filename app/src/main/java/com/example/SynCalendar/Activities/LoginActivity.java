@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.d("LoginActivity", "Current user email: " + currentUser.getEmail());
                 tietUsername.setText(currentUser.getuName());
                 tietEmail.setText(currentUser.getEmail());
-                tietPassword.setText("********"); // Display masked password
+                tietPassword.setText(currentUser.getPassword()); // Display masked password
 
                 // Make email and password fields read-only
                 tietEmail.setFocusable(false);
@@ -104,6 +104,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 } else {
                     rbtnPublic.setChecked(true);
                 }
+
+                tietPassword.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             }
 
             // Allow changing profile picture

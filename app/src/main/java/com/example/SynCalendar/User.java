@@ -12,6 +12,7 @@ public class User {
     private String uName, email, id;
     private Boolean privacy;
     private String profilePicString;
+    private String password;
     // userID -> username
     private HashMap<String, String> pendingRequests;     // users requesting to follow this user
     private ArrayList<String> following;       // users this user follows
@@ -23,7 +24,7 @@ public class User {
     }
 
     public User(String uName, String email, Bitmap profilePic, String id,
-                ArrayList<String> following, ArrayList<String> followers, Boolean privacy) {
+                ArrayList<String> following, ArrayList<String> followers, Boolean privacy, String password) {
         this.uName = uName;
         this.email = email;
         this.profilePicString = PhotoHelper.bitmapToString(profilePic);
@@ -31,14 +32,16 @@ public class User {
         this.following = following != null ? following : new ArrayList<>();
         this.followers = followers != null ? followers : new ArrayList<>();
         this.privacy = privacy;
+        this.password = password;
     }
 
-    public User(FirebaseUser firebaseUser) {
+    public User(FirebaseUser firebaseUser, String password) {
         this.uName = firebaseUser.getDisplayName();
         this.email = firebaseUser.getEmail();
         this.pendingRequests = new HashMap<>();
         this.following = new ArrayList<>();
         this.followers = new ArrayList<>();
+        this.password = password;
     }
 
     // --- Follow Management ---
@@ -114,6 +117,14 @@ public class User {
     // Denies a follow request: just remove from pendingRequests
     public void denyFollowRequest(String userId) {
         pendingRequests.remove(userId);
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

@@ -70,7 +70,7 @@ public class Model {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, privacy);
+                        currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, privacy, password);
                         DocumentReference userDoc = firestore.collection(USERS_COLLECTION).document(firebaseUser.getUid());
                         // Log the currentUser object before saving to Firestore
                         Log.d("Model", "Creating user with details: " + currentUser.toString());
