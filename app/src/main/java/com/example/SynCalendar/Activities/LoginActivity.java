@@ -84,7 +84,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             // Load current user data
             currentUser = model.getCurrentUser();
             if (currentUser != null) {
+                Log.d("LoginActivity", "Current user email: " + currentUser.getEmail());
                 tietUsername.setText(currentUser.getuName());
+                tietEmail.setText(currentUser.getEmail());
+                tietPassword.setText("********"); // Display masked password
+
+                // Make email and password fields read-only
+                tietEmail.setFocusable(false);
+                tietEmail.setClickable(false);
+                tietPassword.setFocusable(false);
+                tietPassword.setClickable(false);
+
                 if (currentUser.getProfilePic() != null) {
                     imgbtnPicture.setImageBitmap(currentUser.getProfilePic());
                 }

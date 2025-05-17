@@ -115,4 +115,13 @@ public class User {
     public void denyFollowRequest(String userId) {
         pendingRequests.remove(userId);
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "uName='" + uName + '\'' +
+                ", email='" + email + '\'' +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }
