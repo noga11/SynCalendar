@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import androidx.recyclerview.widget.GridLayoutManager;
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener{
     private Model model;
@@ -49,43 +50,40 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Check if user is logged in
+        setContentView(R.layout.activity_main);
+
+        // Initialize model and check if user is logged in
         model = Model.getInstance(this);
         if (model.getCurrentUser() == null) {
-            // User is not logged in, redirect to login screen
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
-            finish(); // Close MainActivity
+            finish();
             return;
         }
-        
-        // User is logged in, continue with normal initialization
-        setContentView(R.layout.activity_main);
+
+        // Initialize UI components directly in onCreate
+        calendarRecyclerView = findViewById(R.id.calendarRecyclerView);
+        monthYearText = findViewById(R.id.monthYearTV);
+        lstDailyEvents = findViewById(R.id.lstDailyEvents);
+        tvEmptyList = findViewById(R.id.tvEmptyList);
+
+        selectedDate = new Date();
+        setMonthView();
+
+        // Initialize the events list and adapter
+        events = new ArrayList<>();
+        adapter = new DailyEventsAdapter(this, events);
+        lstDailyEvents.setAdapter(adapter);
+
+        // Fetch events for the current user
+        events = model.getEventsByUserId(model.getCurrentUser().getId());
+        updateEventsForSelectedDate(selectedDate);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Calendar");
 
-        initWidgets();
-        selectedDate = new Date();
-        setMonthView();
-
-        lstDailyEvents = findViewById(R.id.lstDailyEvents);
-
-        // Initialize the events list
-        events = new ArrayList<>();
-
-        adapter = new DailyEventsAdapter(this, events);
-        lstDailyEvents.setAdapter(adapter);
-
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        tvEmptyList = findViewById(R.id.tvEmptyList);
-        if (events.isEmpty()) {
-            tvEmptyList.setText("No Items");
-            lstDailyEvents.setEmptyView(tvEmptyList);
-        }
-
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.nav_Add) {
                 Intent intent = new Intent(MainActivity.this, NewEventActivity.class);
@@ -136,20 +134,34 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     }
 
     private void updateEventsForSelectedDate(Date selectedDate) {
+        if (adapter == null || tvEmptyList == null) {
+            return; // Ensure adapter and tvEmptyList are not null
+        }
+
         List<Event> filteredEvents = new ArrayList<>();
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
+        selectedCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        selectedCalendar.set(Calendar.MINUTE, 0);
+        selectedCalendar.set(Calendar.SECOND, 0);
+        selectedCalendar.set(Calendar.MILLISECOND, 0);
 
         for (Event event : events) {
             Calendar eventCalendar = Calendar.getInstance();
             eventCalendar.setTime(event.getStart());
+            eventCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            eventCalendar.set(Calendar.MINUTE, 0);
+            eventCalendar.set(Calendar.SECOND, 0);
+            eventCalendar.set(Calendar.MILLISECOND, 0);
 
-            if (selectedCalendar.get(Calendar.YEAR) == eventCalendar.get(Calendar.YEAR) &&
-                    selectedCalendar.get(Calendar.MONTH) == eventCalendar.get(Calendar.MONTH) &&
-                    selectedCalendar.get(Calendar.DAY_OF_MONTH) == eventCalendar.get(Calendar.DAY_OF_MONTH)) {
+            Log.d("MainActivity", "Selected date: " + selectedCalendar.getTime() + ", Event date: " + eventCalendar.getTime());
+
+            if (selectedCalendar.equals(eventCalendar)) {
                 filteredEvents.add(event);
             }
         }
+
+        Log.d("MainActivity", "Filtered events count: " + filteredEvents.size());
 
         adapter.clear();
         if (!filteredEvents.isEmpty()) {
@@ -161,12 +173,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         }
 
         adapter.notifyDataSetChanged();
-    }
-
-    private void initWidgets()
-    {
-        calendarRecyclerView = findViewById(R.id.calendarRecyclerView);
-        monthYearText = findViewById(R.id.monthYearTV);
     }
 
     private void setMonthView()
@@ -221,6 +227,15 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     public void onItemClick(int position, String dayText) {
         if(!dayText.equals("")) {
+            // Create a new date object for the selected day
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(selectedDate);
+            calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayText));
+            Date clickedDate = calendar.getTime();
+            
+            // Update the events list for the selected date
+            updateEventsForSelectedDate(clickedDate);
+            
             String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
