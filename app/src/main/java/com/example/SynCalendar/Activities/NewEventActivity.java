@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -151,6 +152,28 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 }
             }
         });
+
+        // Initialize current date and time
+        Calendar calendar = Calendar.getInstance();
+        selectedYear = calendar.get(Calendar.YEAR);
+        selectedMonth = calendar.get(Calendar.MONTH);
+        selectedDay = calendar.get(Calendar.DAY_OF_MONTH);
+        selectedHour = calendar.get(Calendar.HOUR_OF_DAY);
+        selectedMinute = calendar.get(Calendar.MINUTE);
+
+        // Set start time and date to current time
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Jerusalem"));
+        String currentDate = dateFormat.format(calendar.getTime());
+        tvDate.setText(currentDate);
+
+        String currentTime = String.format("%02d:%02d", selectedHour, selectedMinute);
+        tvStartTime.setText(currentTime);
+
+        // Set end time to be one hour after start time
+        calendar.add(Calendar.HOUR_OF_DAY, 1);
+        String endTime = String.format("%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
+        tvEndTime.setText(endTime);
     }
 
     public void onClick(View view) {
@@ -252,7 +275,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             selectedMonth = calendar.get(Calendar.MONTH);
             selectedDay = calendar.get(Calendar.DAY_OF_MONTH);
 
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             String selectedDate = sdf.format(calendar.getTime());
 
             if (option == 1) {
