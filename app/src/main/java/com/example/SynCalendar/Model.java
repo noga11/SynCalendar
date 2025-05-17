@@ -349,7 +349,13 @@ public class Model {
 
     public void addGroup(String newGroup) {
         if (!groups.contains(newGroup) && !newGroup.equals("All") && !newGroup.equals("Add New Group")) {
-            groups.add(groups.size() - 1, newGroup);
+            // Ensure 'Add New Group' is present
+            if (!groups.contains("Add New Group")) {
+                groups.add("Add New Group");
+            }
+            // Add the new group before 'Add New Group'
+            int index = groups.indexOf("Add New Group");
+            groups.add(index, newGroup);
             Log.d(TAG, "Added new group: " + newGroup);
             // Notify listeners or update UI as needed
         }
