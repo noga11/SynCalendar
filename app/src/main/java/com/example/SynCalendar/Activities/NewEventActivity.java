@@ -81,8 +81,14 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
 
-        groups = new ArrayList<>();
+        groups = model.getGroups();
 
+        // Ensure 'Add New Group' option is present
+        if (!groups.contains("Add New Group")) {
+            groups.add("Add New Group");
+        }
+
+        // Setup the adapter
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
         spinnerGroup.setAdapter(spinnerAdapter);
 
@@ -102,8 +108,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
+                spinnerGroup.dismissDropDown();
             }
-            spinnerGroup.dismissDropDown(); // Hide the dropdown after selection
         });
 
         swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -305,13 +311,11 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void addNewGroup(String newGroup) {
-        // Add the new group before "Add New Group" option
-        groups.add(groups.size() - 1, newGroup);
-
-        // Notify adapter of the change
+        model.addGroup(newGroup);
+        groups = model.getGroups();
+        spinnerAdapter.clear();
+        spinnerAdapter.addAll(groups);
         spinnerAdapter.notifyDataSetChanged();
-
-        // Set the new group as the selected item
         spinnerGroup.setText(newGroup, false);
     }
 

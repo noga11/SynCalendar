@@ -24,6 +24,8 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Model {
     private static final String TAG = "Model";
@@ -38,6 +40,7 @@ public class Model {
     private Context context;
     private User currentUser;
     private ArrayList<Event> events = new ArrayList<>();
+    private ArrayList<String> groups = new ArrayList<>();
 
     public Model(Context context) {
         this.context = context;
@@ -309,14 +312,48 @@ public class Model {
     }
 
     public ArrayList<String> getGroups() {
-        ArrayList<String> topics = new ArrayList<>();
+        Set<String> uniqueGroups = new HashSet<>();
         for (Event event : events) {
-            if (event.getGroup() != null && !topics.contains(event.getGroup())) {
-                topics.add(event.getGroup());
+            if (event.getGroup() != null && !event.getGroup().isEmpty()) {
+                uniqueGroups.add(event.getGroup());
             }
         }
-        return topics;
+
+        ArrayList<String> groupsList = new ArrayList<>(uniqueGroups);
+
+        // Add special groups
+        if (!groupsList.contains("All")) {
+            groupsList.add(0, "All");
+        }
+        if (!groupsList.contains("Add New Group")) {
+            groupsList.add("Add New Group");
+        }
+
+        Log.d(TAG, "Retrieved groups: " + groupsList);
+        return groupsList;
     }
 
+    public void deleteGroup(String groupToDelete) {
+        if (groups.contains(groupToDelete) && !groupToDelete.equals("All") && !groupToDelete.equals("Add New Group")) {
+            groups.remove(groupToDelete);
+            Log.d(TAG, "Deleted group: " + groupToDelete);
+            // Remove group from events
+            for (Event event : events) {
+                if (event.getGroup().equals(groupToDelete)) {
+                    event.setTopic(null); // Or handle as needed
+                }
+            }
+            // Notify listeners or update UI as needed
+        }
+    }
+
+    public void addGroup(String newGroup) {
+        if (!groups.contains(newGroup) && !newGroup.equals("All") && !newGroup.equals("Add New Group")) {
+            groups.add(groups.size() - 1, newGroup);
+            Log.d(TAG, "Added new group: " + newGroup);
+            // Notify listeners or update UI as needed
+        }
+    }
 
 }
+

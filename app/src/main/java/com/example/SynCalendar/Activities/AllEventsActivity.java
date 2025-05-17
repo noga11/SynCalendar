@@ -90,25 +90,29 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         }
 
         groups = model.getGroups();
-        spinnerGroup = findViewById(R.id.spinnerGroup);
+
+        // Remove 'Add New Group' option
+        groups.remove("Add New Group");
+
+        // Setup the adapter
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
+        spinnerGroup = findViewById(R.id.spinnerGroup);
         spinnerGroup.setAdapter(spinnerAdapter);
 
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
             String selectedGroup = groups.get(position);
-            filterdEvents.clear();
 
-            if ("Add New Group".equals(selectedGroup)) {
-                showAddGroupDialog();
-                spinnerGroup.dismissDropDown();
+            filterdEvents.clear();
+            if ("All".equals(selectedGroup)) {
+                filterdEvents.addAll(events);
             } else {
                 for (Event event : events) {
                     if (event.getGroup().equals(selectedGroup)) {
                         filterdEvents.add(event);
                     }
                 }
-                adapter.notifyDataSetChanged();
             }
+            adapter.notifyDataSetChanged();
         });
 
         spinnerGroup.setOnLongClickListener(this);
