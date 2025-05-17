@@ -113,14 +113,14 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent = new Intent();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
-            activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
+            activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_logout) {
             intent.putExtra("LOGOUT", "action_logout");
-            activityStartLauncher.launch(new Intent(MainActivity.this, LoginActivity.class));
+            activityStartLauncher.launch(intent);
             finish();
             return true;
         }

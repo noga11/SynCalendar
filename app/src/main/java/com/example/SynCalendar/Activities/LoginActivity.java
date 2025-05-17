@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -71,13 +72,46 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         rbtnPrivate.setOnClickListener(this);
 
         if ("action_profile".equals(source)) {
-            tvScreenTitle.setText("Your Profile");
+            // User Settings screen
+            tvScreenTitle.setText("Settings");
             tvLoginSignUp.setVisibility(View.GONE);
             tvQuestion.setVisibility(View.GONE);
+            tietUsername.setVisibility(View.VISIBLE);
+            tvPublicOrPrivate.setVisibility(View.VISIBLE);
+            rbtnPublic.setVisibility(View.VISIBLE);
+            rbtnPrivate.setVisibility(View.VISIBLE);
+
+            // Load current user data
+            currentUser = model.getCurrentUser();
+            if (currentUser != null) {
+                tietUsername.setText(currentUser.getuName());
+                if (currentUser.getProfilePic() != null) {
+                    imgbtnPicture.setImageBitmap(currentUser.getProfilePic());
+                }
+                // Set the current privacy setting
+                if (currentUser.getPrivacy()) {
+                    rbtnPrivate.setChecked(true);
+                } else {
+                    rbtnPublic.setChecked(true);
+                }
+            }
+
+            // Allow changing profile picture
+            imgbtnPicture.setOnClickListener(v -> setUserPicture(v));
+        } else {
+            // Default to Login screen
+            tvScreenTitle.setText("Login");
+            tvLoginSignUp.setText("Sign up");
+            tvQuestion.setText("Don't have an account?");
+            tietUsername.setVisibility(View.GONE);
+            tvPublicOrPrivate.setVisibility(View.GONE);
+            rbtnPublic.setVisibility(View.GONE);
+            rbtnPrivate.setVisibility(View.GONE);
+            LOrSChecked = false;
         }
 
         tvLoginSignUp.setOnClickListener(v -> {
-            if (LOrSChecked) { //Login screen
+            if (LOrSChecked) { // Login screen
                 tvScreenTitle.setText("Login");
                 tvLoginSignUp.setText("Sign up");
                 tvQuestion.setText("Don't have an account?");
@@ -140,11 +174,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
 
             if ("action_profile".equals(source)) {
+                // Log current user state before update
+                Log.d("LoginActivity", "Before update: " + (model.getCurrentUser() != null ? model.getCurrentUser().getuName() : "null"));
+
                 // Ensure `currentUser` is available
                 if (model.getCurrentUser() != null) {
                     model.updateUser(username, email, privacy, userProfilePic);
                     Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
+
+                    // Log current user state after update
+                    Log.d("LoginActivity", "After update: " + (model.getCurrentUser() != null ? model.getCurrentUser().getuName() : "null"));
+
+                    finish(); // Return to the previous screen
+                    return;
                 } else {
                     Toast.makeText(this, "Error: User not found.", Toast.LENGTH_SHORT).show();
                 }

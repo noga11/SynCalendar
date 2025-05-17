@@ -142,7 +142,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent = new Intent();
+        Intent intent = new Intent(AllEventsActivity.this, LoginActivity.class);
         if (item.getItemId() == R.id.action_followers) {
             intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
             intent.setClass(AllEventsActivity.this, FollowingActivity.class);
@@ -160,13 +160,12 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             return true;
         } else if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
-            intent.setClass(AllEventsActivity.this, LoginActivity.class);
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_logout) {
             intent.putExtra("LOGOUT", "action_logout");
-            intent.setClass(AllEventsActivity.this, LoginActivity.class);
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         }
         return false;

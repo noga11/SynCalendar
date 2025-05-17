@@ -165,22 +165,6 @@ public class Model {
                     });
         }
 
-        if (email != null && !email.equals(firebaseUser.getEmail())) {
-            firebaseUser.updateEmail(email) // need to change
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            Log.d("Model", "User email updated in Firebase Authentication.");
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("Model", "Failed to update email in Firebase Authentication.", e);
-                        }
-                    });
-        }
-
         // Update currentUser (not in the firebase)
         currentUser.setPrivacy(privacy);
         currentUser.setuName(uName);
