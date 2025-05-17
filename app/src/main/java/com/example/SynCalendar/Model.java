@@ -25,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Model {
@@ -191,6 +192,23 @@ public class Model {
                 });
     }
 
+    public void searchUsers(String query, OnSuccessListener<List<User>> onSuccess, OnFailureListener onFailure) {
+        userRef.whereGreaterThanOrEqualTo("uName", query)
+                .whereLessThanOrEqualTo("uName", query + '\uf8ff')
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        List<User> users = new ArrayList<>();
+                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                            User user = document.toObject(User.class);
+                            users.add(user);
+                        }
+                        onSuccess.onSuccess(users);
+                    }
+                })
+                .addOnFailureListener(onFailure);
+    }
 
     // -------------------------------------- Event Functions --------------------------------------
 

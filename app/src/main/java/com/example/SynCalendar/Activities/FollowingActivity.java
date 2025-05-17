@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,10 +22,13 @@ import com.example.SynCalendar.Adapters.UsersAdapter;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FollowingActivity extends AppCompatActivity {
 
@@ -36,6 +40,7 @@ public class FollowingActivity extends AppCompatActivity {
     private UsersAdapter usersAdapter;
     private RequestAdapter requestAdapter;
     private List<User> allUsers = new ArrayList<>();
+    List<User> followRequests = new ArrayList<>();
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,6 +57,15 @@ public class FollowingActivity extends AppCompatActivity {
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
 
         editTextSearch = findViewById(R.id.editTextSearch);
+
+        // Simulate fetching users
+        fetchAllUsers();
+
+        usersAdapter = new UsersAdapter(this, new ArrayList<>(allUsers));
+        lstUsers.setAdapter(usersAdapter);
+        requestAdapter = new RequestAdapter(this, followRequests);
+        lstFollowRequest.setAdapter(requestAdapter);
+
         editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -65,47 +79,10 @@ public class FollowingActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        List<User> users = new ArrayList<>();
-        List<User> followRequests = new ArrayList<>();
-
         NavigationBarView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        if ("action_Following".equals(source)) {
-            setTitle("Following");
-            if (users.isEmpty()) {
-                tvEmptyList.setText("You dont follow anyone");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
-
-        } else if ("action_FindUser".equals(source)) {
-            setTitle("Search Users");
-            if (users.isEmpty()) {
-                tvEmptyList.setText("There aren't any other users");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
-
-        } else if ("action_Followers".equals(source)) {
-            setTitle("Followers");
-            if (users.isEmpty()) {
-                tvEmptyList.setText("You dont have any Following requests");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
-            if(model.getCurrentUser().getRequests().isEmpty()){
-                tvFollowRequest.setVisibility(View.GONE);
-                lstFollowRequest.setVisibility(View.GONE);
-            }else{
-                tvFollowRequest.setVisibility(View.VISIBLE);
-                lstFollowRequest.setVisibility(View.VISIBLE);
-            }
-        }
-
-        usersAdapter = new UsersAdapter(this, users);
-        requestAdapter = new RequestAdapter(this, followRequests);
-        lstUsers.setAdapter(usersAdapter);
-        lstFollowRequest.setAdapter(requestAdapter);
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -166,16 +143,97 @@ public class FollowingActivity extends AppCompatActivity {
     }
 
     private void filterEvents(String query) {
-        List<User> filteredUsers = new ArrayList<>();
-        for (User user : allUsers) {
-            if (user.getuName().toLowerCase().contains(query.toLowerCase()) ||
-                    user.getEmail().toLowerCase().contains(query.toLowerCase())) {
-                filteredUsers.add(user);
+        if (query.isEmpty()) {
+            // If the query is empty, reset to the original list
+            usersAdapter.clear();
+            usersAdapter.addAll(allUsers);
+            usersAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        model.searchUsers(query, new OnSuccessListener<List<User>>() {
+            @Override
+            public void onSuccess(List<User> users) {
+                if (users.isEmpty()) {
+                    Log.d("FollowingActivity", "No users found for query: " + query);
+                }
+                usersAdapter.clear();
+                usersAdapter.addAll(users);
+                usersAdapter.notifyDataSetChanged();
+            }
+        }, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Handle the error, e.g., show a toast or log the error
+                Log.e("FollowingActivity", "Error fetching users: ", e);
+            }
+        });
+    }
+
+    // Placeholder method to simulate fetching users
+    private void fetchAllUsers() {
+        if ("action_Following".equals(source)) {
+            setTitle("Following");
+            Map<String, String> followingMap = model.getCurrentUser().getFollowing();
+            allUsers.clear();
+            for (Map.Entry<String, String> entry : followingMap.entrySet()) {
+                model.getUserById(entry.getKey(), new OnSuccessListener<User>() {
+                    @Override
+                    public void onSuccess(User user) {
+                        if (user != null) {
+                            allUsers.add(user);
+                            usersAdapter.notifyDataSetChanged(); // Update adapter after adding each user
+                        }
+                    }
+                }, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FollowingActivity", "Error fetching user: ", e);
+                    }
+                });
+            }
+            if (allUsers.isEmpty()) {
+                tvEmptyList.setText("You don't follow anyone");
+                lstUsers.setEmptyView(tvEmptyList);
+            }
+        } else if ("action_FindUser".equals(source)) {
+            setTitle("Search Users");
+            if (allUsers.isEmpty()) {
+                tvEmptyList.setText("There aren't any other users");
+                lstUsers.setEmptyView(tvEmptyList);
+            }
+        } else if ("action_Followers".equals(source)) {
+            setTitle("Followers");
+            Map<String, String> followersMap = model.getCurrentUser().getFollowers();
+            allUsers.clear();
+            for (Map.Entry<String, String> entry : followersMap.entrySet()) {
+                model.getUserById(entry.getKey(), new OnSuccessListener<User>() {
+                    @Override
+                    public void onSuccess(User user) {
+                        if (user != null) {
+                            allUsers.add(user);
+                            usersAdapter.notifyDataSetChanged(); // Update adapter after adding each user
+                        }
+                    }
+                }, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("FollowingActivity", "Error fetching user: ", e);
+                    }
+                });
+            }
+            if (allUsers.isEmpty()) {
+                tvEmptyList.setText("You don't have any Following requests");
+                lstUsers.setEmptyView(tvEmptyList);
+            }
+            if (model.getCurrentUser().getRequests().isEmpty()) {
+                tvFollowRequest.setVisibility(View.GONE);
+                lstFollowRequest.setVisibility(View.GONE);
+            } else {
+                tvFollowRequest.setVisibility(View.VISIBLE);
+                lstFollowRequest.setVisibility(View.VISIBLE);
             }
         }
-        usersAdapter.clear();
-        usersAdapter.addAll(filteredUsers);
-        usersAdapter.notifyDataSetChanged();
     }
 
 }
