@@ -43,10 +43,10 @@ public class UsersAdapter extends ArrayAdapter<User> {
         Button btnFollow = convertView.findViewById(R.id.btnAction);
 
         // Check if currentUser is following the otherUser or has sent a request
-        ArrayList<String> followers = otherUser.getFollowers();
+        Map<String, String> followers = otherUser.getFollowers();
         Map<String, String> requests = otherUser.getRequests();
 
-        boolean isFollowing = followers.contains(currentUser.getId());
+        boolean isFollowing = followers.containsKey(currentUser.getId());
         boolean hasSentRequest = requests.containsKey(currentUser.getId());
 
         // Set button text based on current status
@@ -68,7 +68,7 @@ public class UsersAdapter extends ArrayAdapter<User> {
                 btnFollow.setText("Follow");
             } else {
                 if (!otherUser.getPrivacy()) {
-                    followers.add(currentUser.getId());
+                    followers.put(currentUser.getId(), currentUser.getuName());
                     btnFollow.setText("Following");
                 } else {
                     requests.put(currentUser.getId(), currentUser.getuName());

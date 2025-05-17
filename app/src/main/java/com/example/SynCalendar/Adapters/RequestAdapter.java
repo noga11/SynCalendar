@@ -43,14 +43,17 @@ public class RequestAdapter extends ArrayAdapter<User> {
         Button btnAccept = convertView.findViewById(R.id.btnAction);
         btnAccept.setText("Accept Request");
 
+        Map<String, String> followers = currentUser.getFollowers();
+        Map<String, String> requests = currentUser.getRequests();
+
+        if (requests.containsKey(requester.getId())) {
+            String username = requests.get(requester.getId());
+            currentUser.approveFollowRequest(requester.getId());
+            followers.put(requester.getId(), username);
+            btnAccept.setText("Following");
+        }
+
         btnAccept.setOnClickListener(v -> {
-            // Check if the user is in the pendingRequests HashMap
-            Map<String, String> requests = currentUser.getRequests();
-            if (requests.containsKey(requester.getId())) {
-                String username = requests.get(requester.getId());
-                currentUser.approveFollowRequest(requester.getId());
-                btnAccept.setText("Following");
-            }
             notifyDataSetChanged();
         });
 

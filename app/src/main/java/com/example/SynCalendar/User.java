@@ -15,8 +15,8 @@ public class User {
     private String password;
     // userID -> username
     private HashMap<String, String> pendingRequests;     // users requesting to follow this user
-    private ArrayList<String> following;       // users this user follows
-    private ArrayList<String> followers;       // users who follow this user
+    private HashMap<String, String> following = new HashMap<>();
+    private HashMap<String, String> followers = new HashMap<>();
     private HashMap<String, String> mutuals;
 
     public User() {
@@ -24,13 +24,13 @@ public class User {
     }
 
     public User(String uName, String email, Bitmap profilePic, String id,
-                ArrayList<String> following, ArrayList<String> followers, Boolean privacy, String password) {
+                HashMap<String, String> following, HashMap<String, String> followers, Boolean privacy, String password) {
         this.uName = uName;
         this.email = email;
         this.profilePicString = PhotoHelper.bitmapToString(profilePic);
         this.id = id;
-        this.following = following != null ? following : new ArrayList<>();
-        this.followers = followers != null ? followers : new ArrayList<>();
+        this.following = following != null ? following : new HashMap<>();
+        this.followers = followers != null ? followers : new HashMap<>();
         this.privacy = privacy;
         this.password = password;
     }
@@ -39,8 +39,8 @@ public class User {
         this.uName = firebaseUser.getDisplayName();
         this.email = firebaseUser.getEmail();
         this.pendingRequests = new HashMap<>();
-        this.following = new ArrayList<>();
-        this.followers = new ArrayList<>();
+        this.following = new HashMap<>();
+        this.followers = new HashMap<>();
         this.password = password;
     }
 
@@ -51,14 +51,14 @@ public class User {
     public void addPendingRequest(String userId, String username) { pendingRequests.put(userId, username); }
     public void removePendingRequest(String userId) { pendingRequests.remove(userId); }
 
-    public ArrayList<String> getFollowing() { return following; }
-    public void setFollowing(ArrayList<String> following) { this.following = following; }
-    public void addFollowing(String userId, String username) { following.add(userId); }
+    public HashMap<String, String> getFollowing() { return following; }
+    public void setFollowing(HashMap<String, String> following) { this.following = following; }
+    public void addFollowing(String userId, String username) { following.put(userId, username); }
     public void removeFollowing(String userId) { following.remove(userId); }
 
-    public ArrayList<String> getFollowers() { return followers; }
-    public void setFollowers(ArrayList<String> followers) { this.followers = followers; }
-    public void addFollower(String userId, String username) { followers.add(userId); }
+    public HashMap<String, String> getFollowers() { return followers; }
+    public void setFollowers(HashMap<String, String> followers) { this.followers = followers; }
+    public void addFollower(String userId, String username) { followers.put(userId, username); }
     public void removeFollower(String userId) { followers.remove(userId); }
 
     // --- Other Getters & Setters ---
@@ -84,7 +84,7 @@ public class User {
             mutuals.clear();
         }
 
-        for (String userId : following) {
+        for (String userId : following.keySet()) {
             mutuals.put(userId, userId);
         }
     }
@@ -110,7 +110,7 @@ public class User {
         if (pendingRequests.containsKey(userId)) {
             String username = pendingRequests.get(userId);
             pendingRequests.remove(userId);
-            followers.add(userId);
+            followers.put(userId, username);
         }
     }
 

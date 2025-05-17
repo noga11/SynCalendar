@@ -17,17 +17,15 @@
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
 
-    <com.google.android.material.search.SearchBar
-        android:id="@+id/searchBar"
+    <EditText
+        android:id="@+id/editTextSearch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search" />
-
-    <com.google.android.material.search.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_anchor="@id/searchBar" />
+        android:layout_margin="5dp"
+        android:textStyle="bold"
+        android:textSize="25sp"
+        android:hint="Search User"
+        android:inputType="text" />
 
     <TextView
         android:id="@+id/tvFollowRequest"

@@ -8,6 +8,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -21,8 +22,6 @@ import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.android.material.search.SearchBar;
-import com.google.android.material.search.SearchView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +32,10 @@ public class FollowingActivity extends AppCompatActivity {
     private ListView lstUsers, lstFollowRequest;
     private String source;
     private TextView tvEmptyList, tvFollowRequest;
-    private SearchBar searchBar;
-    private SearchView searchView;
+    private EditText editTextSearch;
     private UsersAdapter usersAdapter;
     private RequestAdapter requestAdapter;
-    private List<User> allUsers;
+    private List<User> allUsers = new ArrayList<>();
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,12 +50,9 @@ public class FollowingActivity extends AppCompatActivity {
         tvFollowRequest = findViewById(R.id.tvFollowRequest);
         lstUsers = findViewById(R.id.lstUsers);
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
-        searchBar = findViewById(R.id.searchBar);
-        searchView = findViewById(R.id.searchView);
 
-        searchBar.setOnClickListener(v -> searchView.show());
-
-        searchView.getEditText().addTextChangedListener(new TextWatcher() {
+        editTextSearch = findViewById(R.id.editTextSearch);
+        editTextSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
