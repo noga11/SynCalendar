@@ -2,6 +2,7 @@ package com.example.SynCalendar.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,12 +27,14 @@ import com.example.SynCalendar.Adapters.AllEventsAdapter;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.Event;
-import com.example.SynCalendar.SwipeToDeleteCallback;
 import com.example.SynCalendar.User;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 public class AllEventsActivity extends AppCompatActivity implements View.OnLongClickListener, View.OnClickListener {
 
@@ -95,8 +98,47 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             }
         });
 
-        // Attach swipe-to-delete functionality
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(adapter, events, this));
+        // Attach swipe-to-delete functionality directly in the activity
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false; // Drag & drop not needed
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                Event deletedEvent = filterdEvents.get(position);
+
+                // Remove from RecyclerView
+                events.remove(deletedEvent);
+                filterdEvents.remove(position);
+                adapter.notifyItemRemoved(position);
+
+                // Show Snackbar with Undo option
+                Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Event deleted", Snackbar.LENGTH_LONG);
+                snackbar.setAction("UNDO", v -> {
+                    events.add(deletedEvent);
+                    filterdEvents.add(position, deletedEvent);
+                    adapter.notifyItemInserted(position);
+                });
+
+                // Delete from database only if NOT undone
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                            model.deleteEvent(deletedEvent); // Use the deleteEvent method
+                        }
+                    }
+                });
+
+                snackbar.setActionTextColor(Color.YELLOW);
+                snackbar.show();
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(lstAllEvents);
 
         groups = model.getGroups();

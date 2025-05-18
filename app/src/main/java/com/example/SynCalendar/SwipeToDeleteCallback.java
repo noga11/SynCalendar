@@ -14,12 +14,14 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
     private final AllEventsAdapter adapter;
     private final List<Event> events;
     private final Context context;
+    private final Model model;
 
-    public SwipeToDeleteCallback(AllEventsAdapter adapter, List<Event> events, Context context) {
+    public SwipeToDeleteCallback(AllEventsAdapter adapter, List<Event> events, Context context, Model model) {
         super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         this.adapter = adapter;
         this.events = events;
         this.context = context;
+        this.model = model;
     }
 
     @Override
@@ -50,7 +52,7 @@ public class SwipeToDeleteCallback extends ItemTouchHelper.SimpleCallback {
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
-                    // model.deleteEvent(deletedEvent.getId()); // Uncomment when Model supports delete
+                    model.deleteEvent(deletedEvent); // Use the deleteEvent method
                 }
             }
         });

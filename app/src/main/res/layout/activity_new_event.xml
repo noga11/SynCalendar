@@ -156,14 +156,6 @@
             android:inputType="time" />
     </LinearLayout>
 
-    <Switch
-        android:id="@+id/swchImportant"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:textSize="20sp"
-        android:text="Important" />
-
         <Button
             android:id="@+id/btbAddEvent"
             android:layout_width="match_parent"
