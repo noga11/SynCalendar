@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import android.content.SharedPreferences;
+
 public class Model {
     private static final String TAG = "Model";
     private static final String EVENTS_COLLECTION = "events";
@@ -43,12 +45,18 @@ public class Model {
     private ArrayList<Event> events = new ArrayList<>();
     private ArrayList<String> groups = new ArrayList<>();
 
+    private static final String PREFS_NAME = "SynCalendarPrefs";
+    private static final String KEY_USER_ID = "userId";
+    private SharedPreferences sharedPreferences;
+
     public Model(Context context) {
         this.context = context;
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         eventRef = firestore.collection(EVENTS_COLLECTION);
         userRef = firestore.collection(USERS_COLLECTION);
+        sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        checkUserLoginState();
     }
 
     public static Model getInstance(Context context) {
@@ -95,7 +103,12 @@ public class Model {
                     @Override
                     public void onSuccess(AuthResult authResult) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        getUserFromFirebase(firebaseUser.getUid(), onSuccess, onFailure);
+                        getUserFromFirebase(firebaseUser.getUid(), user -> {
+                            currentUser = user;
+                            sharedPreferences.edit().putString(KEY_USER_ID, firebaseUser.getUid()).apply();
+                            Log.d(TAG, "User logged in and saved to shared preferences: " + currentUser.getuName());
+                            onSuccess.onSuccess(currentUser);
+                        }, onFailure);
                     }
                 })
                 .addOnFailureListener(onFailure);
@@ -141,6 +154,7 @@ public class Model {
         mAuth.signOut();
         Log.d("Model", "User logged out");
         currentUser = null;
+        sharedPreferences.edit().remove(KEY_USER_ID).apply();
         //      raiseUserUpdate();
     }
 
@@ -351,6 +365,16 @@ public class Model {
             groups.add(index, newGroup);
             Log.d(TAG, "Added new group: " + newGroup);
             // Notify listeners or update UI as needed
+        }
+    }
+
+    private void checkUserLoginState() {
+        String userId = sharedPreferences.getString(KEY_USER_ID, null);
+        if (userId != null) {
+            getUserFromFirebase(userId, user -> {
+                currentUser = user;
+                Log.d(TAG, "User logged in from shared preferences: " + currentUser.getuName());
+            }, e -> Log.e(TAG, "Failed to retrieve user from shared preferences", e));
         }
     }
 
