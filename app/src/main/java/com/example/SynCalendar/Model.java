@@ -272,31 +272,20 @@ public class Model {
                 });
     }
 
-    public ArrayList<Event> getEventsByUserId(String userId) {
-        ArrayList<Event> userEvents = new ArrayList<>();
+    public void getEventsByUserId(String userId, OnSuccessListener<List<Event>> onSuccess, OnFailureListener onFailure) {
         firestore.collection(EVENTS_COLLECTION)
-                .whereArrayContains("users", userId)
+                .whereArrayContains("usersId", userId)
                 .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                            Event event = document.toObject(Event.class);
-                            event.setId(document.getId());
-                            userEvents.add(event);
-                        }
-                        // Handle success, e.g., notify the UI
-                        Log.d(TAG, "Events successfully retrieved.");
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Event> userEvents = new ArrayList<>();
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        event.setId(document.getId());
+                        userEvents.add(event);
                     }
+                    onSuccess.onSuccess(userEvents);
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Handle failure, e.g., notify the UI
-                        Log.e(TAG, "Error retrieving events", e);
-                    }
-                });
-        return userEvents;
+                .addOnFailureListener(onFailure);
     }
 
     public void raiseEventDataChange() {

@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.SynCalendar.Event;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.Notification.NotificationMsg;
 import com.example.SynCalendar.R;
@@ -37,6 +38,7 @@ import com.google.android.material.timepicker.TimeFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -200,6 +202,57 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            // --- ADDED: Create and save the event ---
+            ArrayList<String> usersId = new ArrayList<>();
+            usersId.add(currentUser.getId());
+
+            String address = "";
+            EditText etAddress = findViewById(R.id.etAdress);
+            if (etAddress != null) address = etAddress.getText().toString().trim();
+
+            String group = spinnerGroup.getText().toString().trim();
+            Date startDate = new Date();
+            try {
+                String dateStr = tvDate.getText().toString().trim() + " " + tvStartTime.getText().toString().trim();
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                startDate = sdf.parse(dateStr);
+            } catch (Exception e) { /* fallback to now */ }
+
+            int duration = 60; // default 1 hour
+            try {
+                String startStr = tvStartTime.getText().toString().trim();
+                String endStr = tvEndTime.getText().toString().trim();
+                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                Date start = sdf.parse(startStr);
+                Date end = sdf.parse(endStr);
+                if (start != null && end != null) {
+                    long diff = end.getTime() - start.getTime();
+                    duration = (int) (diff / (60 * 1000));
+                    if (duration <= 0) duration = 60;
+                }
+            } catch (Exception e) { /* fallback to 60 */ }
+
+            Event event = new Event(
+                eventTitle,
+                etDetails.getText().toString().trim(),
+                address,
+                null, // id, will be set by Firestore
+                group,
+                usersId,
+                null, // repeat, set as needed
+                null, // status, set as needed
+                startDate,
+                null, // remTime, set as needed
+                swchReminder.isChecked(),
+                false, // important, set as needed
+                0, // colour, set as needed
+                0, // notificationId, set as needed
+                duration
+            );
+            model.createEvent(event);
+            // --- END ADDED ---
+
             Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
             finish(); // Return to previous screen
         }

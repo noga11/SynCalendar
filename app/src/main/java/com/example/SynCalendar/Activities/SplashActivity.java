@@ -7,11 +7,13 @@ import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 
 
 public class SplashActivity extends AppCompatActivity {
     private static final int SPLASH_DELAY = 2000; // 2 seconds
+    private Model model;
 
 
     @Override
@@ -19,9 +21,17 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        model = Model.getInstance(this);
 
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+
+            if (model.getCurrentUser() == null) {
+                Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
+            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
         }, SPLASH_DELAY);

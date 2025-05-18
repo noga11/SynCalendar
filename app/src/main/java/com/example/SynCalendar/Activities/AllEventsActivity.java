@@ -65,29 +65,39 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         );
 
         currentUser = model.getCurrentUser();
-        events = model.getEventsByUserId(currentUser.getId());
-        filterdEvents= model.getEventsByUserId(currentUser.getId());
-
-        // Setup RecyclerView
-        lstAllEvents = findViewById(R.id.lstAllEvents);
+        events = new ArrayList<>();
+        filterdEvents = new ArrayList<>();
         lstAllEvents.setLayoutManager(new LinearLayoutManager(this));
         lstAllEvents.setOnClickListener(this);
-
-        List<Event> events = model.getEventsByUserId(model.getCurrentUser().getId());
         AllEventsAdapter adapter = new AllEventsAdapter(this, filterdEvents);
         lstAllEvents.setAdapter(adapter);
+
+        model.getEventsByUserId(currentUser.getId(), new com.google.android.gms.tasks.OnSuccessListener<java.util.List<Event>>() {
+            @Override
+            public void onSuccess(java.util.List<Event> userEvents) {
+                events.clear();
+                events.addAll(userEvents);
+                filterdEvents.clear();
+                filterdEvents.addAll(userEvents);
+                adapter.notifyDataSetChanged();
+                if (userEvents.isEmpty()) {
+                    tvEmptyList.setVisibility(View.VISIBLE);
+                    lstAllEvents.setVisibility(View.GONE);
+                } else {
+                    tvEmptyList.setVisibility(View.GONE);
+                    lstAllEvents.setVisibility(View.VISIBLE);
+                }
+            }
+        }, new com.google.android.gms.tasks.OnFailureListener() {
+            @Override
+            public void onFailure(@androidx.annotation.NonNull Exception e) {
+                Toast.makeText(AllEventsActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Attach swipe-to-delete functionality
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(adapter, events, this));
         itemTouchHelper.attachToRecyclerView(lstAllEvents);
-
-        if (events.isEmpty()) {
-            tvEmptyList.setVisibility(View.VISIBLE);
-            lstAllEvents.setVisibility(View.GONE);
-        } else {
-            tvEmptyList.setVisibility(View.GONE);
-            lstAllEvents.setVisibility(View.VISIBLE);
-        }
 
         groups = model.getGroups();
 

@@ -54,12 +54,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 
         // Initialize model and check if user is logged in
         model = Model.getInstance(this);
-        if (model.getCurrentUser() == null) {
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
 
         // Initialize UI components directly in onCreate
         calendarRecyclerView = findViewById(R.id.calendarRecyclerView);
@@ -76,8 +70,19 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         lstDailyEvents.setAdapter(adapter);
 
         // Fetch events for the current user
-        events = model.getEventsByUserId(model.getCurrentUser().getId());
-        updateEventsForSelectedDate(selectedDate);
+        model.getEventsByUserId(model.getCurrentUser().getId(), new com.google.android.gms.tasks.OnSuccessListener<java.util.List<Event>>() {
+            @Override
+            public void onSuccess(java.util.List<Event> userEvents) {
+                events.clear();
+                events.addAll(userEvents);
+                updateEventsForSelectedDate(selectedDate);
+            }
+        }, new com.google.android.gms.tasks.OnFailureListener() {
+            @Override
+            public void onFailure(@androidx.annotation.NonNull Exception e) {
+                Toast.makeText(MainActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
