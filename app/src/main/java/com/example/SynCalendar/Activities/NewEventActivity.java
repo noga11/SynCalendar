@@ -177,6 +177,10 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         String endTime = String.format("%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
         tvEndTime.setText(endTime);
 
+        // Set the default reminder date and time to current date and time
+        tvReminderDate.setText(currentDate);
+        tvReminderTime.setText(currentTime);
+
         // Set the default selected group to 'All' in the spinnerGroup
         spinnerGroup.setText("All", false);
     }
