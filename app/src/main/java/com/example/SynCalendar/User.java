@@ -14,7 +14,7 @@ public class User {
     private String profilePicString;
     private String password;
     // userID -> username
-    private HashMap<String, String> pendingRequests;     // users requesting to follow this user
+    private HashMap<String, String> pendingRequests = new HashMap<>();     // users requesting to follow this user
     private HashMap<String, String> following = new HashMap<>();
     private HashMap<String, String> followers = new HashMap<>();
     private HashMap<String, String> mutuals;
@@ -46,18 +46,33 @@ public class User {
 
     // --- Follow Management ---
 
-    public Map<String, String> getRequests() { return pendingRequests; }
-    public void setPendingRequests(HashMap<String, String> pendingRequests) { this.pendingRequests = pendingRequests; }
+    public Map<String, String> getRequests() {
+        if (pendingRequests == null) pendingRequests = new HashMap<>();
+        return pendingRequests;
+    }
+    public void setPendingRequests(HashMap<String, String> pendingRequests) {
+        this.pendingRequests = pendingRequests != null ? pendingRequests : new HashMap<>();
+    }
     public void addPendingRequest(String userId, String username) { pendingRequests.put(userId, username); }
     public void removePendingRequest(String userId) { pendingRequests.remove(userId); }
 
-    public HashMap<String, String> getFollowing() { return following; }
-    public void setFollowing(HashMap<String, String> following) { this.following = following; }
+    public HashMap<String, String> getFollowing() {
+        if (following == null) following = new HashMap<>();
+        return following;
+    }
+    public void setFollowing(HashMap<String, String> following) {
+        this.following = following != null ? following : new HashMap<>();
+    }
     public void addFollowing(String userId, String username) { following.put(userId, username); }
     public void removeFollowing(String userId) { following.remove(userId); }
 
-    public HashMap<String, String> getFollowers() { return followers; }
-    public void setFollowers(HashMap<String, String> followers) { this.followers = followers; }
+    public HashMap<String, String> getFollowers() {
+        if (followers == null) followers = new HashMap<>();
+        return followers;
+    }
+    public void setFollowers(HashMap<String, String> followers) {
+        this.followers = followers != null ? followers : new HashMap<>();
+    }
     public void addFollower(String userId, String username) { followers.put(userId, username); }
     public void removeFollower(String userId) { followers.remove(userId); }
 

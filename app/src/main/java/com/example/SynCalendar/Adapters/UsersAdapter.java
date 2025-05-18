@@ -52,12 +52,11 @@ public class UsersAdapter extends ArrayAdapter<User> {
             Log.e("UsersAdapter", "Button btnAction is null at position: " + position);
         } else {
             // Check if currentUser is following the otherUser or has sent a request
-            Map<String, String> followers = followers = new HashMap<>();
-            followers = otherUser.getFollowers();
+            Map<String, String> followers = otherUser.getFollowers();
+            if (followers == null) followers = new HashMap<>();
 
-
-            Map<String, String> requests = requests = new HashMap<>();
-            requests = otherUser.getRequests();
+            Map<String, String> requests = otherUser.getRequests();
+            if (requests == null) requests = new HashMap<>();
 
             boolean isFollowing = followers.containsKey(currentUser.getId());
             boolean hasSentRequest = requests.containsKey(currentUser.getId());
