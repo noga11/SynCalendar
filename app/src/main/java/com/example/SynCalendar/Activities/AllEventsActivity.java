@@ -151,6 +151,9 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         spinnerGroup = findViewById(R.id.spinnerGroup);
         spinnerGroup.setAdapter(spinnerAdapter);
 
+        // Set the default selected group to 'All' in the spinnerGroup
+        spinnerGroup.setText("All", false);
+
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
             String selectedGroup = groups.get(position);
 
