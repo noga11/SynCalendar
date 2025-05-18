@@ -176,6 +176,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         calendar.add(Calendar.HOUR_OF_DAY, 1);
         String endTime = String.format("%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
         tvEndTime.setText(endTime);
+
+        // Set the default selected group to 'All' in the spinnerGroup
+        spinnerGroup.setText("All", false);
     }
 
     public void onClick(View view) {
