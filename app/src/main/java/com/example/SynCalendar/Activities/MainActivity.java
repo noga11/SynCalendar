@@ -33,6 +33,8 @@ import java.util.Locale;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import android.util.Log;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener{
     private Model model;
@@ -62,12 +64,13 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         tvEmptyList = findViewById(R.id.tvEmptyList);
 
         selectedDate = new Date();
-        setMonthView();
 
         // Initialize the events list and adapter
         events = new ArrayList<>();
         adapter = new DailyEventsAdapter(this, events);
         lstDailyEvents.setAdapter(adapter);
+
+        setMonthView();
 
         // Fetch events for the current user
         model.getEventsByUserId(model.getCurrentUser().getId(), new com.google.android.gms.tasks.OnSuccessListener<java.util.List<Event>>() {
@@ -76,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                 events.clear();
                 events.addAll(userEvents);
                 updateEventsForSelectedDate(selectedDate);
+                setMonthView();
             }
         }, new com.google.android.gms.tasks.OnFailureListener() {
             @Override
@@ -197,12 +201,24 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         adapter.notifyDataSetChanged();
     }
 
-    private void setMonthView()
-    {
+    private void setMonthView() {
         monthYearText.setText(monthYearFormat.format(selectedDate));
         ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
 
-        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
+        // Create a set of event dates
+        Set<String> eventDates = new HashSet<>();
+        SimpleDateFormat dayFormat = new SimpleDateFormat("d", Locale.getDefault()); // Ensure single-digit day format
+        for (Event event : events) {
+            Calendar eventCalendar = Calendar.getInstance();
+            eventCalendar.setTime(event.getStart());
+            String day = dayFormat.format(eventCalendar.getTime());
+            eventDates.add(day);
+        }
+
+        // Add logging to verify eventDates
+        Log.d("MainActivity", "Event Dates: " + eventDates);
+
+        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, eventDates, this);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 7);
         calendarRecyclerView.setLayoutManager(layoutManager);
         calendarRecyclerView.setAdapter(calendarAdapter);

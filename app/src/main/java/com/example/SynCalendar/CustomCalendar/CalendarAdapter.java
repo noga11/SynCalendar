@@ -10,15 +10,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.SynCalendar.R;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
 {
     private final ArrayList<String> daysOfMonth;
+    private final Set<String> eventDates;
     private final OnItemListener onItemListener;
 
-    public CalendarAdapter(ArrayList<String> daysOfMonth, OnItemListener onItemListener)
+    public CalendarAdapter(ArrayList<String> daysOfMonth, Set<String> eventDates, OnItemListener onItemListener)
     {
         this.daysOfMonth = daysOfMonth;
+        this.eventDates = eventDates;
         this.onItemListener = onItemListener;
     }
 
@@ -37,7 +40,14 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
     @Override
     public void onBindViewHolder(@NonNull CalendarViewHolder holder, int position)
     {
-        holder.dayOfMonth.setText(daysOfMonth.get(position));
+        String dayText = daysOfMonth.get(position);
+        holder.dayOfMonth.setText(dayText);
+        
+        if (eventDates.contains(dayText)) {
+            holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+        } else {
+            holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
+        }
     }
 
     @Override
