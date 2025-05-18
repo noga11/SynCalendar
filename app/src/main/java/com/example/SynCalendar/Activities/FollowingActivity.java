@@ -226,12 +226,31 @@ public class FollowingActivity extends AppCompatActivity {
                 tvEmptyList.setText("You don't have any Following requests");
                 lstUsers.setEmptyView(tvEmptyList);
             }
-            if (model.getCurrentUser().getRequests().isEmpty()) {
+            // --- Fill followRequests with pending requests ---
+            followRequests.clear();
+            Map<String, String> pendingRequests = model.getCurrentUser().getRequests();
+            if (pendingRequests.isEmpty()) {
                 tvFollowRequest.setVisibility(View.GONE);
                 lstFollowRequest.setVisibility(View.GONE);
             } else {
                 tvFollowRequest.setVisibility(View.VISIBLE);
                 lstFollowRequest.setVisibility(View.VISIBLE);
+                for (String requestId : pendingRequests.keySet()) {
+                    model.getUserById(requestId, new OnSuccessListener<User>() {
+                        @Override
+                        public void onSuccess(User user) {
+                            if (user != null) {
+                                followRequests.add(user);
+                                requestAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    }, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("FollowingActivity", "Error fetching request user: ", e);
+                        }
+                    });
+                }
             }
         }
     }
