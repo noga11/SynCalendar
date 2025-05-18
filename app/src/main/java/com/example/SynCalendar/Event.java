@@ -15,6 +15,7 @@ public class Event {
     private int colour, notificationId, duration;
 
     public Event(){}
+
     public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Repeat repeat, Status status, Date start, Date remTime, boolean reminder, boolean important, int colour, int notificationId, int duration) {
         this.title = title;
         this.details = details;

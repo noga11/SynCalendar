@@ -29,7 +29,7 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.View
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_daily_event, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_all_event, parent, false);
         return new ViewHolder(view);
     }
 
