@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener{
     private Model model;
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             public void onSuccess(java.util.List<Event> userEvents) {
                 events.clear();
                 events.addAll(userEvents);
+                sortEventsByStartTime(events);  // Sort the events
                 updateEventsForSelectedDate(selectedDate);
                 setMonthView();
             }
@@ -277,5 +279,14 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void sortEventsByStartTime(List<Event> eventList) {
+        Collections.sort(eventList, (event1, event2) -> {
+            if (event1.getStart() == null && event2.getStart() == null) return 0;
+            if (event1.getStart() == null) return 1;
+            if (event2.getStart() == null) return -1;
+            return event1.getStart().compareTo(event2.getStart());
+        });
     }
 }

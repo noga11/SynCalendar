@@ -32,6 +32,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -80,8 +81,9 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             public void onSuccess(java.util.List<Event> userEvents) {
                 events.clear();
                 events.addAll(userEvents);
+                sortEventsByStartTime(events);  // Sort the events
                 filterdEvents.clear();
-                filterdEvents.addAll(userEvents);
+                filterdEvents.addAll(events);
                 adapter.notifyDataSetChanged();
                 if (userEvents.isEmpty()) {
                     tvEmptyList.setVisibility(View.VISIBLE);
@@ -313,5 +315,14 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             intent.putExtra("Event", event.getId());
             activityStartLauncher.launch(intent);
         }
+    }
+
+    private void sortEventsByStartTime(List<Event> eventList) {
+        Collections.sort(eventList, (event1, event2) -> {
+            if (event1.getStart() == null && event2.getStart() == null) return 0;
+            if (event1.getStart() == null) return 1;
+            if (event2.getStart() == null) return -1;
+            return event1.getStart().compareTo(event2.getStart());
+        });
     }
 }
