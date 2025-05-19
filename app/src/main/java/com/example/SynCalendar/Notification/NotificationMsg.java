@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.example.SynCalendar.Activities.NewEventActivity;
+import com.example.SynCalendar.R;
 
 public class NotificationMsg {
     private static final String CHANNEL_ID = "reminderChannel";
@@ -49,7 +50,7 @@ public class NotificationMsg {
         Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setContentTitle("Event Reminder")
                 .setContentText(message)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.app_logo)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .build();
