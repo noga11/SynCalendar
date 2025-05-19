@@ -246,21 +246,36 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 
         // Create a set of event dates
         Set<String> eventDates = new HashSet<>();
-        SimpleDateFormat dayFormat = new SimpleDateFormat("d", Locale.getDefault()); // Ensure single-digit day format
+        SimpleDateFormat dayFormat = new SimpleDateFormat("d", Locale.getDefault());
+        Calendar eventCalendar = Calendar.getInstance();
+        Calendar selectedCalendar = Calendar.getInstance();
+        selectedCalendar.setTime(selectedDate);
+
         for (Event event : events) {
-            Calendar eventCalendar = Calendar.getInstance();
-            eventCalendar.setTime(event.getStart());
-            String day = dayFormat.format(eventCalendar.getTime());
-            eventDates.add(day);
+            if (event.getStart() != null) {
+                eventCalendar.setTime(event.getStart());
+                // Only add dates from the current month and year
+                if (eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
+                    eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR)) {
+                    String day = dayFormat.format(eventCalendar.getTime());
+                    eventDates.add(day);
+                    Log.d("MainActivity", "Adding event date: " + day);
+                }
+            }
         }
 
-        // Add logging to verify eventDates
         Log.d("MainActivity", "Event Dates: " + eventDates);
 
         CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, eventDates, this);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 7);
         calendarRecyclerView.setLayoutManager(layoutManager);
         calendarRecyclerView.setAdapter(calendarAdapter);
+        
+        // Set the selected day
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(selectedDate);
+        String selectedDay = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+        calendarAdapter.setSelectedDay(selectedDay);
     }
 
     private ArrayList<String> daysInMonthArray(Date date) {
@@ -310,6 +325,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             selectedDate = calendar.getTime();
             
             Log.d(TAG, "Selected new date: " + selectedDate);
+            
+            // Update calendar view with new selection
+            setMonthView();
             
             // Refresh events when changing dates
             refreshEvents();

@@ -1,8 +1,10 @@
 package com.example.SynCalendar.CustomCalendar;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,12 +19,14 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
     private final ArrayList<String> daysOfMonth;
     private final Set<String> eventDates;
     private final OnItemListener onItemListener;
+    private String selectedDay = "";
 
     public CalendarAdapter(ArrayList<String> daysOfMonth, Set<String> eventDates, OnItemListener onItemListener)
     {
         this.daysOfMonth = daysOfMonth;
         this.eventDates = eventDates;
         this.onItemListener = onItemListener;
+        Log.d("CalendarAdapter", "Event dates in constructor: " + eventDates);
     }
 
     @NonNull
@@ -42,11 +46,27 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
     {
         String dayText = daysOfMonth.get(position);
         holder.dayOfMonth.setText(dayText);
-        
-        if (eventDates.contains(dayText)) {
-            holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+
+        // Only process non-empty days
+        if (!dayText.isEmpty()) {
+            // Set text style based on selection
+            if (dayText.equals(selectedDay)) {
+                holder.dayOfMonth.setTypeface(null, Typeface.BOLD);
+            } else {
+                holder.dayOfMonth.setTypeface(null, Typeface.NORMAL);
+            }
+
+            // Check for events and apply underline
+            if (eventDates.contains(dayText)) {
+                Log.d("CalendarAdapter", "Underlining day: " + dayText);
+                holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
+            } else {
+                holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
+            }
         } else {
-            holder.dayOfMonth.setPaintFlags(holder.dayOfMonth.getPaintFlags() & (~android.graphics.Paint.UNDERLINE_TEXT_FLAG));
+            // Reset empty cells
+            holder.dayOfMonth.setTypeface(null, Typeface.NORMAL);
+            holder.dayOfMonth.setPaintFlags(0);
         }
     }
 
@@ -56,7 +76,12 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder>
         return daysOfMonth.size();
     }
 
-    public interface  OnItemListener
+    public void setSelectedDay(String day) {
+        this.selectedDay = day;
+        notifyDataSetChanged();
+    }
+
+    public interface OnItemListener
     {
         void onItemClick(int position, String dayText);
     }
