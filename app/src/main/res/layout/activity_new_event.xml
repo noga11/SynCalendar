@@ -23,61 +23,88 @@
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="color/light_orange">
+
+        <ImageButton
+            android:id="@+id/btnMic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Speak"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_btn_speak_now" />
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:layout_weight="1"
+            android:text="Speach to text" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_margin="10dp">
 
-    <EditText
-        android:id="@+id/etDetails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ems="10"
-        android:textSize="20sp"
-        android:gravity="start|top"
-        android:inputType="textMultiLine"
-        android:hint="Details" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/tvStartTime"
+        <EditText
+            android:id="@+id/etDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:textSize="20sp"
-            android:textStyle="italic"
-            android:hint="Start Time"
-            android:inputType="time" />
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            android:hint="Details" />
 
-        <TextView
-            android:id="@+id/tvEndTime"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tvStartTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:textSize="20sp"
+                android:textStyle="italic"
+                android:hint="Start Time"
+                android:inputType="time" />
+
+            <TextView
+                android:id="@+id/tvEndTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:textSize="20sp"
+                android:textStyle="italic"
+                android:hint="End Time"
+                android:inputType="time" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"        android:ems="10"
             android:textSize="20sp"
             android:textStyle="italic"
-            android:hint="End Time"
-            android:inputType="time" />
-    </LinearLayout>
+            android:inputType="date"
+            android:hint="Date"/>
 
-    <TextView
-        android:id="@+id/tvDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"        android:ems="10"
-        android:textSize="20sp"
-        android:textStyle="italic"
-        android:inputType="date"
-        android:hint="Date"/>
-
-    <!--group-->
+        <!--group-->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -95,66 +122,66 @@
 
 
         <EditText
-        android:id="@+id/etAdress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:layout_marginTop="10dp"
-        android:textSize="20sp"
-        android:inputType="text"
-        android:hint="Adress" />
-
-    <AutoCompleteTextView
-        android:id="@+id/auetShare"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:textSize="20sp"
-        android:hint="Share Event" />
-
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/cgUsers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    </com.google.android.material.chip.ChipGroup>
-
-    <Switch
-        android:id="@+id/swchReminder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="Add Reminder"
-        />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/tvReminderDate"
+            android:id="@+id/etAdress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:ems="10"
+            android:layout_marginTop="10dp"
             android:textSize="20sp"
-            android:inputType="date"
-            android:textStyle="italic"
-            android:hint="Reminder Date"/>
+            android:inputType="text"
+            android:hint="Adress" />
 
-        <TextView
-            android:id="@+id/tvReminderTime"
+        <AutoCompleteTextView
+            android:id="@+id/auetShare"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
+            android:layout_marginTop="10dp"
             android:textSize="20sp"
-            android:hint="Reminder Time"
-            android:textStyle="italic"
-            android:inputType="time" />
-    </LinearLayout>
+            android:hint="Share Event" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/cgUsers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <Switch
+            android:id="@+id/swchReminder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="Add Reminder"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tvReminderDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:textSize="20sp"
+                android:inputType="date"
+                android:textStyle="italic"
+                android:hint="Reminder Date"/>
+
+            <TextView
+                android:id="@+id/tvReminderTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:textSize="20sp"
+                android:hint="Reminder Time"
+                android:textStyle="italic"
+                android:inputType="time" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btbAddEvent"
