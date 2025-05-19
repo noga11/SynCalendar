@@ -282,6 +282,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             // --- END ADDED ---
 
             Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_OK, getIntent());  // Set the result before finishing
             finish(); // Return to previous screen
         }
     }

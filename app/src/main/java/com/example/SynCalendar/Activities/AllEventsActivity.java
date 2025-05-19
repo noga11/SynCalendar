@@ -65,7 +65,30 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         activityStartLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> { }
+                result -> {
+                    // Refresh events when returning from NewEventActivity
+                    if (result.getData() != null && result.getData().getComponent() != null &&
+                        result.getData().getComponent().getClassName().contains("NewEventActivity")) {
+                        model.getEventsByUserId(currentUser.getId(), userEvents -> {
+                            events.clear();
+                            events.addAll(userEvents);
+                            sortEventsByStartTime(events);
+                            filterdEvents.clear();
+                            filterdEvents.addAll(events);
+                            AllEventsAdapter adapter = (AllEventsAdapter) lstAllEvents.getAdapter();
+                            if (adapter != null) {
+                                adapter.notifyDataSetChanged();
+                            }
+                            if (userEvents.isEmpty()) {
+                                tvEmptyList.setVisibility(View.VISIBLE);
+                                lstAllEvents.setVisibility(View.GONE);
+                            } else {
+                                tvEmptyList.setVisibility(View.GONE);
+                                lstAllEvents.setVisibility(View.VISIBLE);
+                            }
+                        }, e -> Toast.makeText(AllEventsActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+                    }
+                }
         );
 
         currentUser = model.getCurrentUser();

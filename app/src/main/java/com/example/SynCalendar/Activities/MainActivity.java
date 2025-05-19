@@ -1,5 +1,7 @@
 package com.example.SynCalendar.Activities;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -74,21 +76,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         setMonthView();
 
         // Fetch events for the current user
-        model.getEventsByUserId(model.getCurrentUser().getId(), new com.google.android.gms.tasks.OnSuccessListener<java.util.List<Event>>() {
-            @Override
-            public void onSuccess(java.util.List<Event> userEvents) {
-                events.clear();
-                events.addAll(userEvents);
-                sortEventsByStartTime(events);  // Sort the events
-                updateEventsForSelectedDate(selectedDate);
-                setMonthView();
-            }
-        }, new com.google.android.gms.tasks.OnFailureListener() {
-            @Override
-            public void onFailure(@androidx.annotation.NonNull Exception e) {
-                Toast.makeText(MainActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
-            }
-        });
+        refreshEvents();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -111,7 +99,17 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         activityStartLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    // Handle result if needed
+                    // Refresh events when returning from NewEventActivity
+                    if (result.getData() != null && result.getData().getComponent() != null &&
+                        result.getData().getComponent().getClassName().contains("NewEventActivity")) {
+                        model.getEventsByUserId(model.getCurrentUser().getId(), userEvents -> {
+                            events.clear();
+                            events.addAll(userEvents);
+                            sortEventsByStartTime(events);
+                            updateEventsForSelectedDate(selectedDate);
+                            setMonthView();
+                        }, e -> Toast.makeText(MainActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+                    }
                 }
         );
     }
@@ -161,9 +159,32 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
 //        customCalendarView.invalidate();
     }
 
+    private void refreshEvents() {
+        if (model.getCurrentUser() == null) {
+            Log.d(TAG, "No user logged in");
+            return;
+        }
+        
+        model.getEventsByUserId(model.getCurrentUser().getId(), 
+            userEvents -> {
+                Log.d(TAG, "Fetched " + userEvents.size() + " events");
+                events.clear();
+                events.addAll(userEvents);
+                sortEventsByStartTime(events);
+                updateEventsForSelectedDate(selectedDate);
+                setMonthView();
+            }, 
+            e -> {
+                Log.e(TAG, "Failed to load events", e);
+                Toast.makeText(MainActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
+            }
+        );
+    }
+
     private void updateEventsForSelectedDate(Date selectedDate) {
-        if (adapter == null || tvEmptyList == null) {
-            return; // Ensure adapter and tvEmptyList are not null
+        if (adapter == null || tvEmptyList == null || lstDailyEvents == null) {
+            Log.e(TAG, "UI components not initialized");
+            return;
         }
 
         List<Event> filteredEvents = new ArrayList<>();
@@ -174,33 +195,49 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         selectedCalendar.set(Calendar.SECOND, 0);
         selectedCalendar.set(Calendar.MILLISECOND, 0);
 
+        Log.d(TAG, "Filtering events for date: " + selectedCalendar.getTime());
+        Log.d(TAG, "Total events before filtering: " + events.size());
+
         for (Event event : events) {
-            Calendar eventCalendar = Calendar.getInstance();
-            eventCalendar.setTime(event.getStart());
-            eventCalendar.set(Calendar.HOUR_OF_DAY, 0);
-            eventCalendar.set(Calendar.MINUTE, 0);
-            eventCalendar.set(Calendar.SECOND, 0);
-            eventCalendar.set(Calendar.MILLISECOND, 0);
-
-            Log.d("MainActivity", "Selected date: " + selectedCalendar.getTime() + ", Event date: " + eventCalendar.getTime());
-
-            if (selectedCalendar.equals(eventCalendar)) {
-                filteredEvents.add(event);
+            if (event.getStart() != null) {
+                Calendar eventCalendar = Calendar.getInstance();
+                eventCalendar.setTime(event.getStart());
+                
+                boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
+                                eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
+                                eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
+                
+                if (sameDay) {
+                    filteredEvents.add(event);
+                    Log.d(TAG, "Added event: " + event.getTitle() + " for date: " + eventCalendar.getTime());
+                }
             }
         }
 
-        Log.d("MainActivity", "Filtered events count: " + filteredEvents.size());
+        Log.d(TAG, "Found " + filteredEvents.size() + " events for selected date");
 
-        adapter.clear();
-        if (!filteredEvents.isEmpty()) {
-            adapter.addAll(filteredEvents);
-            lstDailyEvents.setEmptyView(null);
-        } else {
-            tvEmptyList.setText("You don't have any events");
-            lstDailyEvents.setEmptyView(tvEmptyList);
-        }
+        // Sort filtered events by start time
+        Collections.sort(filteredEvents, (event1, event2) -> {
+            if (event1.getStart() == null && event2.getStart() == null) return 0;
+            if (event1.getStart() == null) return 1;
+            if (event2.getStart() == null) return -1;
+            return event1.getStart().compareTo(event2.getStart());
+        });
 
-        adapter.notifyDataSetChanged();
+        runOnUiThread(() -> {
+            adapter.clear();
+            if (!filteredEvents.isEmpty()) {
+                adapter.addAll(filteredEvents);
+                tvEmptyList.setVisibility(View.GONE);
+                lstDailyEvents.setVisibility(View.VISIBLE);
+            } else {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                tvEmptyList.setText("No events for " + dateFormat.format(selectedDate));
+                tvEmptyList.setVisibility(View.VISIBLE);
+                lstDailyEvents.setVisibility(View.GONE);
+            }
+            adapter.notifyDataSetChanged();
+        });
     }
 
     private void setMonthView() {
@@ -267,17 +304,18 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     public void onItemClick(int position, String dayText) {
         if(!dayText.equals("")) {
-            // Create a new date object for the selected day
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(selectedDate);
             calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayText));
-            Date clickedDate = calendar.getTime();
+            selectedDate = calendar.getTime();
             
-            // Update the events list for the selected date
-            updateEventsForSelectedDate(clickedDate);
+            Log.d(TAG, "Selected new date: " + selectedDate);
+            
+            // Refresh events when changing dates
+            refreshEvents();
             
             String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 
