@@ -18,6 +18,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
+import android.app.AlarmManager;
+import android.content.Context;
+import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -26,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import com.example.SynCalendar.Event;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.Notification.NotificationMsg;
+import com.example.SynCalendar.Notification.Reminder;
 import com.example.SynCalendar.R;
 
 import com.example.SynCalendar.User;
@@ -125,6 +129,18 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     swchReminder.setChecked(false);
                     return;
                 }
+                
+                // Check for SCHEDULE_EXACT_ALARM permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                        startActivity(intent);
+                        swchReminder.setChecked(false);
+                        return;
+                    }
+                }
+                
                 tvReminderDate.setVisibility(View.VISIBLE);
                 tvReminderTime.setVisibility(View.VISIBLE);
             } else {
@@ -194,17 +210,22 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             }
             if (swchReminder.isChecked()) {
                 Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.YEAR, selectedYear);
-                calendar.set(Calendar.MONTH, selectedMonth);
-                calendar.set(Calendar.DAY_OF_MONTH, selectedDay);
-                calendar.set(Calendar.HOUR_OF_DAY, selectedHour);
-                calendar.set(Calendar.MINUTE, selectedMinute);
-                calendar.set(Calendar.SECOND, 0);
+                try {
+                    String dateStr = tvReminderDate.getText().toString().trim() + " " + tvReminderTime.getText().toString().trim();
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                    Date reminderDate = sdf.parse(dateStr);
+                    calendar.setTime(reminderDate);
+                } catch (Exception e) {
+                    Log.e("NewEventActivity", "Error parsing reminder date/time", e);
+                    Toast.makeText(this, "Error setting reminder time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 long reminderTimeMillis = calendar.getTimeInMillis();
                 if (reminderTimeMillis > System.currentTimeMillis()) {
-                    notificationMsg.sendNotification("New Event: " + eventTitle);
-                    Toast.makeText(this, "Reminder set", Toast.LENGTH_SHORT).show();
+                    // Schedule the notification using Reminder class
+                    Reminder.setAlarm(this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), eventTitle);
+                    Toast.makeText(this, "Reminder set for " + tvReminderDate.getText() + " " + tvReminderTime.getText(), Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
                 }
@@ -250,7 +271,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 null, // repeat, set as needed
                 null, // status, set as needed
                 startDate,
-                null, // remTime, set as needed
+                swchReminder.isChecked() ? parseReminderDateTime() : null, // remTime, set based on reminder switch
                 swchReminder.isChecked(),
                 false, // important, set as needed
                 0, // colour, set as needed
@@ -400,6 +421,17 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         spinnerAdapter.addAll(groups);
         spinnerAdapter.notifyDataSetChanged();
         spinnerGroup.setText(newGroup, false);
+    }
+
+    private Date parseReminderDateTime() {
+        try {
+            String dateStr = tvReminderDate.getText().toString().trim() + " " + tvReminderTime.getText().toString().trim();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            return sdf.parse(dateStr);
+        } catch (Exception e) {
+            Log.e("NewEventActivity", "Error parsing reminder date/time", e);
+            return null;
+        }
     }
 
 }

@@ -9,14 +9,15 @@ import android.os.Build;
 
 import java.util.Calendar;
 
-class Reminder {
+public class Reminder {
 
     private static AlarmManager alarmMgr;
     private static PendingIntent alarmIntent;
 
-    public static void setAlarm(Context context, int startHour, int startMinutes) {
+    public static void setAlarm(Context context, int startHour, int startMinutes, String eventTitle) {
         alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra("eventTitle", eventTitle);
         alarmIntent = PendingIntent.getBroadcast(context, 100, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Calendar calendar = Calendar.getInstance();

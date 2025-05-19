@@ -19,8 +19,11 @@ public class BootReceiver extends BroadcastReceiver {
             if (events.isSuccessful() && events.getResult().exists()) {
                 int hour = events.getResult().child("hour").getValue(Integer.class);
                 int minutes = events.getResult().child("minutes").getValue(Integer.class);
-                Toast.makeText(context, "Setting alarm to " + hour + ":" + minutes, Toast.LENGTH_LONG).show();
-                Reminder.setAlarm(context, hour, minutes);
+                String eventTitle = events.getResult().child("title").getValue(String.class);
+                if (eventTitle != null) {
+                    Toast.makeText(context, "Setting alarm to " + hour + ":" + minutes, Toast.LENGTH_LONG).show();
+                    Reminder.setAlarm(context, hour, minutes, eventTitle);
+                }
             }
         });
     }
