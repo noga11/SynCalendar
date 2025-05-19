@@ -161,7 +161,7 @@
         android:layout_weight="1"
         android:padding="10dp"
         tools:listitem="@layout/item_daily_event"
-        android:background="color/light_orange"/>
+        android:background="@color/light_orange"/>
 
     <!-- Empty List TextView -->
     <TextView

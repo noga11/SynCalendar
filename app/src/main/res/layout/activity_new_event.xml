@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="color/light_orange">
+        android:background="@color/light_orange">
 
         <ImageButton
             android:id="@+id/btnMic"
