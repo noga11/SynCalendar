@@ -151,7 +151,7 @@
         android:layout_height="wrap_content"
         android:padding="5dp"
         android:textSize="30sp"
-        android:background="@color/light_purple"
+        android:background="#3FD9CFFA"
         android:text="Events" />
 
     <ListView
@@ -161,7 +161,7 @@
         android:layout_weight="1"
         android:padding="10dp"
         tools:listitem="@layout/item_daily_event"
-        android:background="color/light_orange"/>
+        android:background="#26F2DFD8"/>
 
     <!-- Empty List TextView -->
     <TextView
