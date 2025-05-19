@@ -45,9 +45,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("com.google.android.material:material:1.5.0")
-    implementation("com.google.android.material:material:1.8.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.work:work-runtime:2.7.1")
-
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

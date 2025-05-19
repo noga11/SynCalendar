@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +22,10 @@ import android.Manifest;
 import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
+import android.speech.RecognizerIntent;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -45,9 +49,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.Locale;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final int PERMISSION_CODE = 100;
     private Model model;
     private User currentUser;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
@@ -62,7 +68,20 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private Switch swchReminder;
     private ChipGroup chipGroup;
     private AutoCompleteTextView spinnerGroup;
+    private ImageButton btnMic;
 
+    private final ActivityResultLauncher<Intent> speechRecognizerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    ArrayList<String> speechResults = result.getData()
+                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    if (speechResults != null && !speechResults.isEmpty()) {
+                        etTitle.setText(speechResults.get(0));
+                    }
+                }
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +106,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         swchReminder = findViewById(R.id.swchReminder);
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
+        btnMic = findViewById(R.id.btnMic);
 
         groups = model.getGroups();
 
@@ -199,6 +219,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         // Set the default selected group to 'All' in the spinnerGroup
         spinnerGroup.setText("All", false);
+
+        btnMic.setOnClickListener(v -> startSpeechToText());
     }
 
     public void onClick(View view) {
@@ -432,6 +454,43 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         } catch (Exception e) {
             Log.e("NewEventActivity", "Error parsing reminder date/time", e);
             return null;
+        }
+    }
+
+    private void startSpeechToText() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    PERMISSION_CODE);
+            return;
+        }
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak the event title...");
+
+        try {
+            speechRecognizerLauncher.launch(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Error starting speech recognition",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                         int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startSpeechToText();
+            } else {
+                Toast.makeText(this, "Permission Denied",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

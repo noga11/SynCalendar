@@ -11,12 +11,12 @@ public class Event {
     private Repeat repeat;
     private Status status;
     private Date start, remTime;
-    private boolean reminder, important;
+    private boolean reminder;
     private int colour, notificationId, duration;
 
     public Event(){}
 
-    public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Repeat repeat, Status status, Date start, Date remTime, boolean reminder, boolean important, int colour, int notificationId, int duration) {
+    public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Repeat repeat, Status status, Date start, Date remTime, boolean reminder, int colour, int notificationId, int duration) {
         this.title = title;
         this.details = details;
         this.address = address;
@@ -28,7 +28,6 @@ public class Event {
         this.start = start;
         this.remTime = remTime;
         this.reminder = reminder;
-        this.important = important;
         this.colour = colour;
         this.notificationId = notificationId;
         this.duration = duration;
@@ -72,9 +71,6 @@ public class Event {
 
     public boolean isReminder() { return reminder; }
     public void setReminder(boolean reminder) { this.reminder = reminder; }
-
-    public boolean isImportant() { return important; }
-    public void setImportant(boolean important) { this.important = important; }
 
     public int getColour() { return colour; }
     public void setColour(int colour) { this.colour = colour; }
