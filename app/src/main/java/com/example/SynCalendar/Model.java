@@ -319,21 +319,33 @@ public class Model {
     }
 
     public ArrayList<String> getGroups() {
+        // Use a HashSet to ensure uniqueness of all groups
+        Set<String> uniqueGroups = new HashSet<>();
+        
+        // Add default "All" group
+        uniqueGroups.add("All");
+        
+        // Add groups from events
         for (Event event : events) {
             if (event.getGroup() != null && !event.getGroup().isEmpty()) {
-                groups.add(event.getGroup());
+                uniqueGroups.add(event.getGroup());
             }
         }
-
-
-        // Add special groups
-        if (!groups.contains("All")) {
+        
+        // Clear and rebuild the groups list
+        groups.clear();
+        groups.addAll(uniqueGroups);
+        
+        // Make sure "All" is the first item
+        if (groups.remove("All")) {
             groups.add(0, "All");
         }
+        
+        // Add "Add New Group" at the end if not present
         if (!groups.contains("Add New Group")) {
             groups.add("Add New Group");
         }
-
+        
         Log.d(TAG, "Retrieved groups: " + groups);
         return groups;
     }
@@ -342,27 +354,26 @@ public class Model {
         if (groups.contains(groupToDelete) && !groupToDelete.equals("All") && !groupToDelete.equals("Add New Group")) {
             groups.remove(groupToDelete);
             Log.d(TAG, "Deleted group: " + groupToDelete);
-            // Remove group from events
+            
+            // Update all events in this group
             for (Event event : events) {
-                if (event.getGroup().equals(groupToDelete)) {
-                    event.setTopic(null); // Or handle as needed
+                if (groupToDelete.equals(event.getGroup())) {
+                    event.setGroup("All"); // Set to default group instead of null
+                    updateEvent(event); // Update in Firestore
                 }
             }
-            // Notify listeners or update UI as needed
         }
     }
 
     public void addGroup(String newGroup) {
         if (!groups.contains(newGroup) && !newGroup.equals("All") && !newGroup.equals("Add New Group")) {
-            // Ensure 'Add New Group' is present
-            if (!groups.contains("Add New Group")) {
-                groups.add("Add New Group");
-            }
-            // Add the new group before 'Add New Group'
-            int index = groups.indexOf("Add New Group");
-            groups.add(index, newGroup);
+            // Remove "Add New Group" if it exists
+            groups.remove("Add New Group");
+            // Add the new group
+            groups.add(newGroup);
+            // Add "Add New Group" back at the end
+            groups.add("Add New Group");
             Log.d(TAG, "Added new group: " + newGroup);
-            // Notify listeners or update UI as needed
         }
     }
 

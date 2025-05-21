@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class Event {
-    private String title, details, address, id, topic;
+    private String title, details, address, id, group;
     private ArrayList<String> usersId;
     private Date start, remTime;
     private boolean reminder;
@@ -13,12 +13,12 @@ public class Event {
 
     public Event(){}
 
-    public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Date start, Date remTime, boolean reminder, int notificationId, int duration) {
+    public Event(String title, String details, String address, String id, String group, ArrayList<String> users, Date start, Date remTime, boolean reminder, int notificationId, int duration) {
         this.title = title;
         this.details = details;
         this.address = address;
         this.id = id;
-        this.topic = topic;
+        this.group = group;
         this.usersId = users;
         this.start = start;
         this.remTime = remTime;
@@ -36,8 +36,8 @@ public class Event {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public String getGroup() { return topic; }
-    public void setTopic(String topic) { this.topic = topic; }
+    public String getGroup() { return group; }
+    public void setGroup(String group) { this.group = group; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }

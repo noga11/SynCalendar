@@ -250,13 +250,17 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     }
 
     private void addNewGroup(String newGroup) {
-        // Add the new group before "Add New Group" option
-        groups.add(groups.size() - 1, newGroup);
-
-        // Notify adapter of the change
+        // Add the new group using the Model
+        model.addGroup(newGroup);
+        
+        // Refresh groups from model
+        groups.clear();
+        groups.addAll(model.getGroups());
+        
+        // Update adapter
         spinnerAdapter.notifyDataSetChanged();
-
-        // Set the new group as the selected item
+        
+        // Set the new group as selected
         spinnerGroup.setText(newGroup, false);
     }
 
@@ -290,6 +294,12 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         }
 
         String selectedGroup = groups.get(position);
+        // Don't allow deletion of special groups
+        if ("All".equals(selectedGroup) || "Add New Group".equals(selectedGroup)) {
+            Toast.makeText(this, "Cannot delete this group", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.dialog_delete_group, null);
 
@@ -310,17 +320,23 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         // Yes button
         textViewYes.setOnClickListener(v -> {
-            ArrayList<Event> eventsToRemove = new ArrayList<>();
-            for (Event event : events) {
-                if (event.getGroup().equals(selectedGroup)) {
-                    eventsToRemove.add(event);
-                }
-            }
-            events.removeAll(eventsToRemove);
-
-            // Remove group from the list
-            groups.remove(selectedGroup);
+            // Use model to delete group
+            model.deleteGroup(selectedGroup);
+            
+            // Refresh groups from model
+            groups.clear();
+            groups.addAll(model.getGroups());
+            
+            // Update adapter
             spinnerAdapter.notifyDataSetChanged();
+            
+            // Reset to "All" group
+            spinnerGroup.setText("All", false);
+            
+            // Refresh events view
+            filterdEvents.clear();
+            filterdEvents.addAll(events);
+            
             groupDialog.dismiss();
         });
 
