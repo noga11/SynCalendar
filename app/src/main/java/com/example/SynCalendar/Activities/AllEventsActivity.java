@@ -36,7 +36,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 
-public class AllEventsActivity extends AppCompatActivity implements View.OnLongClickListener, View.OnClickListener {
+public class AllEventsActivity extends AppCompatActivity implements View.OnLongClickListener {
 
     private Model model;
     private User currentUser;
@@ -47,6 +47,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     private ArrayAdapter<String> spinnerAdapter;
     private AutoCompleteTextView spinnerGroup;
     private ArrayList<String> groups;
+    private AllEventsAdapter adapter;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -65,27 +66,8 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         activityStartLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    // Refresh events when returning from NewEventActivity
-                    if (result.getData() != null && result.getData().getComponent() != null &&
-                        result.getData().getComponent().getClassName().contains("NewEventActivity")) {
-                        model.getEventsByUserId(currentUser.getId(), userEvents -> {
-                            events.clear();
-                            events.addAll(userEvents);
-                            sortEventsByStartTime(events);
-                            filterdEvents.clear();
-                            filterdEvents.addAll(events);
-                            AllEventsAdapter adapter = (AllEventsAdapter) lstAllEvents.getAdapter();
-                            if (adapter != null) {
-                                adapter.notifyDataSetChanged();
-                            }
-                            if (userEvents.isEmpty()) {
-                                tvEmptyList.setVisibility(View.VISIBLE);
-                                lstAllEvents.setVisibility(View.GONE);
-                            } else {
-                                tvEmptyList.setVisibility(View.GONE);
-                                lstAllEvents.setVisibility(View.VISIBLE);
-                            }
-                        }, e -> Toast.makeText(AllEventsActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+                    if (result.getResultCode() == RESULT_OK) {
+                        refreshEventsList(); // Refresh events list after any successful result
                     }
                 }
         );
@@ -94,8 +76,15 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         events = new ArrayList<>();
         filterdEvents = new ArrayList<>();
         lstAllEvents.setLayoutManager(new LinearLayoutManager(this));
-        lstAllEvents.setOnClickListener(this);
-        AllEventsAdapter adapter = new AllEventsAdapter(this, filterdEvents);
+        
+        adapter = new AllEventsAdapter(this, filterdEvents);
+        adapter.setOnItemClickListener((event, position) -> {
+            Intent intent = new Intent(AllEventsActivity.this, NewEventActivity.class);
+            intent.putExtra("Event", event.getId());
+            intent.putExtra("isEditing", true);
+            activityStartLauncher.launch(intent);
+        });
+        
         lstAllEvents.setAdapter(adapter);
 
         model.getEventsByUserId(currentUser.getId(), new com.google.android.gms.tasks.OnSuccessListener<java.util.List<Event>>() {
@@ -343,17 +332,6 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         return true; // Indicate that the event was handled
     }
 
-    @Override
-    public void onClick(View view) {
-        int position = lstAllEvents.getChildAdapterPosition(view);
-        if (position != RecyclerView.NO_POSITION) {
-            Event event = filterdEvents.get(position);
-            Intent intent = new Intent(AllEventsActivity.this, NewEventActivity.class);
-            intent.putExtra("Event", event.getId());
-            activityStartLauncher.launch(intent);
-        }
-    }
-
     private void sortEventsByStartTime(List<Event> eventList) {
         Collections.sort(eventList, (event1, event2) -> {
             if (event1.getStart() == null && event2.getStart() == null) return 0;
@@ -361,5 +339,39 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             if (event2.getStart() == null) return -1;
             return event1.getStart().compareTo(event2.getStart());
         });
+    }
+
+    private void refreshEventsList() {
+        model.getEventsByUserId(currentUser.getId(), userEvents -> {
+            events.clear();
+            events.addAll(userEvents);
+            sortEventsByStartTime(events);
+            
+            // Maintain current group filter
+            String currentGroup = spinnerGroup.getText().toString();
+            filterdEvents.clear();
+            if ("All".equals(currentGroup)) {
+                filterdEvents.addAll(events);
+            } else {
+                for (Event event : events) {
+                    if (event.getGroup().equals(currentGroup)) {
+                        filterdEvents.add(event);
+                    }
+                }
+            }
+            
+            adapter.updateData(filterdEvents);
+            updateEmptyState();
+        }, e -> Toast.makeText(AllEventsActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+    }
+
+    private void updateEmptyState() {
+        if (filterdEvents.isEmpty()) {
+            tvEmptyList.setVisibility(View.VISIBLE);
+            lstAllEvents.setVisibility(View.GONE);
+        } else {
+            tvEmptyList.setVisibility(View.GONE);
+            lstAllEvents.setVisibility(View.VISIBLE);
+        }
     }
 }
