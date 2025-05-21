@@ -1,12 +1,14 @@
 package com.example.SynCalendar.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.example.SynCalendar.Activities.NewEventActivity;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.Event;
 
@@ -46,6 +48,13 @@ public class DailyEventsAdapter extends ArrayAdapter<Event> {
 
         TextView tvEnd = convertView.findViewById(R.id.tvEnd);
         tvEnd.setText(formatTime(event.getEnd()));
+
+        // Add click listener to the entire view
+        convertView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, NewEventActivity.class);
+            intent.putExtra("Event", event.getId());
+            context.startActivity(intent);
+        });
 
         return convertView;
     }

@@ -69,7 +69,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private ArrayAdapter<String> spinnerAdapter;
     private ArrayList<String> groups;
 
-    private EditText etTitle, etDetails, auetShare;
+    private EditText etTitle, etDetails, auetShare, etAddress;
+
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
     private Button btbAddEvent;
     private Switch swchReminder;
@@ -177,8 +178,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
-        // need to create edit screen
-
+        // Initialize model and check if user is logged in
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
         currentUser = model.getCurrentUser();
@@ -199,6 +199,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             Toast.makeText(this, "Error initializing speech recognition", Toast.LENGTH_SHORT).show();
         }
 
+        etAddress = findViewById(R.id.etAdress);
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
         tvStartTime = findViewById(R.id.tvStartTime);
@@ -212,6 +213,59 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
         btnMic = findViewById(R.id.btnMic);
+
+        // Check if we're editing an existing event
+        String eventId = getIntent().getStringExtra("Event");
+        if (eventId != null) {
+            // Change button text to "Update"
+            btbAddEvent.setText("Update Event");
+            setTitle("Edit Event");
+
+            // Load event details
+            model.getEventsByUserId(currentUser.getId(), events -> {
+                for (Event event : events) {
+                    if (event.getId().equals(eventId)) {
+                        // Populate fields with event data
+                        etTitle.setText(event.getTitle());
+                        etDetails.setText(event.getDetails());
+                        
+                        // Set date
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                        tvDate.setText(dateFormat.format(event.getStart()));
+                        
+                        // Set start time
+                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+                        tvStartTime.setText(timeFormat.format(event.getStart()));
+                        
+                        // Calculate and set end time based on duration
+                        Calendar endCal = Calendar.getInstance();
+                        endCal.setTime(event.getStart());
+                        endCal.add(Calendar.MINUTE, event.getDuration());
+                        tvEndTime.setText(timeFormat.format(endCal.getTime()));
+                        
+                        // Set group
+                        spinnerGroup.setText(event.getGroup(), false);
+                        
+                        // Set reminder if exists
+                        if (event.isReminder() && event.getRemTime() != null) {
+                            swchReminder.setChecked(true);
+                            tvReminderDate.setVisibility(View.VISIBLE);
+                            tvReminderTime.setVisibility(View.VISIBLE);
+                            tvReminderDate.setText(dateFormat.format(event.getRemTime()));
+                            tvReminderTime.setText(timeFormat.format(event.getRemTime()));
+                        }
+                        
+                        // Set address if exists
+                        EditText etAddress = findViewById(R.id.etAdress);
+                        if (etAddress != null && event.getAddress() != null) {
+                            etAddress.setText(event.getAddress());
+                        }
+                        
+                        break;
+                    }
+                }
+            }, e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
+        }
 
         groups = model.getGroups();
 
@@ -276,6 +330,17 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
+        // Set up autocomplete for mutual users
+        if (currentUser.getMutuals() != null) {
+            ArrayList<String> mutualUsernames = new ArrayList<>(currentUser.getMutuals().values());
+            ArrayAdapter<String> userAdapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_dropdown_item_1line, mutualUsernames);
+            if (auetShare instanceof AutoCompleteTextView) {
+                ((AutoCompleteTextView) auetShare).setAdapter(userAdapter);
+                ((AutoCompleteTextView) auetShare).setThreshold(1); // Start suggesting after first character
+            }
+        }
+
         auetShare.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
@@ -283,14 +348,31 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                // You can add functionality to filter usernames or show suggestions based on what the user types
+                // You can add additional filtering logic here if needed
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
                 String typedUsername = editable.toString().trim();
                 if (!typedUsername.isEmpty() && isValidUsername(typedUsername)) {
-                    addUserChip(typedUsername);
+                    // Check if this user is already added as a chip
+                    boolean alreadyAdded = false;
+                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                        View view = chipGroup.getChildAt(i);
+                        if (view instanceof Chip) {
+                            Chip chip = (Chip) view;
+                            if (chip.getText().toString().equals(typedUsername)) {
+                                alreadyAdded = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!alreadyAdded) {
+                        addUserChip(typedUsername);
+                    } else {
+                        Toast.makeText(NewEventActivity.this, "User already added", Toast.LENGTH_SHORT).show();
+                    }
                     auetShare.setText("");  // Clear the input field
                 }
             }
@@ -335,45 +417,39 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 Toast.makeText(this, "Event title cannot be empty", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (swchReminder.isChecked()) {
-                Calendar calendar = Calendar.getInstance();
-                try {
-                    String dateStr = tvReminderDate.getText().toString().trim() + " " + tvReminderTime.getText().toString().trim();
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                    Date reminderDate = sdf.parse(dateStr);
-                    calendar.setTime(reminderDate);
-                } catch (Exception e) {
-                    Log.e("NewEventActivity", "Error parsing reminder date/time", e);
-                    Toast.makeText(this, "Error setting reminder time", Toast.LENGTH_SHORT).show();
-                    return;
-                }
 
-                long reminderTimeMillis = calendar.getTimeInMillis();
-                if (reminderTimeMillis > System.currentTimeMillis()) {
-                    // Schedule the notification using Reminder class
-                    Reminder.setAlarm(this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), eventTitle);
-                    Toast.makeText(this, "Reminder set for " + tvReminderDate.getText() + " " + tvReminderTime.getText(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
+            // Get all the event details
+            String details = etDetails.getText().toString().trim();
+            String address = etAddress.getText().toString().trim();
+
+            String group = spinnerGroup.getText().toString().trim();
+            // Get userIds from chips
+            ArrayList<String> usersId = new ArrayList<>();
+            usersId.add(currentUser.getId()); // Add current user
+            
+            // Add all selected users from chips
+            for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                view = chipGroup.getChildAt(i);
+                if (view instanceof Chip) {
+                    Chip chip = (Chip) view;
+                    String userId = (String) chip.getTag();
+                    if (userId != null && !usersId.contains(userId)) {
+                        usersId.add(userId);
+                    }
                 }
             }
 
-            // --- ADDED: Create and save the event ---
-            ArrayList<String> usersId = new ArrayList<>();
-            usersId.add(currentUser.getId());
-
-            String address = "";
-            EditText etAddress = findViewById(R.id.etAdress);
-            if (etAddress != null) address = etAddress.getText().toString().trim();
-
-            String group = spinnerGroup.getText().toString().trim();
-            Date startDate = new Date();
+            // Parse start date and time
+            Date startDate = null;
             try {
                 String dateStr = tvDate.getText().toString().trim() + " " + tvStartTime.getText().toString().trim();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                 startDate = sdf.parse(dateStr);
-            } catch (Exception e) { /* fallback to now */ }
+            } catch (Exception e) {
+                startDate = new Date(); // fallback to current time
+            }
 
+            // Calculate duration
             int duration = 60; // default 1 hour
             try {
                 String startStr = tvStartTime.getText().toString().trim();
@@ -388,45 +464,82 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 }
             } catch (Exception e) { /* fallback to 60 */ }
 
-            Event event = new Event(
+            // Handle reminder
+            Date reminderTime = null;
+            if (swchReminder.isChecked()) {
+                try {
+                    String dateStr = tvReminderDate.getText().toString().trim() + " " + tvReminderTime.getText().toString().trim();
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                    reminderTime = sdf.parse(dateStr);
+
+                    // Schedule notification if reminder time is in the future
+                    if (reminderTime.getTime() > System.currentTimeMillis()) {
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTime(reminderTime);
+                        Reminder.setAlarm(this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), eventTitle);
+                        Toast.makeText(this, "Reminder set for " + tvReminderDate.getText() + " " + tvReminderTime.getText(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } catch (Exception e) {
+                    Log.e("NewEventActivity", "Error parsing reminder date/time", e);
+                    Toast.makeText(this, "Error setting reminder time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            // Check if we're editing an existing event
+            String eventId = getIntent().getStringExtra("Event");
+            if (eventId != null) {
+                // Update existing event
+                model.updateEvent(eventId, eventTitle, details, address, group, usersId,
+                                startDate, reminderTime, swchReminder.isChecked(), 
+                                0, duration); // Using 0 for notificationId as it will be set by the system
+                Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                // Create new event
+                Event event = new Event(
                     eventTitle,
-                    etDetails.getText().toString().trim(),
+                    details,
                     address,
-                    null, // id, will be set by Firestore
+                    null, // id will be set by Firestore
                     group,
                     usersId,
                     startDate,
-                    swchReminder.isChecked() ? parseReminderDateTime() : null, // remTime, set based on reminder switch
+                    reminderTime,
                     swchReminder.isChecked(),
-                    0, // notificationId, set as needed
+                    0, // notificationId will be set by the system
                     duration
-            );
-            model.createEvent(event);
-            // --- END ADDED ---
+                );
+                model.createEvent(event);
+                Toast.makeText(this, "Event added successfully", Toast.LENGTH_SHORT).show();
+            }
 
-            Toast.makeText(this, "Task added successfully", Toast.LENGTH_SHORT).show();
             setResult(RESULT_OK, getIntent());  // Set the result before finishing
             finish(); // Return to previous screen
         }
     }
 
     private boolean isValidUsername(String username) {
-        for (String user : otherUsers) {
-            if (user.equalsIgnoreCase(username)) {
-                return true;
-            }
+        // Check if the username exists in the current user's mutuals
+        if (currentUser.getMutuals() != null) {
+            return currentUser.getMutuals().containsValue(username);
         }
         return false;
     }
 
     private void addUserChip(String username) {
+        // Create a new chip
         Chip chip = new Chip(this);
         chip.setText(username);
 
+        // Find the userId from mutuals map
         String userId = null;
         for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
             if (entry.getValue().equals(username)) {
                 userId = entry.getKey();
+                chip.setTag(userId); // Store the userId in the chip's tag
                 break;
             }
         }
@@ -435,11 +548,12 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             model.getUserById(userId,
                     user -> {
                         if (user != null) {
+                            // Set profile picture if available
                             Bitmap profileBitmap = user.getProfilePic();
                             if (profileBitmap != null) {
                                 Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
                                 chip.setChipIcon(drawable);
-                                chip.setChipIconSize(48f); // Optional: adjust as needed
+                                chip.setChipIconSize(48f);
                             }
 
                             chip.setCloseIconVisible(true);
@@ -461,10 +575,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     }
             );
         } else {
-            Toast.makeText(this, "User not found in your network", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "User not found in your mutuals", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     private void showDatePicker(int option) {
         MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()

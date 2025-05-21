@@ -269,19 +269,51 @@ public class Model {
         }
     }
 
-    public void updateEvent(Event event) {
-        DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(event.getId());
-        eventRef.set(event)
+    public void updateEvent(String eventId, String title, String details, String address, 
+                          String group, ArrayList<String> usersId, Date start, 
+                          Date remTime, boolean reminder, int notificationId, int duration) {
+        // Find the event in local list first
+        Event eventToUpdate = null;
+        for (Event event : events) {
+            if (event.getId().equals(eventId)) {
+                eventToUpdate = event;
+                break;
+            }
+        }
+
+        if (eventToUpdate == null) {
+            Log.e(TAG, "Event not found with ID: " + eventId);
+            Toast.makeText(context, "Event not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Update all fields
+        eventToUpdate.setTitle(title);
+        eventToUpdate.setDetails(details);
+        eventToUpdate.setAddress(address);
+        eventToUpdate.setGroup(group);
+        eventToUpdate.setUsersId(usersId);
+        eventToUpdate.setStart(start);
+        eventToUpdate.setRemTime(remTime);
+        eventToUpdate.setReminder(reminder);
+        eventToUpdate.setNotificationId(notificationId);
+        eventToUpdate.setDuration(duration);
+
+        // Update in Firestore
+        DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(eventId);
+        eventRef.set(eventToUpdate)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Log.d("Model", "Event updated successfully.");
+                        Log.d(TAG, "Event updated successfully in Firestore");
+                        raiseEventDataChange();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e("Model", "Error updating event", e);
+                        Log.e(TAG, "Error updating event", e);
+                        Toast.makeText(context, "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -359,7 +391,7 @@ public class Model {
             for (Event event : events) {
                 if (groupToDelete.equals(event.getGroup())) {
                     event.setGroup("All"); // Set to default group instead of null
-                    updateEvent(event); // Update in Firestore
+                    updateEvent(event.getId(), event.getTitle(), event.getDetails(), event.getAddress(), "All", event.getUsersId(), event.getStart(), event.getRemTime(), event.isReminder(), event.getNotificationId(), event.getDuration()); // Update in Firestore
                 }
             }
         }
