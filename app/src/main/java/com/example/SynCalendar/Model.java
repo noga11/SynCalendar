@@ -15,7 +15,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Date;
 
 import android.content.SharedPreferences;
 
@@ -248,7 +248,9 @@ public class Model {
         // delete event for current user
         String eventId = event.getId();
         event.getUsersId().remove(currentUser.getId());
-        updateEvent(event);
+        updateEvent(eventId, event.getTitle(), event.getDetails(), event.getAddress(),
+                   event.getGroup(), event.getUsersId(), event.getStart(), 
+                   event.getRemTime(), event.isReminder(), event.getDuration());
 
         //delete event for everyone
         if(event.getUsersId().isEmpty()) {
@@ -269,9 +271,9 @@ public class Model {
         }
     }
 
-    public void updateEvent(String eventId, String title, String details, String address, 
-                          String group, ArrayList<String> usersId, Date start, 
-                          Date remTime, boolean reminder, int notificationId, int duration) {
+    public void updateEvent(String eventId, String title, String details, String address,
+                            String group, ArrayList<String> usersId, Date start,
+                            Date remTime, boolean reminder, int duration) {
         // Find the event in local list first
         Event eventToUpdate = null;
         for (Event event : events) {
@@ -296,7 +298,6 @@ public class Model {
         eventToUpdate.setStart(start);
         eventToUpdate.setRemTime(remTime);
         eventToUpdate.setReminder(reminder);
-        eventToUpdate.setNotificationId(notificationId);
         eventToUpdate.setDuration(duration);
 
         // Update in Firestore
@@ -391,7 +392,7 @@ public class Model {
             for (Event event : events) {
                 if (groupToDelete.equals(event.getGroup())) {
                     event.setGroup("All"); // Set to default group instead of null
-                    updateEvent(event.getId(), event.getTitle(), event.getDetails(), event.getAddress(), "All", event.getUsersId(), event.getStart(), event.getRemTime(), event.isReminder(), event.getNotificationId(), event.getDuration()); // Update in Firestore
+                    updateEvent(event.getId(), event.getTitle(), event.getDetails(), event.getAddress(), "All", event.getUsersId(), event.getStart(), event.getRemTime(), event.isReminder(), event.getDuration()); // Update in Firestore
                 }
             }
         }

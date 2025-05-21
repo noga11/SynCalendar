@@ -423,21 +423,48 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             String address = etAddress.getText().toString().trim();
 
             String group = spinnerGroup.getText().toString().trim();
+            
             // Get userIds from chips
             ArrayList<String> usersId = new ArrayList<>();
             usersId.add(currentUser.getId()); // Add current user
-            
+
             // Add all selected users from chips
             for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                view = chipGroup.getChildAt(i);
-                if (view instanceof Chip) {
-                    Chip chip = (Chip) view;
+                View chipView = chipGroup.getChildAt(i);
+                if (chipView instanceof Chip) {
+                    Chip chip = (Chip) chipView;
                     String userId = (String) chip.getTag();
-                    if (userId != null && !usersId.contains(userId)) {
-                        usersId.add(userId);
+                    String username = chip.getText().toString();
+                    
+                    if (userId != null && !userId.isEmpty()) {
+                        if (!usersId.contains(userId)) {
+                            usersId.add(userId);
+                            Log.d("NewEventActivity", "Added user ID: " + userId + " for user: " + username);
+                        } else {
+                            Log.d("NewEventActivity", "Skipped duplicate user ID: " + userId + " for user: " + username);
+                        }
+                    } else {
+                        Log.w("NewEventActivity", "Chip for user '" + username + "' has no associated userId!");
+                        // Try to recover the userId from mutuals if possible
+                        for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
+                            if (entry.getValue().equals(username)) {
+                                String recoveredUserId = entry.getKey();
+                                if (!usersId.contains(recoveredUserId)) {
+                                    usersId.add(recoveredUserId);
+                                    Log.d("NewEventActivity", "Recovered and added user ID: " + recoveredUserId + " for user: " + username);
+                                }
+                                break;
+                            }
+                        }
                     }
                 }
             }
+
+            if (usersId.size() <= 1) {
+                Log.w("NewEventActivity", "Event has only the current user!");
+            }
+            
+            Log.d("NewEventActivity", "Final user IDs for event: " + usersId.toString());
 
             // Parse start date and time
             Date startDate = null;
@@ -495,7 +522,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 // Update existing event
                 model.updateEvent(eventId, eventTitle, details, address, group, usersId,
                                 startDate, reminderTime, swchReminder.isChecked(), 
-                                0, duration); // Using 0 for notificationId as it will be set by the system
+                                duration); // notificationId removed as it will be set by the system
                 Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
             } else {
                 // Create new event
@@ -509,7 +536,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     startDate,
                     reminderTime,
                     swchReminder.isChecked(),
-                    0, // notificationId will be set by the system
                     duration
                 );
                 model.createEvent(event);

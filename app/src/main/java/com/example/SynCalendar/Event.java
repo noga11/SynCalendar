@@ -13,7 +13,7 @@ public class Event {
 
     public Event(){}
 
-    public Event(String title, String details, String address, String id, String group, ArrayList<String> users, Date start, Date remTime, boolean reminder, int notificationId, int duration) {
+    public Event(String title, String details, String address, String id, String group, ArrayList<String> users, Date start, Date remTime, boolean reminder, int duration) {
         this.title = title;
         this.details = details;
         this.address = address;
@@ -23,7 +23,7 @@ public class Event {
         this.start = start;
         this.remTime = remTime;
         this.reminder = reminder;
-        this.notificationId = notificationId;
+        this.notificationId = 0; // Default value
         this.duration = duration;
     }
 
