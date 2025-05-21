@@ -17,6 +17,43 @@
         app:menu="@menu/menu_main"
         android:theme="?attr/actionBarTheme" />
 
+    <TextView
+        android:id="@+id/tvRequestsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:background="@color/light_purple"
+        android:text="Follow Requests" />
+
+    <ListView
+        android:id="@+id/lstFollowRequest"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="10dp"
+        tools:listitem="@layout/item_following"/>
+
+    <TextView
+        android:id="@+id/tvNoRequest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:text="Empty" />
+
+    <TextView
+        android:id="@+id/tvFollowersTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:textStyle="bold"
+        android:background="@color/light_purple"
+        android:textSize="24sp"
+        android:text="Followers" />
+
     <EditText
         android:id="@+id/editTextSearch"
         android:layout_width="match_parent"
@@ -27,40 +64,11 @@
         android:hint="Search User"
         android:inputType="text" />
 
-    <TextView
-        android:id="@+id/tvFollowRequest"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:textStyle="bold"
-        android:textSize="22sp"
-        android:visibility="gone"
-        android:text="Follow Request" />
-
-    <ListView
-        android:id="@+id/lstFollowRequest"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_margin="10dp"
-        android:visibility="gone"
-        tools:listitem="@layout/item_following"/>
-
-    <TextView
-        android:id="@+id/tvNoRequest"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="50sp"
-        android:gravity="center"
-        android:visibility="gone"
-        android:text="" />
-
     <ListView
         android:id="@+id/lstUsers"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:layout_margin="10dp"
         tools:listitem="@layout/item_following"/>
 
@@ -68,11 +76,12 @@
         android:id="@+id/tvEmptyList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="50sp"
+        android:layout_weight="2"
+        android:textSize="20sp"
         android:gravity="center"
-        android:visibility="gone"
-        android:text="" />
+        android:text="Empty" />
+
+
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -35,12 +37,13 @@ public class FollowingActivity extends AppCompatActivity {
     private Model model;
     private ListView lstUsers, lstFollowRequest;
     private String source;
-    private TextView tvEmptyList, tvFollowRequest;
+    private TextView tvEmptyList, tvNoRequest, tvRequestsTitle, tvFollowersTitle;
     private EditText editTextSearch;
     private UsersAdapter usersAdapter;
     private RequestAdapter requestAdapter;
     private List<User> allUsers = new ArrayList<>();
     List<User> followRequests = new ArrayList<>();
+    private ActivityResultLauncher<Intent> activityStartLauncher;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -51,12 +54,32 @@ public class FollowingActivity extends AppCompatActivity {
         model = Model.getInstance(this);
         source = getIntent().getStringExtra("SOURCE");
 
+        activityStartLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                // Handle any result if needed
+            }
+        );
+
         tvEmptyList = findViewById(R.id.tvEmptyList);
-        tvFollowRequest = findViewById(R.id.tvFollowRequest);
+        tvNoRequest = findViewById(R.id.tvNoRequest);
+        tvRequestsTitle = findViewById(R.id.tvRequestsTitle);
+        tvFollowersTitle = findViewById(R.id.tvFollowersTitle);
         lstUsers = findViewById(R.id.lstUsers);
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
 
         editTextSearch = findViewById(R.id.editTextSearch);
+
+        // Set initial visibility
+        tvEmptyList.setVisibility(View.GONE);
+        tvNoRequest.setVisibility(View.GONE);
+        
+        if (!"action_Followers".equals(source)) {
+            tvRequestsTitle.setVisibility(View.GONE);
+            lstFollowRequest.setVisibility(View.GONE);
+            tvNoRequest.setVisibility(View.GONE);
+            tvFollowersTitle.setVisibility(View.GONE);
+        }
 
         // Simulate fetching users
         fetchAllUsers();
@@ -113,29 +136,36 @@ public class FollowingActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent = new Intent();
+        Intent intent = new Intent(FollowingActivity.this, LoginActivity.class);
         if (item.getItemId() == R.id.action_followers) {
-            intent.putExtra("FOLLOWERS", "action_Followers");
-            startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
+            intent = new Intent(FollowingActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_Followers");
+            activityStartLauncher.launch(intent);
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
-            startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
+            intent = new Intent(FollowingActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_FindUser");
+            activityStartLauncher.launch(intent);
             finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_following){
-            startActivity(new Intent(FollowingActivity.this, FollowingActivity.class));
+            intent = new Intent(FollowingActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_Following");
+            activityStartLauncher.launch(intent);
             finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_profile){
-            startActivity(new Intent(FollowingActivity.this, LoginActivity.class));
+            intent.putExtra("PROFILE", "action_profile");
+            activityStartLauncher.launch(intent);
             finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){
-            startActivity(new Intent(FollowingActivity.this, LoginActivity.class));
+            intent.putExtra("LOGOUT", "action_logout");
+            activityStartLauncher.launch(intent);
             finish();
             return true;
         }
@@ -170,7 +200,6 @@ public class FollowingActivity extends AppCompatActivity {
         });
     }
 
-    // Placeholder method to simulate fetching users
     private void fetchAllUsers() {
         if ("action_Following".equals(source)) {
             setTitle("Following");
@@ -182,7 +211,8 @@ public class FollowingActivity extends AppCompatActivity {
                     public void onSuccess(User user) {
                         if (user != null) {
                             allUsers.add(user);
-                            usersAdapter.notifyDataSetChanged(); // Update adapter after adding each user
+                            usersAdapter.notifyDataSetChanged();
+                            updateEmptyState();
                         }
                     }
                 }, new OnFailureListener() {
@@ -192,18 +222,18 @@ public class FollowingActivity extends AppCompatActivity {
                     }
                 });
             }
-            if (allUsers.isEmpty()) {
-                tvEmptyList.setText("You don't follow anyone");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
+            updateEmptyState();
         } else if ("action_FindUser".equals(source)) {
             setTitle("Search Users");
-            if (allUsers.isEmpty()) {
-                tvEmptyList.setText("There aren't any other users");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
+            updateEmptyState();
         } else if ("action_Followers".equals(source)) {
             setTitle("Followers");
+            tvFollowersTitle.setText("Followers");
+            tvRequestsTitle.setVisibility(View.VISIBLE);
+            lstFollowRequest.setVisibility(View.VISIBLE);
+            tvNoRequest.setVisibility(View.VISIBLE);
+            tvFollowersTitle.setVisibility(View.VISIBLE);
+            
             Map<String, String> followersMap = model.getCurrentUser().getFollowers();
             allUsers.clear();
             for (Map.Entry<String, String> entry : followersMap.entrySet()) {
@@ -212,7 +242,8 @@ public class FollowingActivity extends AppCompatActivity {
                     public void onSuccess(User user) {
                         if (user != null) {
                             allUsers.add(user);
-                            usersAdapter.notifyDataSetChanged(); // Update adapter after adding each user
+                            usersAdapter.notifyDataSetChanged();
+                            updateEmptyState();
                         }
                     }
                 }, new OnFailureListener() {
@@ -222,18 +253,15 @@ public class FollowingActivity extends AppCompatActivity {
                     }
                 });
             }
-            if (allUsers.isEmpty()) {
-                tvEmptyList.setText("You don't have any Following requests");
-                lstUsers.setEmptyView(tvEmptyList);
-            }
-            // --- Fill followRequests with pending requests ---
+            
+            // Handle follow requests
             followRequests.clear();
             Map<String, String> pendingRequests = model.getCurrentUser().getRequests();
             if (pendingRequests.isEmpty()) {
-                tvFollowRequest.setVisibility(View.GONE);
+                tvNoRequest.setVisibility(View.VISIBLE);
                 lstFollowRequest.setVisibility(View.GONE);
             } else {
-                tvFollowRequest.setVisibility(View.VISIBLE);
+                tvNoRequest.setVisibility(View.GONE);
                 lstFollowRequest.setVisibility(View.VISIBLE);
                 for (String requestId : pendingRequests.keySet()) {
                     model.getUserById(requestId, new OnSuccessListener<User>() {
@@ -242,6 +270,7 @@ public class FollowingActivity extends AppCompatActivity {
                             if (user != null) {
                                 followRequests.add(user);
                                 requestAdapter.notifyDataSetChanged();
+                                updateRequestEmptyState();
                             }
                         }
                     }, new OnFailureListener() {
@@ -252,7 +281,27 @@ public class FollowingActivity extends AppCompatActivity {
                     });
                 }
             }
+            updateEmptyState();
         }
     }
 
+    private void updateEmptyState() {
+        if (allUsers.isEmpty()) {
+            tvEmptyList.setVisibility(View.VISIBLE);
+            lstUsers.setVisibility(View.GONE);
+        } else {
+            tvEmptyList.setVisibility(View.GONE);
+            lstUsers.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateRequestEmptyState() {
+        if (followRequests.isEmpty()) {
+            tvNoRequest.setVisibility(View.VISIBLE);
+            lstFollowRequest.setVisibility(View.GONE);
+        } else {
+            tvNoRequest.setVisibility(View.GONE);
+            lstFollowRequest.setVisibility(View.VISIBLE);
+        }
+    }
 }

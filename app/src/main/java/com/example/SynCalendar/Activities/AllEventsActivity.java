@@ -222,18 +222,18 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent(AllEventsActivity.this, LoginActivity.class);
         if (item.getItemId() == R.id.action_followers) {
-            intent.putExtra("FOLLOW_REQUEST", "action_follow_request");
-            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
+            intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_Followers");
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_users) {
-            intent.putExtra("USERS", "action_users");
-            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
+            intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_FindUser");
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_following) {
-            intent.putExtra("FOLLOWING", "action_following");
-            intent.setClass(AllEventsActivity.this, FollowingActivity.class);
+            intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
+            intent.putExtra("SOURCE", "action_Following");
             activityStartLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == R.id.action_profile) {
