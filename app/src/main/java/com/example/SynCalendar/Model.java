@@ -271,42 +271,27 @@ public class Model {
         }
     }
 
-    public void updateEvent(String eventId, String title, String details, String address,
-                            String group, ArrayList<String> usersId, Date start,
-                            Date remTime, boolean reminder, int duration) {
-        // Find the event in local list first
-        Event eventToUpdate = null;
-        for (Event event : events) {
-            if (event.getId().equals(eventId)) {
-                eventToUpdate = event;
-                break;
-            }
-        }
+    public void updateEvent(String eventId, String title, String details, String address, 
+                          String group, ArrayList<String> usersId, Date start, 
+                          Date remTime, boolean reminder, int duration) {
+        // Create an Event object with the updated values
+        Event eventToUpdate = new Event(title, details, address, eventId, group, usersId,
+                                      start, remTime, reminder, duration);
 
-        if (eventToUpdate == null) {
-            Log.e(TAG, "Event not found with ID: " + eventId);
-            Toast.makeText(context, "Event not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Update all fields
-        eventToUpdate.setTitle(title);
-        eventToUpdate.setDetails(details);
-        eventToUpdate.setAddress(address);
-        eventToUpdate.setGroup(group);
-        eventToUpdate.setUsersId(usersId);
-        eventToUpdate.setStart(start);
-        eventToUpdate.setRemTime(remTime);
-        eventToUpdate.setReminder(reminder);
-        eventToUpdate.setDuration(duration);
-
-        // Update in Firestore
+        // Update directly in Firestore
         DocumentReference eventRef = firestore.collection(EVENTS_COLLECTION).document(eventId);
         eventRef.set(eventToUpdate)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Event updated successfully in Firestore");
+                        // Update local events list if it exists in there
+                        for (int i = 0; i < events.size(); i++) {
+                            if (events.get(i).getId().equals(eventId)) {
+                                events.set(i, eventToUpdate);
+                                break;
+                            }
+                        }
                         raiseEventDataChange();
                     }
                 })
@@ -345,7 +330,16 @@ public class Model {
                             return;
                         }
                         if (querySnapshot != null) {
-                            Log.d("Model", "Events updated.");
+                            // Clear and rebuild the events list
+                            events.clear();
+                            for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                                Event event = document.toObject(Event.class);
+                                if (event != null) {
+                                    event.setId(document.getId());
+                                    events.add(event);
+                                }
+                            }
+                            Log.d("Model", "Events list updated with " + events.size() + " events");
                         }
                     }
                 });
