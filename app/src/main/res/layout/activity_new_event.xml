@@ -190,7 +190,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:backgroundTint="#BCAEE1"
+            android:backgroundTint="#BBADDF"
             android:text="Add Event"
             android:textSize="30sp" />
 
