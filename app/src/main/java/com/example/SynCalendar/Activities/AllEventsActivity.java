@@ -3,6 +3,7 @@ package com.example.SynCalendar.Activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -246,14 +247,16 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         model.addGroup(newGroup);
         
         // Refresh groups from model
-        groups.clear();
-        groups.addAll(model.getGroups());
+        refreshGroups();
         
-        // Update adapter
+        // Update adapter and spinner
         spinnerAdapter.notifyDataSetChanged();
         
         // Set the new group as selected
         spinnerGroup.setText(newGroup, false);
+        
+        // Filter events to show only the new group's events
+        filterEventsByGroup(newGroup);
     }
 
     private void showAddGroupDialog() {
@@ -280,6 +283,11 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
     private void setupGroupSpinner() {
         refreshGroups();
+        
+        // Set up listener for group changes in Firestore
+        model.getEventsByUserId(currentUser.getId(), events -> {
+            refreshGroups(); // Refresh groups whenever events change
+        }, e -> Log.e("AllEventsActivity", "Error listening for event changes", e));
     }
 
     private void refreshGroups() {
@@ -318,8 +326,12 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                         spinnerAdapter.notifyDataSetChanged();
                     }
 
-                    // Set the default selected group to 'All'
-                    spinnerGroup.setText("All", false);
+                    // Maintain current selection if possible, otherwise default to "All"
+                    String currentSelection = spinnerGroup.getText().toString();
+                    if (!groups.contains(currentSelection)) {
+                        spinnerGroup.setText("All", false);
+                        filterEventsByGroup("All");
+                    }
                 });
             }
         });
@@ -379,13 +391,10 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             // Refresh the groups spinner
             refreshGroups();
             
-            // Refresh events view to show updated groups
-            refreshEventsList();
-            
-            groupDialog.dismiss();
-            
             // Show confirmation toast
             Toast.makeText(this, "Group '" + selectedGroup + "' deleted", Toast.LENGTH_SHORT).show();
+            
+            groupDialog.dismiss();
         });
 
         return true;
