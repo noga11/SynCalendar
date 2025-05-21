@@ -60,9 +60,10 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
-            android:textSize="20sp"
             android:gravity="start|top"
             android:inputType="textMultiLine"
+            android:backgroundTint="@color/light_purple"
+            android:textSize="20sp"
             android:hint="Details" />
 
         <LinearLayout
@@ -183,12 +184,13 @@
                 android:inputType="time" />
         </LinearLayout>
 
+
         <Button
             android:id="@+id/btbAddEvent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:backgroundTint="#BBADDF"
+            android:backgroundTint="#BCAEE1"
             android:text="Add Event"
             android:textSize="30sp" />
 
