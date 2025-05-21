@@ -10,6 +10,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -216,67 +217,28 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         // Check if we're editing an existing event
         String eventId = getIntent().getStringExtra("Event");
-        if (eventId != null) {
-            // Change button text to "Update"
-            btbAddEvent.setText("Update Event");
-            setTitle("Edit Event");
 
-            // Load event details
-            model.getEventsByUserId(currentUser.getId(), events -> {
+        // Load all events first, then initialize groups
+        model.getEventsByUserId(currentUser.getId(), events -> {
+            // Now that events are loaded, get groups and setup spinner
+            setupGroupSpinner();
+
+            // If we're editing an event, load its details
+            if (eventId != null) {
+                // Change button text to "Update"
+                btbAddEvent.setText("Update Event");
+                setTitle("Edit Event");
+
+                // Find the event in the loaded events
                 for (Event event : events) {
                     if (event.getId().equals(eventId)) {
                         // Populate fields with event data
-                        etTitle.setText(event.getTitle());
-                        etDetails.setText(event.getDetails());
-                        
-                        // Set date
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                        tvDate.setText(dateFormat.format(event.getStart()));
-                        
-                        // Set start time
-                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-                        tvStartTime.setText(timeFormat.format(event.getStart()));
-                        
-                        // Calculate and set end time based on duration
-                        Calendar endCal = Calendar.getInstance();
-                        endCal.setTime(event.getStart());
-                        endCal.add(Calendar.MINUTE, event.getDuration());
-                        tvEndTime.setText(timeFormat.format(endCal.getTime()));
-                        
-                        // Set group
-                        spinnerGroup.setText(event.getGroup(), false);
-                        
-                        // Set reminder if exists
-                        if (event.isReminder() && event.getRemTime() != null) {
-                            swchReminder.setChecked(true);
-                            tvReminderDate.setVisibility(View.VISIBLE);
-                            tvReminderTime.setVisibility(View.VISIBLE);
-                            tvReminderDate.setText(dateFormat.format(event.getRemTime()));
-                            tvReminderTime.setText(timeFormat.format(event.getRemTime()));
-                        }
-                        
-                        // Set address if exists
-                        EditText etAddress = findViewById(R.id.etAdress);
-                        if (etAddress != null && event.getAddress() != null) {
-                            etAddress.setText(event.getAddress());
-                        }
-                        
+                        populateEventData(event);
                         break;
                     }
                 }
-            }, e -> Toast.makeText(this, "Failed to load event details", Toast.LENGTH_SHORT).show());
-        }
-
-        groups = model.getGroups();
-
-        // Ensure 'Add New Group' option is present
-        if (!groups.contains("Add New Group")) {
-            groups.add("Add New Group");
-        }
-
-        // Setup the adapter
-        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
-        spinnerGroup.setAdapter(spinnerAdapter);
+            }
+        }, e -> Toast.makeText(this, "Failed to load events", Toast.LENGTH_SHORT).show());
 
         tvReminderDate.setVisibility(View.GONE);
         tvReminderTime.setVisibility(View.GONE);
@@ -289,96 +251,46 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         tvEndTime.setOnClickListener(view -> showTimePicker(2));
         tvReminderTime.setOnClickListener(view -> showTimePicker(3));
 
+        // Initialize current date and time
+        setupInitialDateTime();
+
+        btnMic.setOnClickListener(v -> startSpeechToText());
+    }
+
+    private void setupGroupSpinner() {
+        // Get groups from model
+        groups = model.getGroups();
+
+        // Ensure 'Add New Group' option is present
+        if (!groups.contains("Add New Group")) {
+            groups.add("Add New Group");
+        }
+
+        // Setup the adapter with dropdown layout
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, groups);
+        spinnerGroup.setAdapter(spinnerAdapter);
+        
+        // Set dropdown width to match parent
+        spinnerGroup.setDropDownWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+        
+        // Enable dropdown on click
+        spinnerGroup.setOnClickListener(v -> spinnerGroup.showDropDown());
+
         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
             String selectedGroup = groups.get(position);
-
             if ("Add New Group".equals(selectedGroup)) {
                 showAddGroupDialog();
                 spinnerGroup.dismissDropDown();
-            }
-        });
-
-        swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                                != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this,
-                            new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-                    swchReminder.setChecked(false);
-                    return;
-                }
-
-                // Check for SCHEDULE_EXACT_ALARM permission
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    if (!alarmManager.canScheduleExactAlarms()) {
-                        Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                        startActivity(intent);
-                        swchReminder.setChecked(false);
-                        return;
-                    }
-                }
-
-                tvReminderDate.setVisibility(View.VISIBLE);
-                tvReminderTime.setVisibility(View.VISIBLE);
             } else {
-                tvReminderDate.setVisibility(View.GONE);
-                tvReminderTime.setVisibility(View.GONE);
-                notificationMsg.cancelNotification();
-                Toast.makeText(this, "Reminder canceled", Toast.LENGTH_SHORT).show();
+                spinnerGroup.setText(selectedGroup, false);
             }
         });
 
-        // Set up autocomplete for mutual users
-        if (currentUser.getMutuals() != null) {
-            ArrayList<String> mutualUsernames = new ArrayList<>(currentUser.getMutuals().values());
-            ArrayAdapter<String> userAdapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_dropdown_item_1line, mutualUsernames);
-            if (auetShare instanceof AutoCompleteTextView) {
-                ((AutoCompleteTextView) auetShare).setAdapter(userAdapter);
-                ((AutoCompleteTextView) auetShare).setThreshold(1); // Start suggesting after first character
-            }
-        }
+        // Set the default selected group to 'All'
+        spinnerGroup.setText("All", false);
+    }
 
-        auetShare.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-                // You can add additional filtering logic here if needed
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String typedUsername = editable.toString().trim();
-                if (!typedUsername.isEmpty() && isValidUsername(typedUsername)) {
-                    // Check if this user is already added as a chip
-                    boolean alreadyAdded = false;
-                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                        View view = chipGroup.getChildAt(i);
-                        if (view instanceof Chip) {
-                            Chip chip = (Chip) view;
-                            if (chip.getText().toString().equals(typedUsername)) {
-                                alreadyAdded = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (!alreadyAdded) {
-                        addUserChip(typedUsername);
-                    } else {
-                        Toast.makeText(NewEventActivity.this, "User already added", Toast.LENGTH_SHORT).show();
-                    }
-                    auetShare.setText("");  // Clear the input field
-                }
-            }
-        });
-
-        // Initialize current date and time
+    private void setupInitialDateTime() {
         Calendar calendar = Calendar.getInstance();
         selectedYear = calendar.get(Calendar.YEAR);
         selectedMonth = calendar.get(Calendar.MONTH);
@@ -403,11 +315,42 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         // Set the default reminder date and time to current date and time
         tvReminderDate.setText(currentDate);
         tvReminderTime.setText(currentTime);
+    }
 
-        // Set the default selected group to 'All' in the spinnerGroup
-        spinnerGroup.setText("All", false);
-
-        btnMic.setOnClickListener(v -> startSpeechToText());
+    private void populateEventData(Event event) {
+        etTitle.setText(event.getTitle());
+        etDetails.setText(event.getDetails());
+        
+        // Set date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        tvDate.setText(dateFormat.format(event.getStart()));
+        
+        // Set start time
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        tvStartTime.setText(timeFormat.format(event.getStart()));
+        
+        // Calculate and set end time based on duration
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(event.getStart());
+        endCal.add(Calendar.MINUTE, event.getDuration());
+        tvEndTime.setText(timeFormat.format(endCal.getTime()));
+        
+        // Set group
+        spinnerGroup.setText(event.getGroup(), false);
+        
+        // Set reminder if exists
+        if (event.isReminder() && event.getRemTime() != null) {
+            swchReminder.setChecked(true);
+            tvReminderDate.setVisibility(View.VISIBLE);
+            tvReminderTime.setVisibility(View.VISIBLE);
+            tvReminderDate.setText(dateFormat.format(event.getRemTime()));
+            tvReminderTime.setText(timeFormat.format(event.getRemTime()));
+        }
+        
+        // Set address if exists
+        if (event.getAddress() != null) {
+            etAddress.setText(event.getAddress());
+        }
     }
 
     public void onClick(View view) {
@@ -679,10 +622,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
     private void addNewGroup(String newGroup) {
         model.addGroup(newGroup);
-        groups = model.getGroups();
-        spinnerAdapter.clear();
-        spinnerAdapter.addAll(groups);
-        spinnerAdapter.notifyDataSetChanged();
+        // Get updated groups and refresh spinner
+        setupGroupSpinner();
         spinnerGroup.setText(newGroup, false);
     }
 

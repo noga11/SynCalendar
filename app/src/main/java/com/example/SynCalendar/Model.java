@@ -352,28 +352,37 @@ public class Model {
         // Add default "All" group
         uniqueGroups.add("All");
         
-        // Add groups from events
-        for (Event event : events) {
-            if (event.getGroup() != null && !event.getGroup().isEmpty()) {
-                uniqueGroups.add(event.getGroup());
-            }
-        }
+        // Get all events from Firestore and extract their groups
+        firestore.collection(EVENTS_COLLECTION)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        if (event != null && event.getGroup() != null && !event.getGroup().isEmpty()) {
+                            uniqueGroups.add(event.getGroup());
+                        }
+                    }
+                    
+                    // Clear and rebuild the groups list
+                    groups.clear();
+                    groups.addAll(uniqueGroups);
+                    
+                    // Make sure "All" is the first item
+                    if (groups.remove("All")) {
+                        groups.add(0, "All");
+                    }
+                    
+                    // Add "Add New Group" at the end if not present
+                    if (!groups.contains("Add New Group")) {
+                        groups.add("Add New Group");
+                    }
+                    
+                    Log.d(TAG, "Retrieved groups from Firestore: " + groups);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting groups from Firestore", e);
+                });
         
-        // Clear and rebuild the groups list
-        groups.clear();
-        groups.addAll(uniqueGroups);
-        
-        // Make sure "All" is the first item
-        if (groups.remove("All")) {
-            groups.add(0, "All");
-        }
-        
-        // Add "Add New Group" at the end if not present
-        if (!groups.contains("Add New Group")) {
-            groups.add("Add New Group");
-        }
-        
-        Log.d(TAG, "Retrieved groups: " + groups);
         return groups;
     }
 
