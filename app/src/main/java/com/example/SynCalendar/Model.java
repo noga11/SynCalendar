@@ -319,25 +319,23 @@ public class Model {
     }
 
     public ArrayList<String> getGroups() {
-        Set<String> uniqueGroups = new HashSet<>();
         for (Event event : events) {
             if (event.getGroup() != null && !event.getGroup().isEmpty()) {
-                uniqueGroups.add(event.getGroup());
+                groups.add(event.getGroup());
             }
         }
 
-        ArrayList<String> groupsList = new ArrayList<>(uniqueGroups);
 
         // Add special groups
-        if (!groupsList.contains("All")) {
-            groupsList.add(0, "All");
+        if (!groups.contains("All")) {
+            groups.add(0, "All");
         }
-        if (!groupsList.contains("Add New Group")) {
-            groupsList.add("Add New Group");
+        if (!groups.contains("Add New Group")) {
+            groups.add("Add New Group");
         }
 
-        Log.d(TAG, "Retrieved groups: " + groupsList);
-        return groupsList;
+        Log.d(TAG, "Retrieved groups: " + groups);
+        return groups;
     }
 
     public void deleteGroup(String groupToDelete) {
