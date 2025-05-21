@@ -49,6 +49,22 @@ public class Model {
     private static final String KEY_USER_ID = "userId";
     private SharedPreferences sharedPreferences;
 
+    private FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
+        @Override
+        public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user == null) {
+                // User is signed out
+                Log.d(TAG, "AuthStateListener: User signed out");
+                currentUser = null;
+                firebaseUser = null;
+                if (sharedPreferences != null) {
+                    sharedPreferences.edit().clear().apply();
+                }
+            }
+        }
+    };
+
     public Model(Context context) {
         this.context = context;
         mAuth = FirebaseAuth.getInstance();
@@ -56,6 +72,10 @@ public class Model {
         eventRef = firestore.collection(EVENTS_COLLECTION);
         userRef = firestore.collection(USERS_COLLECTION);
         sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        
+        // Add auth state listener
+        mAuth.addAuthStateListener(authStateListener);
+        
         checkUserLoginState();
     }
 
@@ -151,11 +171,34 @@ public class Model {
     }
 
     public void logout() {
-        mAuth.signOut();
-        Log.d("Model", "User logged out");
+        Log.d(TAG, "Starting logout process");
+        
+        // Sign out from Firebase Auth first
+        if (mAuth != null) {
+            mAuth.signOut();
+            Log.d(TAG, "Firebase Auth signed out");
+        }
+        
+        // Clear current user
         currentUser = null;
-        sharedPreferences.edit().remove(KEY_USER_ID).apply();
-        //      raiseUserUpdate();
+        firebaseUser = null;
+        
+        // Clear shared preferences immediately
+        if (sharedPreferences != null) {
+            sharedPreferences.edit()
+                .clear()
+                .commit(); // Using commit() for immediate effect
+        }
+        
+        // Clear cached data
+        if (events != null) {
+            events.clear();
+        }
+        if (groups != null) {
+            groups.clear();
+        }
+        
+        Log.d(TAG, "Logout completed - all state cleared");
     }
 
     public void updateUser(String uName, String email, boolean privacy, Bitmap profilePic) {
@@ -437,12 +480,28 @@ public class Model {
     }
 
     private void checkUserLoginState() {
+        // First check Firebase Auth
+        firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            // If no Firebase user, ensure everything is cleared
+            currentUser = null;
+            if (sharedPreferences != null) {
+                sharedPreferences.edit().clear().commit();
+            }
+            Log.d(TAG, "No Firebase user found, cleared all state");
+            return;
+        }
+
+        // Then check SharedPreferences
         String userId = sharedPreferences.getString(KEY_USER_ID, null);
-        if (userId != null) {
-            getUserFromFirebase(userId, user -> {
-                currentUser = user;
-                Log.d(TAG, "User logged in from shared preferences: " + currentUser.getuName());
-            }, e -> Log.e(TAG, "Failed to retrieve user from shared preferences", e));
+        if (userId == null || !userId.equals(firebaseUser.getUid())) {
+            // Mismatch between Firebase and SharedPreferences, clear everything and sign out
+            Log.d(TAG, "User ID mismatch or missing, signing out");
+            mAuth.signOut();
+            currentUser = null;
+            firebaseUser = null;
+            sharedPreferences.edit().clear().commit();
+            return;
         }
     }
 

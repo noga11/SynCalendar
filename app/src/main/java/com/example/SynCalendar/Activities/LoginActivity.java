@@ -81,6 +81,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             tvPublicOrPrivate.setVisibility(View.VISIBLE);
             rbtnPublic.setVisibility(View.VISIBLE);
             rbtnPrivate.setVisibility(View.VISIBLE);
+            imgbtnPicture.setVisibility(View.VISIBLE);
 
             // Load current user data
             currentUser = model.getCurrentUser();
@@ -125,6 +126,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             tvPublicOrPrivate.setVisibility(View.GONE);
             rbtnPublic.setVisibility(View.GONE);
             rbtnPrivate.setVisibility(View.GONE);
+            imgbtnPicture.setVisibility(View.GONE);
             LOrSChecked = false;
         }
 
@@ -137,6 +139,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 tvPublicOrPrivate.setVisibility(View.GONE);
                 rbtnPublic.setVisibility(View.GONE);
                 rbtnPrivate.setVisibility(View.GONE);
+                imgbtnPicture.setVisibility(View.GONE);
                 LOrSChecked = false;
             } else { // Sign Up screen
                 tvScreenTitle.setText("Sign Up");
@@ -146,6 +149,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 tvPublicOrPrivate.setVisibility(View.VISIBLE);
                 rbtnPublic.setVisibility(View.VISIBLE);
                 rbtnPrivate.setVisibility(View.VISIBLE);
+                imgbtnPicture.setVisibility(View.VISIBLE);
                 LOrSChecked = true;
             }
         });
