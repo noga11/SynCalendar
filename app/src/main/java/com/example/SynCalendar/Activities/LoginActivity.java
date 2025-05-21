@@ -54,6 +54,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         });
         model = Model.getInstance(this);
         source = getIntent().getStringExtra("PROFILE");
+        String logout = getIntent().getStringExtra("LOGOUT");
+        
+        if ("action_logout".equals(logout)) {
+            model.logout();
+            // Clear the back stack and prevent going back
+            Intent intent = new Intent(LoginActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         tvScreenTitle = findViewById(R.id.tvScreenTitle);
         tvLoginSignUp = findViewById(R.id.tvLoginSignUp);

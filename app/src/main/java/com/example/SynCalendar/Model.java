@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Date;
 
-import android.content.SharedPreferences;
-
 public class Model {
     private static final String TAG = "Model";
     private static final String EVENTS_COLLECTION = "events";
@@ -45,37 +43,12 @@ public class Model {
     private ArrayList<Event> events = new ArrayList<>();
     private ArrayList<String> groups = new ArrayList<>();
 
-    private static final String PREFS_NAME = "SynCalendarPrefs";
-    private static final String KEY_USER_ID = "userId";
-    private SharedPreferences sharedPreferences;
-
-    private FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
-        @Override
-        public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user == null) {
-                // User is signed out
-                Log.d(TAG, "AuthStateListener: User signed out");
-                currentUser = null;
-                firebaseUser = null;
-                if (sharedPreferences != null) {
-                    sharedPreferences.edit().clear().apply();
-                }
-            }
-        }
-    };
-
     public Model(Context context) {
         this.context = context;
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         eventRef = firestore.collection(EVENTS_COLLECTION);
         userRef = firestore.collection(USERS_COLLECTION);
-        sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        
-        // Add auth state listener
-        mAuth.addAuthStateListener(authStateListener);
-        
         checkUserLoginState();
     }
 
@@ -125,8 +98,7 @@ public class Model {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         getUserFromFirebase(firebaseUser.getUid(), user -> {
                             currentUser = user;
-                            sharedPreferences.edit().putString(KEY_USER_ID, firebaseUser.getUid()).apply();
-                            Log.d(TAG, "User logged in and saved to shared preferences: " + currentUser.getuName());
+                            Log.d(TAG, "User logged in: " + currentUser.getuName());
                             onSuccess.onSuccess(currentUser);
                         }, onFailure);
                     }
@@ -171,34 +143,13 @@ public class Model {
     }
 
     public void logout() {
-        Log.d(TAG, "Starting logout process");
-        
-        // Sign out from Firebase Auth first
-        if (mAuth != null) {
-            mAuth.signOut();
-            Log.d(TAG, "Firebase Auth signed out");
-        }
-        
-        // Clear current user
+        mAuth.signOut();
+        Log.d("Model", "User logged out");
         currentUser = null;
-        firebaseUser = null;
-        
-        // Clear shared preferences immediately
-        if (sharedPreferences != null) {
-            sharedPreferences.edit()
-                .clear()
-                .commit(); // Using commit() for immediate effect
-        }
-        
-        // Clear cached data
-        if (events != null) {
-            events.clear();
-        }
-        if (groups != null) {
-            groups.clear();
-        }
-        
-        Log.d(TAG, "Logout completed - all state cleared");
+        events.clear();
+        groups.clear();
+        // Clear the singleton instance to force a fresh start
+        instance = null;
     }
 
     public void updateUser(String uName, String email, boolean privacy, Bitmap profilePic) {
@@ -480,28 +431,12 @@ public class Model {
     }
 
     private void checkUserLoginState() {
-        // First check Firebase Auth
-        firebaseUser = mAuth.getCurrentUser();
-        if (firebaseUser == null) {
-            // If no Firebase user, ensure everything is cleared
-            currentUser = null;
-            if (sharedPreferences != null) {
-                sharedPreferences.edit().clear().commit();
-            }
-            Log.d(TAG, "No Firebase user found, cleared all state");
-            return;
-        }
-
-        // Then check SharedPreferences
-        String userId = sharedPreferences.getString(KEY_USER_ID, null);
-        if (userId == null || !userId.equals(firebaseUser.getUid())) {
-            // Mismatch between Firebase and SharedPreferences, clear everything and sign out
-            Log.d(TAG, "User ID mismatch or missing, signing out");
-            mAuth.signOut();
-            currentUser = null;
-            firebaseUser = null;
-            sharedPreferences.edit().clear().commit();
-            return;
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            getUserFromFirebase(firebaseUser.getUid(), user -> {
+                currentUser = user;
+                Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
+            }, e -> Log.e(TAG, "Failed to retrieve user from Firebase", e));
         }
     }
 

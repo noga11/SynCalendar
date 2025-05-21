@@ -291,7 +291,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     }
 
     private void refreshGroups() {
-        // Get groups  from model with callback
+        // Get groups from model with callback
         model.getGroups(new Model.GroupsCallback() {
             @Override
             public void onGroupsLoaded(ArrayList<String> loadedGroups) {
