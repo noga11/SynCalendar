@@ -7,33 +7,25 @@ import java.util.Date;
 public class Event {
     private String title, details, address, id, topic;
     private ArrayList<String> usersId;
-    //add users display name or use collection of users
-    private Status status;
     private Date start, remTime;
-    private boolean reminder, important;
-    private int colour, notificationId, duration;
+    private boolean reminder;
+    private int notificationId, duration;
 
     public Event(){}
 
-    public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Status status, Date start, Date remTime, boolean reminder, boolean important, int colour, int notificationId, int duration) {
+    public Event(String title, String details, String address, String id, String topic, ArrayList<String> users, Date start, Date remTime, boolean reminder, int notificationId, int duration) {
         this.title = title;
         this.details = details;
         this.address = address;
         this.id = id;
         this.topic = topic;
         this.usersId = users;
-        this.status = status;
         this.start = start;
         this.remTime = remTime;
         this.reminder = reminder;
-        this.important = important;
-        this.colour = colour;
         this.notificationId = notificationId;
         this.duration = duration;
     }
-
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
 
     public int getDuration() { return duration; }
     public void setDuration(int duration) { this.duration = duration; }
@@ -67,16 +59,6 @@ public class Event {
 
     public boolean isReminder() { return reminder; }
     public void setReminder(boolean reminder) { this.reminder = reminder; }
-
-    public boolean isImportant() { return important; }
-    public void setImportant(boolean important) { this.important = important; }
-
-    public int getColour() { return colour; }
-    public void setColour(int colour) { this.colour = colour; }
-
-    public enum Status {
-        FREE, BUSY
-    }
 
     public Date getEnd() {
         if (start == null) {

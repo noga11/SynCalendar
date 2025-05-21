@@ -31,6 +31,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.SynCalendar.Event;
+import com.example.SynCalendar.GeminiManager;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.Notification.NotificationMsg;
 import com.example.SynCalendar.Notification.Reminder;
@@ -50,6 +51,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.Locale;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -69,6 +76,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private ChipGroup chipGroup;
     private AutoCompleteTextView spinnerGroup;
     private ImageButton btnMic;
+    private GeminiManager geminiManager;
 
     private final ActivityResultLauncher<Intent> speechRecognizerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -77,7 +85,88 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     ArrayList<String> speechResults = result.getData()
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     if (speechResults != null && !speechResults.isEmpty()) {
-                        etTitle.setText(speechResults.get(0));
+                        String spokenText = speechResults.get(0);
+
+                        // Send spoken text to Gemini for processing
+                        geminiManager.sendMessage(spokenText, new GeminiManager.GeminiCallback() {
+                            @Override
+                            public void onSuccessful(String response) {
+                                try {
+                                    // Parse the JSON response
+                                    JSONObject eventJson = new JSONObject(response);
+
+                                    // Update UI fields with parsed data
+                                    runOnUiThread(() -> {
+                                        try {
+                                            if (eventJson.has("title")) {
+                                                etTitle.setText(eventJson.getString("title"));
+                                            }
+                                            if (eventJson.has("details")) {
+                                                etDetails.setText(eventJson.getString("details"));
+                                            }
+                                            if (eventJson.has("address")) {
+                                                EditText etAddress = findViewById(R.id.etAdress);
+                                                if (etAddress != null) {
+                                                    etAddress.setText(eventJson.getString("address"));
+                                                }
+                                            }
+                                            if (eventJson.has("topic")) {
+                                                spinnerGroup.setText(eventJson.getString("topic"), false);
+                                            }
+                                            if (eventJson.has("start")) {
+                                                String startDateTime = eventJson.getString("start");
+                                                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                                                isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                                                Date startDate = isoFormat.parse(startDateTime);
+
+                                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                                SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+
+                                                tvDate.setText(dateFormat.format(startDate));
+                                                tvStartTime.setText(timeFormat.format(startDate));
+
+                                                // Set end time based on duration if available
+                                                if (eventJson.has("duration")) {
+                                                    Calendar endCal = Calendar.getInstance();
+                                                    endCal.setTime(startDate);
+                                                    endCal.add(Calendar.MINUTE, eventJson.getInt("duration"));
+                                                    tvEndTime.setText(timeFormat.format(endCal.getTime()));
+                                                }
+                                            }
+                                            if (eventJson.has("reminder") && eventJson.getBoolean("reminder")) {
+                                                swchReminder.setChecked(true);
+                                                if (eventJson.has("remTime")) {
+                                                    String remDateTime = eventJson.getString("remTime");
+                                                    SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                                                    isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                                                    Date remDate = isoFormat.parse(remDateTime);
+
+                                                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                                    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+
+                                                    tvReminderDate.setText(dateFormat.format(remDate));
+                                                    tvReminderTime.setText(timeFormat.format(remDate));
+                                                }
+                                            }
+                                        } catch (Exception e) {
+                                            Log.e("NewEventActivity", "Error parsing date/time", e);
+                                            Toast.makeText(NewEventActivity.this, "Error parsing event details", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } catch (JSONException e) {
+                                    Log.e("NewEventActivity", "Error parsing JSON response", e);
+                                    Toast.makeText(NewEventActivity.this, "Error processing speech input", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onError(Throwable ex) {
+                                Log.e("NewEventActivity", "Gemini API error", ex);
+                                runOnUiThread(() -> {
+                                    Toast.makeText(NewEventActivity.this, "Error processing speech input", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        });
                     }
                 }
             }
@@ -93,6 +182,22 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
         currentUser = model.getCurrentUser();
+
+        // Initialize GeminiManager with system prompt
+        try {
+            InputStream inputStream = getResources().openRawResource(R.raw.system_prompt);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            String systemPrompt = stringBuilder.toString();
+            geminiManager = GeminiManager.getInstance(systemPrompt);
+        } catch (IOException e) {
+            Log.e("NewEventActivity", "Error reading system prompt", e);
+            Toast.makeText(this, "Error initializing speech recognition", Toast.LENGTH_SHORT).show();
+        }
 
         etTitle = findViewById(R.id.etTitle);
         etDetails = findViewById(R.id.etDetails);
@@ -290,12 +395,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     null, // id, will be set by Firestore
                     group,
                     usersId,
-                    null, // status, set as needed
                     startDate,
                     swchReminder.isChecked() ? parseReminderDateTime() : null, // remTime, set based on reminder switch
                     swchReminder.isChecked(),
-                    false, // important, set as needed
-                    0, // colour, set as needed
                     0, // notificationId, set as needed
                     duration
             );

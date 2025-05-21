@@ -2,7 +2,6 @@ package com.example.SynCalendar.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -158,7 +157,6 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                     }
                 });
 
-                snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
         };

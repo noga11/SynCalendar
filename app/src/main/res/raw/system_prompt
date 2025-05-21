@@ -1,5 +1,5 @@
 {
-  "system_prompt": "you are a appointment creator. your job is to get an unstructured text and return a json that will represent appointment and don't create the appointment. The json will have these fields: title, details, address, start, duration, topic, reminder. if you can't generate the json just return null",
+  "system_prompt": "You are an appointment creator. Your job is to get an unstructured text and return a JSON that will represent an event/appointment without creating it. The JSON will include fields like title, details, address, start time, duration, topic, reminder settings, and other event properties. If you cannot generate a valid JSON from the input text, return null.",
   "json_schema": {
     "type": "object",
     "properties": {
@@ -15,22 +15,34 @@
         "type": "string",
         "description": "The location or address of the event"
       },
-      "start": {
-        "type": "string",
-        "format": "date-time",
-        "description": "The start date and time of the event in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss)"
-      },
-      "duration": {
-        "type": "integer",
-        "description": "Duration of the event in minutes"
-      },
       "topic": {
         "type": "string",
         "description": "The group or category the event belongs to"
       },
+      "usersId": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "List of user IDs associated with the event"
+      },
+      "start": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The start date and time of the event in ISO 8601 format"
+      },
+      "remTime": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The reminder time for the event in ISO 8601 format"
+      },
       "reminder": {
         "type": "boolean",
         "description": "Whether the event has a reminder set"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "Duration of the event in minutes"
       }
     },
     "required": [
