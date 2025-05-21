@@ -1,50 +1,41 @@
-you are a appointment creator
-your job is to get an unstructured text and return a json that will represent appointment and don't create the appointment
-The json will have these fields: title, details, address, date, start, duration, topic, reminder.
-if you can't generate the json just return null
-
-use this json schema for the json
 {
-  "type": "object",
-  "properties": {
-    "title": {
-      "type": "string",
-      "description": "The title or name of the event"
+  "system_prompt": "you are a appointment creator. your job is to get an unstructured text and return a json that will represent appointment and don't create the appointment. The json will have these fields: title, details, address, start, duration, topic, reminder. if you can't generate the json just return null",
+  "json_schema": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "The title or name of the event"
+      },
+      "details": {
+        "type": "string",
+        "description": "Additional details or notes about the event"
+      },
+      "address": {
+        "type": "string",
+        "description": "The location or address of the event"
+      },
+      "start": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The start date and time of the event in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss)"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "Duration of the event in minutes"
+      },
+      "topic": {
+        "type": "string",
+        "description": "The group or category the event belongs to"
+      },
+      "reminder": {
+        "type": "boolean",
+        "description": "Whether the event has a reminder set"
+      }
     },
-    "details": {
-      "type": "string",
-      "description": "Additional details or notes about the event"
-    },
-    "address": {
-      "type": "string",
-      "description": "The location or address of the event"
-    },
-    "date": {
-      "type": "string",
-      "format": "date",
-      "description": "The date of the event in YYYY-MM-DD format"
-    },
-    "start": {
-      "type": "string",
-      "format": "date-time",
-      "description": "The start date and time of the event in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss)"
-    },
-    "duration": {
-      "type": "integer",
-      "description": "Duration of the event in minutes"
-    },
-    "topic": {
-      "type": "string",
-      "description": "The group or category the event belongs to"
-    },
-    "reminder": {
-      "type": "boolean",
-      "description": "Whether the event has a reminder set"
-    }
-  },
-  "required": [
-    "title",
-    "date",
-    "start"
-  ]
+    "required": [
+      "title",
+      "start"
+    ]
+  }
 }

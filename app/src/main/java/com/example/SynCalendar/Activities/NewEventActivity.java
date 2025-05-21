@@ -290,7 +290,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     null, // id, will be set by Firestore
                     group,
                     usersId,
-                    null, // repeat, set as needed
                     null, // status, set as needed
                     startDate,
                     swchReminder.isChecked() ? parseReminderDateTime() : null, // remTime, set based on reminder switch
