@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -199,6 +200,8 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             }
             return false;
         });
+
+        setupGroupSpinner();
     }
 
     @Override
@@ -275,14 +278,75 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                 .show();
     }
 
+    private void setupGroupSpinner() {
+        refreshGroups();
+    }
+
+    private void refreshGroups() {
+        // Get groups from model with callback
+        model.getGroups(new Model.GroupsCallback() {
+            @Override
+            public void onGroupsLoaded(ArrayList<String> loadedGroups) {
+                runOnUiThread(() -> {
+                    groups.clear();
+                    groups.addAll(loadedGroups);
+
+                    // If adapter doesn't exist, create it
+                    if (spinnerAdapter == null) {
+                        spinnerAdapter = new ArrayAdapter<>(AllEventsActivity.this, 
+                            android.R.layout.simple_dropdown_item_1line, groups);
+                        spinnerGroup.setAdapter(spinnerAdapter);
+                        
+                        // Set dropdown width to match parent
+                        spinnerGroup.setDropDownWidth(ViewGroup.LayoutParams.MATCH_PARENT);
+                        
+                        // Enable dropdown on click
+                        spinnerGroup.setOnClickListener(v -> spinnerGroup.showDropDown());
+
+                        spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
+                            String selectedGroup = groups.get(position);
+                            if ("Add New Group".equals(selectedGroup)) {
+                                showAddGroupDialog();
+                                spinnerGroup.dismissDropDown();
+                            } else {
+                                spinnerGroup.setText(selectedGroup, false);
+                                filterEventsByGroup(selectedGroup);
+                            }
+                        });
+                    } else {
+                        // Just notify the adapter of the data change
+                        spinnerAdapter.notifyDataSetChanged();
+                    }
+
+                    // Set the default selected group to 'All'
+                    spinnerGroup.setText("All", false);
+                });
+            }
+        });
+    }
+
+    private void filterEventsByGroup(String selectedGroup) {
+        filterdEvents.clear();
+        if ("All".equals(selectedGroup)) {
+            filterdEvents.addAll(events);
+        } else {
+            for (Event event : events) {
+                if (event.getGroup().equals(selectedGroup)) {
+                    filterdEvents.add(event);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+        updateEmptyState();
+    }
+
     @Override
     public boolean onLongClick(View view) {
-        int position = lstAllEvents.getChildAdapterPosition(view); // Get the clicked position
-        if (position == RecyclerView.NO_POSITION || position >= groups.size()) {
-            return false; // Invalid position, ignore
+        if (view.getId() != R.id.spinnerGroup) {
+            return false;
         }
 
-        String selectedGroup = groups.get(position);
+        String selectedGroup = spinnerGroup.getText().toString();
         // Don't allow deletion of special groups
         if ("All".equals(selectedGroup) || "Add New Group".equals(selectedGroup)) {
             Toast.makeText(this, "Cannot delete this group", Toast.LENGTH_SHORT).show();
@@ -312,24 +376,19 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             // Use model to delete group
             model.deleteGroup(selectedGroup);
             
-            // Refresh groups from model
-            groups.clear();
-            groups.addAll(model.getGroups());
+            // Refresh the groups spinner
+            refreshGroups();
             
-            // Update adapter
-            spinnerAdapter.notifyDataSetChanged();
-            
-            // Reset to "All" group
-            spinnerGroup.setText("All", false);
-            
-            // Refresh events view
-            filterdEvents.clear();
-            filterdEvents.addAll(events);
+            // Refresh events view to show updated groups
+            refreshEventsList();
             
             groupDialog.dismiss();
+            
+            // Show confirmation toast
+            Toast.makeText(this, "Group '" + selectedGroup + "' deleted", Toast.LENGTH_SHORT).show();
         });
 
-        return true; // Indicate that the event was handled
+        return true;
     }
 
     private void sortEventsByStartTime(List<Event> eventList) {

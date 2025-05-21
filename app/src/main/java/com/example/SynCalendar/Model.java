@@ -345,7 +345,11 @@ public class Model {
                 });
     }
 
-    public ArrayList<String> getGroups() {
+    public interface GroupsCallback {
+        void onGroupsLoaded(ArrayList<String> groups);
+    }
+
+    public void getGroups(GroupsCallback callback) {
         // Use a HashSet to ensure uniqueness of all groups
         Set<String> uniqueGroups = new HashSet<>();
         
@@ -378,12 +382,18 @@ public class Model {
                     }
                     
                     Log.d(TAG, "Retrieved groups from Firestore: " + groups);
+                    
+                    // Call the callback with the updated groups
+                    callback.onGroupsLoaded(new ArrayList<>(groups));
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting groups from Firestore", e);
+                    callback.onGroupsLoaded(new ArrayList<>(groups)); // Return current groups on error
                 });
-        
-        return groups;
+    }
+
+    public ArrayList<String> getGroups() {
+        return new ArrayList<>(groups);
     }
 
     public void deleteGroup(String groupToDelete) {
@@ -391,13 +401,26 @@ public class Model {
             groups.remove(groupToDelete);
             Log.d(TAG, "Deleted group: " + groupToDelete);
             
-            // Update all events in this group
-            for (Event event : events) {
-                if (groupToDelete.equals(event.getGroup())) {
-                    event.setGroup("All"); // Set to default group instead of null
-                    updateEvent(event.getId(), event.getTitle(), event.getDetails(), event.getAddress(), "All", event.getUsersId(), event.getStart(), event.getRemTime(), event.isReminder(), event.getDuration()); // Update in Firestore
-                }
-            }
+            // Get all events in this group and update them
+            firestore.collection(EVENTS_COLLECTION)
+                    .whereEqualTo("group", groupToDelete)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                            Event event = document.toObject(Event.class);
+                            if (event != null) {
+                                event.setId(document.getId());
+                                event.setGroup("All"); // Set to default group
+                                // Update in Firestore
+                                firestore.collection(EVENTS_COLLECTION)
+                                        .document(event.getId())
+                                        .set(event)
+                                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Event updated after group deletion"))
+                                        .addOnFailureListener(e -> Log.e(TAG, "Error updating event after group deletion", e));
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Error querying events for group deletion", e));
         }
     }
 

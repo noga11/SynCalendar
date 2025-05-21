@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textSize="22sp"
-        android:text="Are you sure you want to delete this group? \nall events in this group will be deleted as well." />
+        android:text="Are you sure you want to delete this group? \nall events in this group will be moved to 'All'." />
 
 
     <LinearLayout
