@@ -8,15 +8,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.SynCalendar.Adapters.DailyEventsAdapter;
@@ -25,6 +27,7 @@ import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.Event;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -39,13 +42,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Collections;
 
-public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener{
+public class MainActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener {
     private Model model;
     private DailyEventsAdapter adapter;
     private List<Event> events;
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
-    private ListView lstDailyEvents;
+    private RecyclerView lstDailyEvents;
     private TextView tvEmptyList;
     private TextView monthYearText;
     private RecyclerView calendarRecyclerView;
@@ -71,7 +74,57 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         // Initialize the events list and adapter
         events = new ArrayList<>();
         adapter = new DailyEventsAdapter(this, events);
+        
+        // Set up RecyclerView
+        lstDailyEvents.setLayoutManager(new LinearLayoutManager(this));
         lstDailyEvents.setAdapter(adapter);
+
+        // Set up item click listener
+        adapter.setOnItemClickListener((event, position) -> {
+            Intent intent = new Intent(MainActivity.this, NewEventActivity.class);
+            intent.putExtra("Event", event.getId());
+            intent.putExtra("isEditing", true);
+            activityStartLauncher.launch(intent);
+        });
+
+        // Add swipe-to-delete functionality
+        ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                Event deletedEvent = events.get(position);
+
+                // Remove from RecyclerView
+                events.remove(position);
+                adapter.notifyItemRemoved(position);
+
+                // Show Snackbar with Undo option
+                Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Event deleted", Snackbar.LENGTH_LONG);
+                snackbar.setAction("UNDO", v -> {
+                    events.add(position, deletedEvent);
+                    adapter.notifyItemInserted(position);
+                });
+
+                // Delete from database only if NOT undone
+                snackbar.addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar snackbar, int event) {
+                        if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                            model.deleteEvent(deletedEvent);
+                        }
+                    }
+                });
+
+                snackbar.show();
+            }
+        };
+
+        new ItemTouchHelper(swipeCallback).attachToRecyclerView(lstDailyEvents);
 
         setMonthView();
 
@@ -102,13 +155,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                     // Refresh events when returning from NewEventActivity
                     if (result.getData() != null && result.getData().getComponent() != null &&
                         result.getData().getComponent().getClassName().contains("NewEventActivity")) {
-                        model.getEventsByUserId(model.getCurrentUser().getId(), userEvents -> {
-                            events.clear();
-                            events.addAll(userEvents);
-                            sortEventsByStartTime(events);
-                            updateEventsForSelectedDate(selectedDate);
-                            setMonthView();
-                        }, e -> Toast.makeText(MainActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+                        refreshEvents();
                     }
                 }
         );
@@ -195,9 +242,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         selectedCalendar.set(Calendar.SECOND, 0);
         selectedCalendar.set(Calendar.MILLISECOND, 0);
 
-        Log.d(TAG, "Filtering events for date: " + selectedCalendar.getTime());
-        Log.d(TAG, "Total events before filtering: " + events.size());
-
         for (Event event : events) {
             if (event.getStart() != null) {
                 Calendar eventCalendar = Calendar.getInstance();
@@ -209,12 +253,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                 
                 if (sameDay) {
                     filteredEvents.add(event);
-                    Log.d(TAG, "Added event: " + event.getTitle() + " for date: " + eventCalendar.getTime());
                 }
             }
         }
-
-        Log.d(TAG, "Found " + filteredEvents.size() + " events for selected date");
 
         // Sort filtered events by start time
         Collections.sort(filteredEvents, (event1, event2) -> {
@@ -225,9 +266,8 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         });
 
         runOnUiThread(() -> {
-            adapter.clear();
             if (!filteredEvents.isEmpty()) {
-                adapter.addAll(filteredEvents);
+                adapter.updateData(filteredEvents);
                 tvEmptyList.setVisibility(View.GONE);
                 lstDailyEvents.setVisibility(View.VISIBLE);
             } else {
@@ -236,7 +276,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                 tvEmptyList.setVisibility(View.VISIBLE);
                 lstDailyEvents.setVisibility(View.GONE);
             }
-            adapter.notifyDataSetChanged();
         });
     }
 
