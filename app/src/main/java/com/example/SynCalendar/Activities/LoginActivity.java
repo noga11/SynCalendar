@@ -24,6 +24,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
+import com.example.SynCalendar.PhotoHelper;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -95,9 +96,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 tietPassword.setFocusable(false);
                 tietPassword.setClickable(false);
 
-                if (currentUser.getProfilePic() != null) {
-                    imgbtnPicture.setImageBitmap(currentUser.getProfilePic());
+                // Display profile picture if available
+                if (currentUser.getProfilePicString() != null) {
+                    Bitmap profilePic = PhotoHelper.stringToBitmap(currentUser.getProfilePicString());
+                    if (profilePic != null) {
+                        imgbtnPicture.setImageBitmap(profilePic);
+                    }
                 }
+
                 // Set the current privacy setting
                 if (currentUser.getPrivacy()) {
                     rbtnPrivate.setChecked(true);
