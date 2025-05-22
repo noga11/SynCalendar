@@ -391,6 +391,10 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             // Refresh the groups spinner
             refreshGroups();
             
+            // Set spinner back to "All"
+            spinnerGroup.setText("All", false);
+            filterEventsByGroup("All");
+            
             // Show confirmation toast
             Toast.makeText(this, "Group '" + selectedGroup + "' deleted", Toast.LENGTH_SHORT).show();
             
