@@ -181,7 +181,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             , new ActivityResultCallback<Bitmap>() {
                 @Override
                 public void onActivityResult(Bitmap o) {
-                    imgbtnPicture.setImageBitmap(o);
+                    if (o != null) {
+                        // Scale the bitmap to match the ImageButton size (200dp)
+                        float scale = getResources().getDisplayMetrics().density;
+                        int targetSize = (int) (200 * scale); // Convert 200dp to pixels
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(o, targetSize, targetSize, true);
+                        imgbtnPicture.setImageBitmap(scaledBitmap);
+                    }
                 }
             });
 
