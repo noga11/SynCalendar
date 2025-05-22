@@ -313,6 +313,11 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                 runOnUiThread(() -> {
                     groups.clear();
                     groups.addAll(loadedGroups);
+                    
+                    // Remove 'Add New Group' option if it exists
+                    if (groups.contains("Add New Group")) {
+                        groups.remove("Add New Group");
+                    }
 
                     // If adapter doesn't exist, create it
                     if (spinnerAdapter == null) {
@@ -328,13 +333,8 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
                         spinnerGroup.setOnItemClickListener((parent, view, position, id) -> {
                             String selectedGroup = groups.get(position);
-                            if ("Add New Group".equals(selectedGroup)) {
-                                showAddGroupDialog();
-                                spinnerGroup.dismissDropDown();
-                            } else {
-                                spinnerGroup.setText(selectedGroup, false);
-                                filterEventsByGroup(selectedGroup);
-                            }
+                            spinnerGroup.setText(selectedGroup, false);
+                            filterEventsByGroup(selectedGroup);
                         });
                     } else {
                         // Just notify the adapter of the data change
