@@ -411,26 +411,32 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
     private void refreshEventsList() {
         model.getEventsByUserId(currentUser.getId(), userEvents -> {
-            events.clear();
-            events.addAll(userEvents);
-            sortEventsByStartTime(events);
-            
-            // Maintain current group filter
-            String currentGroup = spinnerGroup.getText().toString();
-            filterdEvents.clear();
-            if ("All".equals(currentGroup)) {
-                filterdEvents.addAll(events);
-            } else {
-                for (Event event : events) {
-                    if (event.getGroup().equals(currentGroup)) {
-                        filterdEvents.add(event);
+            runOnUiThread(() -> {
+                events.clear();
+                events.addAll(userEvents);
+                sortEventsByStartTime(events);
+                
+                // Maintain current group filter
+                String currentGroup = spinnerGroup.getText().toString();
+                filterdEvents.clear();
+                if ("All".equals(currentGroup)) {
+                    filterdEvents.addAll(events);
+                } else {
+                    for (Event event : events) {
+                        if (event.getGroup().equals(currentGroup)) {
+                            filterdEvents.add(event);
+                        }
                     }
                 }
-            }
-            
-            adapter.updateData(filterdEvents);
-            updateEmptyState();
-        }, e -> Toast.makeText(AllEventsActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show());
+                
+                adapter.notifyDataSetChanged();
+                updateEmptyState();
+            });
+        }, e -> {
+            runOnUiThread(() -> {
+                Toast.makeText(AllEventsActivity.this, "Failed to refresh events", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     private void updateEmptyState() {
