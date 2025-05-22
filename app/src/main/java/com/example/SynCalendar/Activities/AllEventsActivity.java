@@ -435,6 +435,9 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                 
                 adapter.notifyDataSetChanged();
                 updateEmptyState();
+                
+                // Refresh groups to capture any new groups added
+                refreshGroups();
             });
         }, e -> {
             runOnUiThread(() -> {
