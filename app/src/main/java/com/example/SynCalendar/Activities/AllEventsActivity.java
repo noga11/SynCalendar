@@ -14,6 +14,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.widget.SearchView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -50,6 +51,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     private AutoCompleteTextView spinnerGroup;
     private ArrayList<String> groups;
     private AllEventsAdapter adapter;
+    private SearchView searchView;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -64,6 +66,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
 
         lstAllEvents = findViewById(R.id.lstAllEvents);
         tvEmptyList = findViewById(R.id.tvEmptyList);
+        searchView = findViewById(R.id.searchView);
 
         activityStartLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -218,6 +221,9 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         });
 
         setupGroupSpinner();
+
+        // Setup SearchView
+        setupSearchView();
     }
 
     @Override
@@ -353,12 +359,20 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
     }
 
     private void filterEventsByGroup(String selectedGroup) {
+        // Clear search query when changing groups, but prevent the listener from triggering
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(null);  // Remove listener temporarily
+            searchView.setQuery("", false);
+            searchView.clearFocus();
+            setupSearchView();  // Restore the listener
+        }
+
         filterdEvents.clear();
         if ("All".equals(selectedGroup)) {
             filterdEvents.addAll(events);
         } else {
             for (Event event : events) {
-                if (event.getGroup().equals(selectedGroup)) {
+                if (event.getGroup() != null && event.getGroup().equals(selectedGroup)) {
                     filterdEvents.add(event);
                 }
             }
@@ -469,5 +483,64 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             tvEmptyList.setVisibility(View.GONE);
             lstAllEvents.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterEvents(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterEvents(newText);
+                return true;
+            }
+        });
+    }
+
+    private void filterEvents(String query) {
+        ArrayList<Event> currentGroupEvents = new ArrayList<>();
+        String currentGroup = spinnerGroup.getText().toString();
+
+        // First, filter by group
+        if ("All".equals(currentGroup)) {
+            currentGroupEvents.addAll(events);
+        } else {
+            for (Event event : events) {
+                if (event.getGroup() != null && event.getGroup().equals(currentGroup)) {
+                    currentGroupEvents.add(event);
+                }
+            }
+        }
+
+        // If query is empty, show all events for current group
+        if (query == null || query.isEmpty()) {
+            filterdEvents.clear();
+            filterdEvents.addAll(currentGroupEvents);
+            adapter.notifyDataSetChanged();
+            updateEmptyState();
+            return;
+        }
+
+        // Then filter by search query
+        filterdEvents.clear();
+        String lowerCaseQuery = query.toLowerCase().trim();
+
+        for (Event event : currentGroupEvents) {
+            boolean matchesTitle = event.getTitle() != null && 
+                                 event.getTitle().toLowerCase().contains(lowerCaseQuery);
+            boolean matchesDetails = event.getDetails() != null && 
+                                   event.getDetails().toLowerCase().contains(lowerCaseQuery);
+            
+            if (matchesTitle || matchesDetails) {
+                filterdEvents.add(event);
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+        updateEmptyState();
     }
 }

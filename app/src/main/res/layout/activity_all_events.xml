@@ -33,12 +33,13 @@
             android:clickable="true"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.search.SearchBar
-        android:id="@+id/search"
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search"/>
-<!--        app:textCentered="false" />-->
+        android:backgroundTint="@color/light_purple"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search events"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/lstAllEvents"
