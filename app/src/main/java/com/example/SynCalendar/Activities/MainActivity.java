@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,8 +77,13 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         adapter = new DailyEventsAdapter(this, events);
         
         // Set up RecyclerView
-        lstDailyEvents.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        lstDailyEvents.setLayoutManager(layoutManager);
         lstDailyEvents.setAdapter(adapter);
+
+        // Add divider decoration
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(lstDailyEvents.getContext(), layoutManager.getOrientation());
+        lstDailyEvents.addItemDecoration(dividerItemDecoration);
 
         // Set up item click listener
         adapter.setOnItemClickListener((event, position) -> {

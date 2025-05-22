@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -80,7 +81,12 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
         currentUser = model.getCurrentUser();
         events = new ArrayList<>();
         filterdEvents = new ArrayList<>();
-        lstAllEvents.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        lstAllEvents.setLayoutManager(layoutManager);
+        
+        // Add divider decoration
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(lstAllEvents.getContext(), layoutManager.getOrientation());
+        lstAllEvents.addItemDecoration(dividerItemDecoration);
         
         adapter = new AllEventsAdapter(this, filterdEvents);
         adapter.setOnItemClickListener((event, position) -> {
