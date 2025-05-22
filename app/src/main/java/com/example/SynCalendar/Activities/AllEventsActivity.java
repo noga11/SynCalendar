@@ -124,6 +124,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
                 Event deletedEvent = filterdEvents.get(position);
+                String deletedEventGroup = deletedEvent.getGroup();
 
                 // Remove from RecyclerView
                 events.remove(deletedEvent);
@@ -144,6 +145,20 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
                     public void onDismissed(Snackbar snackbar, int event) {
                         if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
                             model.deleteEvent(deletedEvent); // Use the deleteEvent method
+                            
+                            // Check if any events still use this group
+                            boolean groupStillInUse = false;
+                            for (Event e : events) {
+                                if (e.getGroup().equals(deletedEventGroup)) {
+                                    groupStillInUse = true;
+                                    break;
+                                }
+                            }
+                            
+                            // If group is no longer in use, refresh groups
+                            if (!groupStillInUse && !deletedEventGroup.equals("All")) {
+                                refreshGroups();
+                            }
                         }
                     }
                 });
