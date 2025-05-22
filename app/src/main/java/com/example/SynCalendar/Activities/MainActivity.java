@@ -218,8 +218,10 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                 events.clear();
                 events.addAll(userEvents);
                 sortEventsByStartTime(events);
-                updateEventsForSelectedDate(selectedDate);
+                
+                // Update both the calendar view and daily events
                 setMonthView();
+                updateEventsForSelectedDate(selectedDate);
             }, 
             e -> {
                 Log.e(TAG, "Failed to load events", e);
@@ -290,6 +292,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
 
+        // Log the total number of events being processed
+        Log.d("MainActivity", "Processing " + events.size() + " events for calendar view");
+
         for (Event event : events) {
             if (event.getStart() != null) {
                 eventCalendar.setTime(event.getStart());
@@ -298,12 +303,12 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                     eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR)) {
                     String day = dayFormat.format(eventCalendar.getTime());
                     eventDates.add(day);
-                    Log.d("MainActivity", "Adding event date: " + day);
+                    Log.d("MainActivity", "Adding event date: " + day + " for event at " + event.getStart());
                 }
             }
         }
 
-        Log.d("MainActivity", "Event Dates: " + eventDates);
+        Log.d("MainActivity", "Final event dates set: " + eventDates);
 
         CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, eventDates, this);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 7);
@@ -365,11 +370,14 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             
             Log.d(TAG, "Selected new date: " + selectedDate);
             
-            // Update calendar view with new selection
-            setMonthView();
+            // Only update the daily events view, not the whole calendar
+            updateEventsForSelectedDate(selectedDate);
             
-            // Refresh events when changing dates
-            refreshEvents();
+            // Update calendar selection without refreshing events
+            CalendarAdapter calendarAdapter = (CalendarAdapter) calendarRecyclerView.getAdapter();
+            if (calendarAdapter != null) {
+                calendarAdapter.setSelectedDay(dayText);
+            }
             
             String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
