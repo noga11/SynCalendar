@@ -8,15 +8,13 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,13 +23,20 @@ public class UsersAdapter extends ArrayAdapter<User> {
     private List<User> users;
     private Model model;
     private User currentUser;
+    private String source;
+    private RequestAdapter requestAdapter;
+    private List<User> requestsList;
 
-    public UsersAdapter(Context context, List<User> users) {
+    public UsersAdapter(Context context, List<User> users, String source, RequestAdapter requestAdapter, List<User> requestsList) {
         super(context, 0, users);
         this.context = context;
         this.users = users;
+        this.source = source;
+        this.requestAdapter = requestAdapter;
+        this.requestsList = requestsList;
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.item_following, parent, false);
@@ -55,74 +60,131 @@ public class UsersAdapter extends ArrayAdapter<User> {
             return convertView;
         }
 
+        // Set initial button state based on the source
+        if ("action_Followers".equals(source)) {
+            btnFollow.setText("Remove");
+        } else {
+            boolean isFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
+            boolean hasSentRequest = otherUser.getRequests().containsKey(currentUser.getId());
+            updateButtonState(btnFollow, isFollowing, hasSentRequest);
+        }
+
         // Set button click behavior
         btnFollow.setOnClickListener(v -> {
-            boolean isCurrentlyFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-            boolean hasCurrentRequest = otherUser.getRequests().containsKey(currentUser.getId());
-
-            if (isCurrentlyFollowing) {
-                // Unfollow
-                currentUser.removeFollowing(otherUser.getId());
-                otherUser.removeFollower(currentUser.getId());
-                Log.d("UsersAdapter", "Unfollowed user: " + otherUser.getuName());
-            } else if (hasCurrentRequest) {
-                // Cancel request
-                otherUser.removePendingRequest(currentUser.getId());
-                Log.d("UsersAdapter", "Cancelled request to: " + otherUser.getuName());
+            if ("action_Followers".equals(source)) {
+                // Handle removing follower
+                handleRemoveFollower(otherUser, position);
             } else {
-                // Follow or send request
-                if (!otherUser.getPrivacy()) {
-                    // Direct follow for public accounts
-                    currentUser.addFollowing(otherUser.getId(), otherUser.getuName());
-                    otherUser.addFollower(currentUser.getId(), currentUser.getuName());
-                    Log.d("UsersAdapter", "Following user: " + otherUser.getuName());
-                } else {
-                    // Send request for private accounts
-                    otherUser.addPendingRequest(currentUser.getId(), currentUser.getuName());
-                    Log.d("UsersAdapter", "Sent request to: " + otherUser.getuName());
-                }
+                // Handle regular follow/unfollow
+                handleFollowUnfollow(otherUser, btnFollow);
             }
-
-            // Update button state after action
-            boolean isNowFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-            boolean hasNowRequest = otherUser.getRequests().containsKey(currentUser.getId());
-            updateButtonState(btnFollow, isNowFollowing, hasNowRequest);
-
-            // Update both users in Firestore
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            
-            db.collection("users")
-                .document(otherUser.getId())
-                .set(otherUser)
-                .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Other user updated successfully"))
-                .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating other user", e));
-
-            db.collection("users")
-                .document(currentUser.getId())
-                .set(currentUser)
-                .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Current user updated successfully"))
-                .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating current user", e));
         });
-
-        // Set initial button state
-        boolean isFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-        boolean hasSentRequest = otherUser.getRequests().containsKey(currentUser.getId());
-        updateButtonState(btnFollow, isFollowing, hasSentRequest);
 
         return convertView;
     }
 
+    private void handleRemoveFollower(User follower, int position) {
+        // Remove from followers list
+        currentUser.removeFollower(follower.getId());
+        // Remove from their following list
+        follower.removeFollowing(currentUser.getId());
+        // Add to their requests
+        currentUser.addPendingRequest(follower.getId(), follower.getuName());
+
+        // Update Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        // Update current user
+        db.collection("users")
+            .document(currentUser.getId())
+            .set(currentUser)
+            .addOnSuccessListener(aVoid -> {
+                Log.d("UsersAdapter", "Current user updated successfully");
+                // Remove from the followers list
+                users.remove(position);
+                notifyDataSetChanged();
+                Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
+
+                // Add to requests list if not already there
+                if (!requestsList.contains(follower)) {
+                    requestsList.add(follower);
+                    if (requestAdapter != null) {
+                        requestAdapter.notifyDataSetChanged();
+                    }
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e("UsersAdapter", "Error updating current user", e);
+                Toast.makeText(context, "Error removing follower", Toast.LENGTH_SHORT).show();
+            });
+
+        // Update follower
+        db.collection("users")
+            .document(follower.getId())
+            .set(follower)
+            .addOnFailureListener(e -> 
+                Log.e("UsersAdapter", "Error updating follower", e));
+    }
+
+    private void handleFollowUnfollow(User otherUser, Button btnFollow) {
+        boolean isCurrentlyFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
+        boolean hasCurrentRequest = otherUser.getRequests().containsKey(currentUser.getId());
+
+        if (isCurrentlyFollowing) {
+            // Unfollow
+            currentUser.removeFollowing(otherUser.getId());
+            otherUser.removeFollower(currentUser.getId());
+            Log.d("UsersAdapter", "Unfollowed user: " + otherUser.getuName());
+        } else if (hasCurrentRequest) {
+            // Cancel request
+            otherUser.removePendingRequest(currentUser.getId());
+            Log.d("UsersAdapter", "Cancelled request to: " + otherUser.getuName());
+        } else {
+            // Follow or send request
+            if (!otherUser.getPrivacy()) {
+                // Direct follow for public accounts
+                currentUser.addFollowing(otherUser.getId(), otherUser.getuName());
+                otherUser.addFollower(currentUser.getId(), currentUser.getuName());
+                Log.d("UsersAdapter", "Following user: " + otherUser.getuName());
+            } else {
+                // Send request for private accounts
+                otherUser.addPendingRequest(currentUser.getId(), currentUser.getuName());
+                Log.d("UsersAdapter", "Sent request to: " + otherUser.getuName());
+            }
+        }
+
+        // Update button state after action
+        boolean isNowFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
+        boolean hasNowRequest = otherUser.getRequests().containsKey(currentUser.getId());
+        updateButtonState(btnFollow, isNowFollowing, hasNowRequest);
+
+        // Update both users in Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        db.collection("users")
+            .document(otherUser.getId())
+            .set(otherUser)
+            .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Other user updated successfully"))
+            .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating other user", e));
+
+        db.collection("users")
+            .document(currentUser.getId())
+            .set(currentUser)
+            .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Current user updated successfully"))
+            .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating current user", e));
+    }
+
     private void updateButtonState(Button button, boolean isFollowing, boolean hasSentRequest) {
-        if (isFollowing) {
+        if ("action_Followers".equals(source)) {
+            button.setText("Remove");
+        } else if (isFollowing) {
             button.setText("Following");
-            button.setEnabled(true);
         } else if (hasSentRequest) {
             button.setText("Request Sent");
-            button.setEnabled(true);
         } else {
             button.setText("Follow");
-            button.setEnabled(true);
         }
+        button.setEnabled(true);
         Log.d("UsersAdapter", "Button state updated - Following: " + isFollowing + ", Request Sent: " + hasSentRequest);
     }
 }

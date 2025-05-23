@@ -74,9 +74,9 @@ public class FollowingActivity extends AppCompatActivity {
         // Initialize adapters first
         allUsers = new ArrayList<>();
         followRequests = new ArrayList<>();
-        usersAdapter = new UsersAdapter(this, allUsers);
+        requestAdapter = new RequestAdapter(this, followRequests, usersAdapter, allUsers);
+        usersAdapter = new UsersAdapter(this, allUsers, source, requestAdapter, followRequests);
         lstUsers.setAdapter(usersAdapter);
-        requestAdapter = new RequestAdapter(this, followRequests);
         lstFollowRequest.setAdapter(requestAdapter);
 
         // Set initial visibility
@@ -354,66 +354,132 @@ public class FollowingActivity extends AppCompatActivity {
             filterEvents("");
         } else if ("action_Followers".equals(source)) {
             setTitle("Followers");
-            tvFollowersTitle.setText("Followers");
+            allUsers.clear();
+            originalUsersList.clear();
+            usersAdapter.clear();
+            
+            User currentUser = model.getCurrentUser();
+            if (currentUser == null) {
+                Log.e("FollowingActivity", "Current user is null");
+                tvEmptyList.setText("Error loading user data");
+                tvEmptyList.setVisibility(View.VISIBLE);
+                lstUsers.setVisibility(View.GONE);
+                return;
+            }
+
+            Map<String, String> followersMap = currentUser.getFollowers();
+            if (followersMap == null) {
+                followersMap = new HashMap<>();
+            }
+            
+            Log.d("FollowingActivity", "Current user: " + currentUser.getuName());
+            Log.d("FollowingActivity", "Followers map: " + followersMap.toString());
+            Log.d("FollowingActivity", "Followers count: " + followersMap.size());
+            
+            if (followersMap.isEmpty()) {
+                Log.d("FollowingActivity", "Followers map is empty");
+                tvEmptyList.setText("No followers yet");
+                tvEmptyList.setVisibility(View.VISIBLE);
+                lstUsers.setVisibility(View.GONE);
+            } else {
+                // Show loading state
+                tvEmptyList.setText("Loading...");
+                tvEmptyList.setVisibility(View.VISIBLE);
+                lstUsers.setVisibility(View.GONE);
+
+                // Create a final copy of the map for the async operations
+                final Map<String, String> finalFollowersMap = followersMap;
+                
+                // Keep track of loaded users
+                final int[] loadedCount = {0};
+                final int totalToLoad = followersMap.size();
+
+                for (Map.Entry<String, String> entry : followersMap.entrySet()) {
+                    String userId = entry.getKey();
+                    Log.d("FollowingActivity", "Loading follower with ID: " + userId);
+                    
+                    model.getUserById(userId, user -> {
+                        loadedCount[0]++;
+                        
+                        if (user != null) {
+                            // Ensure the user is still in our followers list
+                            if (finalFollowersMap.containsKey(user.getId())) {
+                                Log.d("FollowingActivity", "Successfully loaded follower: " + user.getuName());
+                                allUsers.add(user);
+                                originalUsersList.add(user);
+                                
+                                // Update UI immediately when a user is loaded
+                                runOnUiThread(() -> {
+                                    usersAdapter.notifyDataSetChanged();
+                                    if (lstUsers.getVisibility() != View.VISIBLE) {
+                                        tvEmptyList.setVisibility(View.GONE);
+                                        lstUsers.setVisibility(View.VISIBLE);
+                                    }
+                                });
+                            }
+                        } else {
+                            Log.e("FollowingActivity", "Failed to load follower with ID: " + userId);
+                        }
+
+                        // Final check after all users are loaded
+                        if (loadedCount[0] >= totalToLoad) {
+                            runOnUiThread(() -> {
+                                if (!allUsers.isEmpty()) {
+                                    usersAdapter.notifyDataSetChanged();
+                                    tvEmptyList.setVisibility(View.GONE);
+                                    lstUsers.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvEmptyList.setText("No followers yet");
+                                    tvEmptyList.setVisibility(View.VISIBLE);
+                                    lstUsers.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    }, e -> {
+                        Log.e("FollowingActivity", "Error loading follower with ID: " + userId, e);
+                        loadedCount[0]++;
+                        
+                        // Final check after all users are loaded
+                        if (loadedCount[0] >= totalToLoad) {
+                            runOnUiThread(() -> {
+                                if (!allUsers.isEmpty()) {
+                                    usersAdapter.notifyDataSetChanged();
+                                    tvEmptyList.setVisibility(View.GONE);
+                                    lstUsers.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvEmptyList.setText("No followers yet");
+                                    tvEmptyList.setVisibility(View.VISIBLE);
+                                    lstUsers.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Handle follow requests section
             tvRequestsTitle.setVisibility(View.VISIBLE);
             lstFollowRequest.setVisibility(View.VISIBLE);
             tvNoRequest.setVisibility(View.VISIBLE);
             tvFollowersTitle.setVisibility(View.VISIBLE);
             
-            Map<String, String> followersMap = model.getCurrentUser().getFollowers();
-            allUsers.clear();
-            usersAdapter.clear();
-            
-            if (followersMap.isEmpty()) {
-                tvEmptyList.setText("No followers yet");
-                tvEmptyList.setVisibility(View.VISIBLE);
-                lstUsers.setVisibility(View.GONE);
-            } else {
-                for (Map.Entry<String, String> entry : followersMap.entrySet()) {
-                    model.getUserById(entry.getKey(), new OnSuccessListener<User>() {
-                        @Override
-                        public void onSuccess(User user) {
-                            if (user != null) {
-                                allUsers.add(user);
-                                usersAdapter.clear();
-                                usersAdapter.addAll(allUsers);
-                                usersAdapter.notifyDataSetChanged();
-                                updateEmptyState();
-                            }
-                        }
-                    }, new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("FollowingActivity", "Error fetching user: ", e);
-                        }
-                    });
-                }
-            }
-            
-            // Handle follow requests
             followRequests.clear();
-            Map<String, String> pendingRequests = model.getCurrentUser().getRequests();
-            if (pendingRequests.isEmpty()) {
+            Map<String, String> pendingRequests = currentUser.getRequests();
+            if (pendingRequests == null || pendingRequests.isEmpty()) {
                 tvNoRequest.setVisibility(View.VISIBLE);
                 lstFollowRequest.setVisibility(View.GONE);
             } else {
                 tvNoRequest.setVisibility(View.GONE);
                 lstFollowRequest.setVisibility(View.VISIBLE);
                 for (String requestId : pendingRequests.keySet()) {
-                    model.getUserById(requestId, new OnSuccessListener<User>() {
-                        @Override
-                        public void onSuccess(User user) {
-                            if (user != null) {
-                                followRequests.add(user);
-                                requestAdapter.notifyDataSetChanged();
-                                updateRequestEmptyState();
-                            }
+                    model.getUserById(requestId, user -> {
+                        if (user != null) {
+                            followRequests.add(user);
+                            requestAdapter.notifyDataSetChanged();
+                            updateRequestEmptyState();
                         }
-                    }, new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("FollowingActivity", "Error fetching request user: ", e);
-                        }
+                    }, e -> {
+                        Log.e("FollowingActivity", "Error fetching request user: ", e);
                     });
                 }
             }
