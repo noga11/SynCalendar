@@ -132,13 +132,22 @@
             android:inputType="text"
             android:hint="Adress" />
 
-        <AutoCompleteTextView
-            android:id="@+id/auetShare"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:textSize="20sp"
-            android:hint="Share Event" />
+            app:endIconMode="dropdown_menu">
+
+            <AutoCompleteTextView
+                android:id="@+id/auetShare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                android:inputType="none"
+                android:hint="Share Event" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/cgUsers"

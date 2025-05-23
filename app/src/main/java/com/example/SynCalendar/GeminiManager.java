@@ -41,6 +41,7 @@ public class GeminiManager {
         if (instance == null) instance = new GeminiManager(prompt);
         return instance;
     }
+
     public static GeminiManager getInstance(){
         return instance;
     }
@@ -84,6 +85,7 @@ public class GeminiManager {
             }
         });
     }
+
     public void sendMessageWithPhoto(String propmt, Bitmap bitmap, GeminiCallback geminiCallback){
         List<Part> parts = new ArrayList<>();
         parts.add(new TextPart(propmt));

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Base64;
 
 import java.io.ByteArrayOutputStream;
@@ -106,10 +107,12 @@ public class PhotoHelper {
         if (bitmap == null) return null;
         
         // If the bitmap is already a software bitmap, return it as is
-        if (!bitmap.getConfig().equals(Bitmap.Config.HARDWARE)) {
-            return bitmap;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!bitmap.getConfig().equals(Bitmap.Config.HARDWARE)) {
+                return bitmap;
+            }
         }
-        
+
         // Convert hardware bitmap to software bitmap
         Bitmap softwareBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
         if (bitmap != softwareBitmap) {

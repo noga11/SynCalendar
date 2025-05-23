@@ -70,7 +70,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     private ArrayAdapter<String> spinnerAdapter;
     private ArrayList<String> groups;
 
-    private EditText etTitle, etDetails, auetShare, etAddress;
+    private EditText etTitle, etDetails, etAddress;
+    private AutoCompleteTextView auetShare;
 
     private TextView tvStartTime, tvEndTime, tvDate, tvReminderDate, tvReminderTime;
     private Button btbAddEvent;
@@ -107,10 +108,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                                                 etDetails.setText(eventJson.getString("details"));
                                             }
                                             if (eventJson.has("address")) {
-                                                EditText etAddress = findViewById(R.id.etAdress);
-                                                if (etAddress != null) {
-                                                    etAddress.setText(eventJson.getString("address"));
-                                                }
+                                                etAddress.setText(eventJson.getString("address"));
                                             }
                                             if (eventJson.has("topic")) {
                                                 spinnerGroup.setText(eventJson.getString("topic"), false);
@@ -214,6 +212,48 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btbAddEvent = findViewById(R.id.btbAddEvent);
         spinnerGroup = findViewById(R.id.spinnerGroup);
         btnMic = findViewById(R.id.btnMic);
+
+        // Setup share users functionality
+        auetShare.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().trim();
+                if (!query.isEmpty()) {
+                    model.searchUsers(query,
+                        users -> {
+                            ArrayList<String> usernames = new ArrayList<>();
+                            for (User user : users) {
+                                usernames.add(user.getuName());
+                            }
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                NewEventActivity.this,
+                                android.R.layout.simple_dropdown_item_1line,
+                                usernames
+                            );
+                            auetShare.setAdapter(adapter);
+                            auetShare.showDropDown();
+                        },
+                        e -> Log.e("NewEventActivity", "Error searching users", e)
+                    );
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        auetShare.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedUsername = parent.getItemAtPosition(position).toString();
+            if (isValidUsername(selectedUsername)) {
+                addUserChip(selectedUsername);
+                auetShare.setText(""); // Clear the input field
+            } else {
+                Toast.makeText(NewEventActivity.this, "Invalid user selected", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Check if we're editing an existing event
         String eventId = getIntent().getStringExtra("Event");
@@ -651,7 +691,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak the event title...");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to create your event...");
 
         try {
             speechRecognizerLauncher.launch(intent);
