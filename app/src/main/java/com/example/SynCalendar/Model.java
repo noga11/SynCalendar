@@ -23,6 +23,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,6 +62,8 @@ public class Model {
 
     public User getCurrentUser(){
         if (currentUser != null) {
+            Log.d("Model", "Current user following map: " + currentUser.getFollowing().toString());
+            Log.d("Model", "Current user following count: " + currentUser.getFollowing().size());
             return currentUser;
         }
         return null;
@@ -114,8 +117,29 @@ public class Model {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if (documentSnapshot.exists()) {
                             currentUser = documentSnapshot.toObject(User.class);
-                            Log.d("Model", "User data retrieved: " + currentUser.getuName());
-                            onSuccess.onSuccess(currentUser);
+                            if (currentUser != null) {
+                                // Ensure maps are initialized
+                                if (currentUser.getFollowing() == null) {
+                                    currentUser.setFollowing(new HashMap<>());
+                                }
+                                if (currentUser.getFollowers() == null) {
+                                    currentUser.setFollowers(new HashMap<>());
+                                }
+                                if (currentUser.getRequests() == null) {
+                                    currentUser.setPendingRequests(new HashMap<>());
+                                }
+                                
+                                // Set the ID since it might not be set in the Firestore document
+                                currentUser.setId(userId);
+                                
+                                Log.d("Model", "User data retrieved: " + currentUser.getuName());
+                                Log.d("Model", "Following count: " + currentUser.getFollowing().size());
+                                Log.d("Model", "Following data: " + currentUser.getFollowing().toString());
+                                onSuccess.onSuccess(currentUser);
+                            } else {
+                                Log.e("Model", "Failed to convert document to User object");
+                                onFailure.onFailure(new Exception("Failed to convert document to User object"));
+                            }
                         } else {
                             Log.e("Model", "No such user in Firestore");
                             onFailure.onFailure(new Exception("User not found in database"));
@@ -133,6 +157,24 @@ public class Model {
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         if (documentSnapshot.exists()) {
                             User user = documentSnapshot.toObject(User.class);
+                            if (user != null) {
+                                // Ensure maps are initialized
+                                if (user.getFollowing() == null) {
+                                    user.setFollowing(new HashMap<>());
+                                }
+                                if (user.getFollowers() == null) {
+                                    user.setFollowers(new HashMap<>());
+                                }
+                                if (user.getRequests() == null) {
+                                    user.setPendingRequests(new HashMap<>());
+                                }
+                                
+                                // Set the ID since it might not be set in the Firestore document
+                                user.setId(documentSnapshot.getId());
+                                
+                                Log.d("Model", "Retrieved user: " + user.getuName());
+                                Log.d("Model", "User following count: " + user.getFollowing().size());
+                            }
                             onSuccess.onSuccess(user);
                         } else {
                             onSuccess.onSuccess(null); // User not found
@@ -201,16 +243,31 @@ public class Model {
     }
 
     public void searchUsers(String query, OnSuccessListener<List<User>> onSuccess, OnFailureListener onFailure) {
-        userRef.whereGreaterThanOrEqualTo("uName", query)
-                .whereLessThanOrEqualTo("uName", query + '\uf8ff')
-                .get()
+        userRef.get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
                     public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                         List<User> users = new ArrayList<>();
+                        String lowercaseQuery = query.toLowerCase().trim();
+                        
                         for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
                             User user = document.toObject(User.class);
-                            users.add(user);
+                            if (user != null && !user.getId().equals(currentUser.getId())) {
+                                String username = user.getuName().toLowerCase();
+                                if (lowercaseQuery.isEmpty() || username.contains(lowercaseQuery)) {
+                                    // Check if the current user is following this user
+                                    if (currentUser.getFollowing().containsKey(user.getId())) {
+                                        // Ensure the follower relationship is properly set
+                                        user.getFollowers().put(currentUser.getId(), currentUser.getuName());
+                                    }
+                                    // Check if there's a pending request
+                                    if (user.getRequests().containsKey(currentUser.getId())) {
+                                        // Ensure the request is properly set
+                                        user.getRequests().put(currentUser.getId(), currentUser.getuName());
+                                    }
+                                    users.add(user);
+                                }
+                            }
                         }
                         onSuccess.onSuccess(users);
                     }

@@ -12,6 +12,8 @@ import android.widget.TextView;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class UsersAdapter extends ArrayAdapter<User> {
 
         model = Model.getInstance(context);
         currentUser = model.getCurrentUser();
-        User otherUser = users.get(position);
+        final User otherUser = users.get(position);
 
         TextView tvUName = convertView.findViewById(R.id.tvUName);
         if (tvUName == null) {
@@ -51,50 +53,61 @@ public class UsersAdapter extends ArrayAdapter<User> {
         if (btnFollow == null) {
             Log.e("UsersAdapter", "Button btnAction is null at position: " + position);
         } else {
-            // Check if currentUser is following the otherUser or has sent a request
-            Map<String, String> followers = otherUser.getFollowers();
-            if (followers == null) followers = new HashMap<>();
-
-            Map<String, String> requests = otherUser.getRequests();
-            if (requests == null) requests = new HashMap<>();
-
-            boolean isFollowing = followers.containsKey(currentUser.getId());
-            boolean hasSentRequest = requests.containsKey(currentUser.getId());
+            // Check current relationship status
+            boolean isFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
+            boolean hasSentRequest = otherUser.getRequests().containsKey(currentUser.getId());
 
             // Set button text based on current status
-            if (isFollowing) {
-                btnFollow.setText("Following");
-            } else if (hasSentRequest) {
-                btnFollow.setText("Request Sent");
-            } else {
-                btnFollow.setText("Follow");
-            }
+            updateButtonState(btnFollow, isFollowing, hasSentRequest);
 
             // Set button click behavior
-            Map<String, String> finalFollowers = followers;
-            Map<String, String> finalRequests = requests;
             btnFollow.setOnClickListener(v -> {
                 if (isFollowing) {
-                    finalFollowers.remove(currentUser.getId());
-                    btnFollow.setText("Follow");
+                    // Unfollow
+                    currentUser.removeFollowing(otherUser.getId());
+                    otherUser.removeFollower(currentUser.getId());
+                    updateButtonState(btnFollow, false, false);
                 } else if (hasSentRequest) {
-                    finalRequests.remove(currentUser.getId());
-                    btnFollow.setText("Follow");
+                    // Cancel request
+                    otherUser.removePendingRequest(currentUser.getId());
+                    updateButtonState(btnFollow, false, false);
                 } else {
+                    // Follow or send request
                     if (!otherUser.getPrivacy()) {
-                        finalFollowers.put(currentUser.getId(), currentUser.getuName());
-                        btnFollow.setText("Following");
+                        // Direct follow for public accounts
+                        currentUser.addFollowing(otherUser.getId(), otherUser.getuName());
+                        otherUser.addFollower(currentUser.getId(), currentUser.getuName());
+                        updateButtonState(btnFollow, true, false);
                     } else {
-                        finalRequests.put(currentUser.getId(), currentUser.getuName());
-                        btnFollow.setText("Request Sent");
+                        // Send request for private accounts
+                        otherUser.addPendingRequest(currentUser.getId(), currentUser.getuName());
+                        updateButtonState(btnFollow, false, true);
                     }
                 }
 
-                // Notify the adapter that the data has changed
-                notifyDataSetChanged();
+                // Update both users in Firestore
+                DocumentReference otherUserRef = FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(otherUser.getId());
+                otherUserRef.set(otherUser);
+
+                DocumentReference currentUserRef = FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(currentUser.getId());
+                currentUserRef.set(currentUser);
             });
         }
 
         return convertView;
+    }
+
+    private void updateButtonState(Button button, boolean isFollowing, boolean hasSentRequest) {
+        if (isFollowing) {
+            button.setText("Following");
+        } else if (hasSentRequest) {
+            button.setText("Request Sent");
+        } else {
+            button.setText("Follow");
+        }
     }
 }

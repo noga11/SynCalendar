@@ -14,7 +14,7 @@ public class User {
     private String profilePicString;
     private String password;
     // userID -> username
-    private HashMap<String, String> pendingRequests = new HashMap<>();     // users requesting to follow this user
+    private HashMap<String, String> requests = new HashMap<>();     // users requesting to follow this user
     private HashMap<String, String> following = new HashMap<>();
     private HashMap<String, String> followers = new HashMap<>();
     private HashMap<String, String> mutuals;
@@ -38,7 +38,7 @@ public class User {
     public User(FirebaseUser firebaseUser, String password) {
         this.uName = firebaseUser.getDisplayName();
         this.email = firebaseUser.getEmail();
-        this.pendingRequests = new HashMap<>();
+        this.requests = new HashMap<>();
         this.following = new HashMap<>();
         this.followers = new HashMap<>();
         this.password = password;
@@ -47,14 +47,14 @@ public class User {
     // --- Follow Management ---
 
     public Map<String, String> getRequests() {
-        if (pendingRequests == null) pendingRequests = new HashMap<>();
-        return pendingRequests;
+        if (requests == null) requests = new HashMap<>();
+        return requests;
     }
-    public void setPendingRequests(HashMap<String, String> pendingRequests) {
-        this.pendingRequests = pendingRequests != null ? pendingRequests : new HashMap<>();
+    public void setPendingRequests(HashMap<String, String> requests) {
+        this.requests = requests != null ? requests : new HashMap<>();
     }
-    public void addPendingRequest(String userId, String username) { pendingRequests.put(userId, username); }
-    public void removePendingRequest(String userId) { pendingRequests.remove(userId); }
+    public void addPendingRequest(String userId, String username) { requests.put(userId, username); }
+    public void removePendingRequest(String userId) { requests.remove(userId); }
 
     public HashMap<String, String> getFollowing() {
         if (following == null) following = new HashMap<>();
@@ -122,16 +122,16 @@ public class User {
 
     // Approves a follow request: move from pendingRequests to followers
     public void approveFollowRequest(String userId) {
-        if (pendingRequests.containsKey(userId)) {
-            String username = pendingRequests.get(userId);
-            pendingRequests.remove(userId);
+        if (requests.containsKey(userId)) {
+            String username = requests.get(userId);
+            requests.remove(userId);
             followers.put(userId, username);
         }
     }
 
     // Denies a follow request: just remove from pendingRequests
     public void denyFollowRequest(String userId) {
-        pendingRequests.remove(userId);
+        requests.remove(userId);
     }
 
     public String getPassword() {
