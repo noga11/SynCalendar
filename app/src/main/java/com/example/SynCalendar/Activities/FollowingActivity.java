@@ -43,6 +43,7 @@ public class FollowingActivity extends AppCompatActivity {
     private UsersAdapter usersAdapter;
     private RequestAdapter requestAdapter;
     private List<User> allUsers = new ArrayList<>();
+    private List<User> originalUsersList = new ArrayList<>();
     List<User> followRequests = new ArrayList<>();
     private ActivityResultLauncher<Intent> activityStartLauncher;
 
@@ -176,16 +177,24 @@ public class FollowingActivity extends AppCompatActivity {
 
     private void filterEvents(String query) {
         if ("action_Following".equals(source)) {
-            // For Following mode, only filter the existing following list
+            // For Following mode, filter from the original list
             List<User> filteredUsers = new ArrayList<>();
             String lowercaseQuery = query.toLowerCase().trim();
             
-            for (User user : allUsers) {
-                if (user.getuName().toLowerCase().contains(lowercaseQuery)) {
-                    filteredUsers.add(user);
+            // If query is empty, show all following users
+            if (lowercaseQuery.isEmpty()) {
+                filteredUsers.addAll(originalUsersList);
+            } else {
+                // Otherwise filter based on query
+                for (User user : originalUsersList) {
+                    if (user.getuName().toLowerCase().contains(lowercaseQuery)) {
+                        filteredUsers.add(user);
+                    }
                 }
             }
             
+            allUsers.clear();
+            allUsers.addAll(filteredUsers);
             usersAdapter.clear();
             usersAdapter.addAll(filteredUsers);
             usersAdapter.notifyDataSetChanged();
@@ -205,6 +214,8 @@ public class FollowingActivity extends AppCompatActivity {
         } else {
             // For other modes, use the normal search
             model.searchUsers(query, users -> {
+                originalUsersList.clear();
+                originalUsersList.addAll(users);
                 allUsers.clear();
                 allUsers.addAll(users);
                 usersAdapter.clear();
@@ -236,6 +247,7 @@ public class FollowingActivity extends AppCompatActivity {
         if ("action_Following".equals(source)) {
             setTitle("Following");
             allUsers.clear();
+            originalUsersList.clear();
             usersAdapter.clear();
             
             User currentUser = model.getCurrentUser();
@@ -288,6 +300,7 @@ public class FollowingActivity extends AppCompatActivity {
                         if (finalFollowingMap.containsKey(user.getId())) {
                             Log.d("FollowingActivity", "Successfully loaded following user: " + user.getuName());
                             allUsers.add(user);
+                            originalUsersList.add(user);
                             
                             // Update UI immediately when a user is loaded
                             runOnUiThread(() -> {
