@@ -100,18 +100,17 @@ public class UsersAdapter extends ArrayAdapter<User> {
             .set(currentUser)
             .addOnSuccessListener(aVoid -> {
                 Log.d("UsersAdapter", "Current user updated successfully");
-                // Remove from the followers list
+                // Remove from followers list
                 users.remove(position);
                 notifyDataSetChanged();
-                Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
 
                 // Add to requests list if not already there
                 if (!requestsList.contains(follower)) {
                     requestsList.add(follower);
-                    if (requestAdapter != null) {
-                        requestAdapter.notifyDataSetChanged();
-                    }
+                    requestAdapter.notifyDataSetChanged();
                 }
+                
+                Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
             })
             .addOnFailureListener(e -> {
                 Log.e("UsersAdapter", "Error updating current user", e);

@@ -34,6 +34,10 @@ public class RequestAdapter extends ArrayAdapter<User> {
         this.followersList = followersList;
     }
 
+    public void setFollowersAdapter(ArrayAdapter<User> adapter) {
+        this.followersAdapter = adapter;
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
@@ -71,11 +75,10 @@ public class RequestAdapter extends ArrayAdapter<User> {
                     .set(currentUser)
                     .addOnSuccessListener(aVoid -> {
                         Log.d("RequestAdapter", "Current user updated successfully");
-                        // Remove from the requests list
+                        // Remove from requests list
                         users.remove(position);
                         notifyDataSetChanged();
-                        Toast.makeText(context, "Request accepted", Toast.LENGTH_SHORT).show();
-                        
+
                         // Add to followers list if not already there
                         if (!followersList.contains(requester)) {
                             followersList.add(requester);
@@ -83,6 +86,8 @@ public class RequestAdapter extends ArrayAdapter<User> {
                                 followersAdapter.notifyDataSetChanged();
                             }
                         }
+                        
+                        Toast.makeText(context, "Request accepted", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Log.e("RequestAdapter", "Error updating current user", e);

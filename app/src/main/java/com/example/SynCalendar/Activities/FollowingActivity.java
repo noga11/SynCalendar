@@ -71,11 +71,18 @@ public class FollowingActivity extends AppCompatActivity {
         lstFollowRequest = findViewById(R.id.lstFollowRequest);
         editTextSearch = findViewById(R.id.editTextSearch);
 
-        // Initialize adapters first
+        // Initialize lists first
         allUsers = new ArrayList<>();
         followRequests = new ArrayList<>();
-        requestAdapter = new RequestAdapter(this, followRequests, usersAdapter, allUsers);
+
+        // Initialize adapters in correct order
+        requestAdapter = new RequestAdapter(this, followRequests, null, allUsers); // Pass null for now
         usersAdapter = new UsersAdapter(this, allUsers, source, requestAdapter, followRequests);
+        
+        // Now set the followers adapter
+        requestAdapter.setFollowersAdapter(usersAdapter);
+        
+        // Now set the adapters to the list views
         lstUsers.setAdapter(usersAdapter);
         lstFollowRequest.setAdapter(requestAdapter);
 
