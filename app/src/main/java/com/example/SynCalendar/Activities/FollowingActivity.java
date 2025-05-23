@@ -29,6 +29,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -203,36 +204,30 @@ public class FollowingActivity extends AppCompatActivity {
             }
         } else {
             // For other modes, use the normal search
-            model.searchUsers(query, new OnSuccessListener<List<User>>() {
-                @Override
-                public void onSuccess(List<User> users) {
-                    allUsers.clear();
-                    allUsers.addAll(users);
-                    usersAdapter.clear();
-                    usersAdapter.addAll(users);
-                    usersAdapter.notifyDataSetChanged();
-                    
-                    if (users.isEmpty()) {
-                        tvEmptyList.setVisibility(View.VISIBLE);
-                        lstUsers.setVisibility(View.GONE);
-                        if (!query.isEmpty()) {
-                            tvEmptyList.setText("No users found matching '" + query + "'");
-                        } else {
-                            tvEmptyList.setText("No users found");
-                        }
-                    } else {
-                        tvEmptyList.setVisibility(View.GONE);
-                        lstUsers.setVisibility(View.VISIBLE);
-                    }
-                }
-            }, new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e("FollowingActivity", "Error searching users: ", e);
+            model.searchUsers(query, users -> {
+                allUsers.clear();
+                allUsers.addAll(users);
+                usersAdapter.clear();
+                usersAdapter.addAll(users);
+                usersAdapter.notifyDataSetChanged();
+                
+                if (users.isEmpty()) {
                     tvEmptyList.setVisibility(View.VISIBLE);
                     lstUsers.setVisibility(View.GONE);
-                    tvEmptyList.setText("Error searching users");
+                    if (!query.isEmpty()) {
+                        tvEmptyList.setText("No users found matching '" + query + "'");
+                    } else {
+                        tvEmptyList.setText("No users found");
+                    }
+                } else {
+                    tvEmptyList.setVisibility(View.GONE);
+                    lstUsers.setVisibility(View.VISIBLE);
                 }
+            }, e -> {
+                Log.e("FollowingActivity", "Error searching users: ", e);
+                tvEmptyList.setVisibility(View.VISIBLE);
+                lstUsers.setVisibility(View.GONE);
+                tvEmptyList.setText("Error searching users");
             });
         }
     }
@@ -253,6 +248,10 @@ public class FollowingActivity extends AppCompatActivity {
             }
 
             Map<String, String> followingMap = currentUser.getFollowing();
+            if (followingMap == null) {
+                followingMap = new HashMap<>();
+            }
+            
             Log.d("FollowingActivity", "Current user: " + currentUser.getuName());
             Log.d("FollowingActivity", "Following map: " + followingMap.toString());
             Log.d("FollowingActivity", "Following count: " + followingMap.size());
@@ -269,69 +268,71 @@ public class FollowingActivity extends AppCompatActivity {
             tvEmptyList.setText("Loading...");
             tvEmptyList.setVisibility(View.VISIBLE);
             lstUsers.setVisibility(View.GONE);
+
+            // Create a final copy of the map for the async operations
+            final Map<String, String> finalFollowingMap = followingMap;
             
-            int[] loadedUsers = {0};
-            int totalUsers = followingMap.size();
+            // Keep track of loaded users
+            final int[] loadedCount = {0};
+            final int totalToLoad = followingMap.size();
 
             for (Map.Entry<String, String> entry : followingMap.entrySet()) {
                 String userId = entry.getKey();
-                String username = entry.getValue();
-                Log.d("FollowingActivity", "Loading following user: " + username + " (ID: " + userId + ")");
+                Log.d("FollowingActivity", "Loading user with ID: " + userId);
                 
-                model.getUserById(userId, new OnSuccessListener<User>() {
-                    @Override
-                    public void onSuccess(User user) {
-                        if (user != null) {
-                            Log.d("FollowingActivity", "Successfully loaded user: " + user.getuName());
+                model.getUserById(userId, user -> {
+                    loadedCount[0]++;
+                    
+                    if (user != null) {
+                        // Ensure the user is still in our following list
+                        if (finalFollowingMap.containsKey(user.getId())) {
+                            Log.d("FollowingActivity", "Successfully loaded following user: " + user.getuName());
                             allUsers.add(user);
-                        } else {
-                            Log.e("FollowingActivity", "Failed to load user with ID: " + userId);
-                        }
-                        
-                        loadedUsers[0]++;
-                        if (loadedUsers[0] == totalUsers) {
-                            Log.d("FollowingActivity", "All users loaded (" + allUsers.size() + ")");
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (!allUsers.isEmpty()) {
-                                        usersAdapter.clear();
-                                        usersAdapter.addAll(allUsers);
-                                        usersAdapter.notifyDataSetChanged();
-                                        tvEmptyList.setVisibility(View.GONE);
-                                        lstUsers.setVisibility(View.VISIBLE);
-                                    } else {
-                                        tvEmptyList.setText("You are not following anyone");
-                                        tvEmptyList.setVisibility(View.VISIBLE);
-                                        lstUsers.setVisibility(View.GONE);
-                                    }
+                            
+                            // Update UI immediately when a user is loaded
+                            runOnUiThread(() -> {
+                                usersAdapter.notifyDataSetChanged();
+                                if (lstUsers.getVisibility() != View.VISIBLE) {
+                                    tvEmptyList.setVisibility(View.GONE);
+                                    lstUsers.setVisibility(View.VISIBLE);
                                 }
                             });
                         }
+                    } else {
+                        Log.e("FollowingActivity", "Failed to load user with ID: " + userId);
                     }
-                }, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("FollowingActivity", "Error loading user: " + userId, e);
-                        loadedUsers[0]++;
-                        if (loadedUsers[0] == totalUsers) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (!allUsers.isEmpty()) {
-                                        usersAdapter.clear();
-                                        usersAdapter.addAll(allUsers);
-                                        usersAdapter.notifyDataSetChanged();
-                                        tvEmptyList.setVisibility(View.GONE);
-                                        lstUsers.setVisibility(View.VISIBLE);
-                                    } else {
-                                        tvEmptyList.setText("You are not following anyone");
-                                        tvEmptyList.setVisibility(View.VISIBLE);
-                                        lstUsers.setVisibility(View.GONE);
-                                    }
-                                }
-                            });
-                        }
+
+                    // Final check after all users are loaded
+                    if (loadedCount[0] >= totalToLoad) {
+                        runOnUiThread(() -> {
+                            if (!allUsers.isEmpty()) {
+                                usersAdapter.notifyDataSetChanged();
+                                tvEmptyList.setVisibility(View.GONE);
+                                lstUsers.setVisibility(View.VISIBLE);
+                            } else {
+                                tvEmptyList.setText("You are not following anyone");
+                                tvEmptyList.setVisibility(View.VISIBLE);
+                                lstUsers.setVisibility(View.GONE);
+                            }
+                        });
+                    }
+                }, e -> {
+                    Log.e("FollowingActivity", "Error loading user with ID: " + userId, e);
+                    loadedCount[0]++;
+                    
+                    // Final check after all users are loaded
+                    if (loadedCount[0] >= totalToLoad) {
+                        runOnUiThread(() -> {
+                            if (!allUsers.isEmpty()) {
+                                usersAdapter.notifyDataSetChanged();
+                                tvEmptyList.setVisibility(View.GONE);
+                                lstUsers.setVisibility(View.VISIBLE);
+                            } else {
+                                tvEmptyList.setText("You are not following anyone");
+                                tvEmptyList.setVisibility(View.VISIBLE);
+                                lstUsers.setVisibility(View.GONE);
+                            }
+                        });
                     }
                 });
             }
