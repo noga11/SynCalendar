@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import org.json.JSONArray;
 
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -93,71 +94,177 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                         String spokenText = speechResults.get(0);
 
                         // Send spoken text to Gemini for processing
+                        Log.d("NewEventActivity", "Sending spoken text to Gemini: " + spokenText);
                         geminiManager.sendMessage(spokenText, new GeminiManager.GeminiCallback() {
                             @Override
                             public void onSuccessful(String response) {
+                                Log.d("NewEventActivity", "Received response from Gemini: " + response);
                                 try {
                                     // Parse the JSON response
                                     JSONObject eventJson = new JSONObject(response);
-
+                                    
+                                    if (eventJson.has("error")) {
+                                        String error = eventJson.getString("error");
+                                        Log.e("NewEventActivity", "Error in Gemini response: " + error);
+                                        runOnUiThread(() -> {
+                                            Toast.makeText(NewEventActivity.this, 
+                                                "Couldn't understand that. Please try again with more details.", 
+                                                Toast.LENGTH_LONG).show();
+                                        });
+                                        return;
+                                    }
+                                    
                                     // Update UI fields with parsed data
                                     runOnUiThread(() -> {
                                         try {
+                                            // Title
                                             if (eventJson.has("title")) {
-                                                etTitle.setText(eventJson.getString("title"));
+                                                String title = eventJson.getString("title");
+                                                Log.d("NewEventActivity", "Setting title: " + title);
+                                                etTitle.setText(title);
                                             }
+                                            
+                                            // Details
                                             if (eventJson.has("details")) {
-                                                etDetails.setText(eventJson.getString("details"));
+                                                String details = eventJson.getString("details");
+                                                Log.d("NewEventActivity", "Setting details: " + details);
+                                                etDetails.setText(details);
                                             }
+                                            
+                                            // Address
                                             if (eventJson.has("address")) {
-                                                etAddress.setText(eventJson.getString("address"));
+                                                String address = eventJson.getString("address");
+                                                Log.d("NewEventActivity", "Setting address: " + address);
+                                                etAddress.setText(address);
                                             }
+                                            
+                                            // Topic/Group
                                             if (eventJson.has("topic")) {
-                                                spinnerGroup.setText(eventJson.getString("topic"), false);
+                                                String topic = eventJson.getString("topic");
+                                                Log.d("NewEventActivity", "Setting topic: " + topic);
+                                                // Check if topic exists in groups
+                                                if (groups.contains(topic)) {
+                                                    spinnerGroup.setText(topic, false);
+                                                } else {
+                                                    // Add new group if it doesn't exist
+                                                    addNewGroup(topic);
+                                                }
                                             }
+
+                                            // Handle shared users
+                                            if (eventJson.has("sharedWith")) {
+                                                JSONArray sharedWith = eventJson.getJSONArray("sharedWith");
+                                                Log.d("NewEventActivity", "Processing shared users: " + sharedWith.toString());
+                                                
+                                                for (int i = 0; i < sharedWith.length(); i++) {
+                                                    String username = sharedWith.getString(i).toLowerCase().trim();
+                                                    Log.d("NewEventActivity", "Processing shared user: " + username);
+                                                    
+                                                    // Check if the user exists in mutuals
+                                                    if (currentUser.getMutuals() != null) {
+                                                        boolean found = false;
+                                                        for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
+                                                            String mutualUsername = entry.getValue().toLowerCase();
+                                                            if (mutualUsername.contains(username) || username.contains(mutualUsername)) {
+                                                                Log.d("NewEventActivity", "Found matching mutual: " + entry.getValue());
+                                                                // Add the chip with the exact username from mutuals
+                                                                addUserChip(entry.getValue());
+                                                                found = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!found) {
+                                                            Log.d("NewEventActivity", "No matching mutual found for: " + username);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Start Date and Time
                                             if (eventJson.has("start")) {
                                                 String startDateTime = eventJson.getString("start");
-                                                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-                                                isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                                                Date startDate = isoFormat.parse(startDateTime);
-
-                                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                                                SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-
-                                                tvDate.setText(dateFormat.format(startDate));
-                                                tvStartTime.setText(timeFormat.format(startDate));
-
-                                                // Set end time based on duration if available
-                                                if (eventJson.has("duration")) {
-                                                    Calendar endCal = Calendar.getInstance();
-                                                    endCal.setTime(startDate);
-                                                    endCal.add(Calendar.MINUTE, eventJson.getInt("duration"));
-                                                    tvEndTime.setText(timeFormat.format(endCal.getTime()));
-                                                }
-                                            }
-                                            if (eventJson.has("reminder") && eventJson.getBoolean("reminder")) {
-                                                swchReminder.setChecked(true);
-                                                if (eventJson.has("remTime")) {
-                                                    String remDateTime = eventJson.getString("remTime");
+                                                Log.d("NewEventActivity", "Parsing start datetime: " + startDateTime);
+                                                try {
                                                     SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                                                     isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                                                    Date remDate = isoFormat.parse(remDateTime);
-
+                                                    Date startDate = isoFormat.parse(startDateTime);
+                                                    
+                                                    // Convert to local timezone
+                                                    Calendar calendar = Calendar.getInstance();
+                                                    calendar.setTime(startDate);
+                                                    calendar.setTimeZone(TimeZone.getDefault());
+                                                    
                                                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
                                                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+                                                    dateFormat.setTimeZone(TimeZone.getDefault());
+                                                    timeFormat.setTimeZone(TimeZone.getDefault());
 
-                                                    tvReminderDate.setText(dateFormat.format(remDate));
-                                                    tvReminderTime.setText(timeFormat.format(remDate));
+                                                    String formattedDate = dateFormat.format(calendar.getTime());
+                                                    String formattedTime = timeFormat.format(calendar.getTime());
+                                                    
+                                                    Log.d("NewEventActivity", "Setting date: " + formattedDate + " and time: " + formattedTime);
+                                                    tvDate.setText(formattedDate);
+                                                    tvStartTime.setText(formattedTime);
+
+                                                    // Set end time based on duration
+                                                    int duration = eventJson.optInt("duration", 60); // default 1 hour
+                                                    Log.d("NewEventActivity", "Setting end time with duration: " + duration);
+                                                    calendar.add(Calendar.MINUTE, duration);
+                                                    tvEndTime.setText(timeFormat.format(calendar.getTime()));
+                                                } catch (Exception e) {
+                                                    Log.e("NewEventActivity", "Error parsing start date/time", e);
                                                 }
                                             }
+                                            
+                                            // Reminder
+                                            if (eventJson.has("reminder") && eventJson.getBoolean("reminder")) {
+                                                Log.d("NewEventActivity", "Setting reminder");
+                                                swchReminder.setChecked(true);
+                                                tvReminderDate.setVisibility(View.VISIBLE);
+                                                tvReminderTime.setVisibility(View.VISIBLE);
+                                                
+                                                if (eventJson.has("remTime")) {
+                                                    String remDateTime = eventJson.getString("remTime");
+                                                    Log.d("NewEventActivity", "Setting reminder time: " + remDateTime);
+                                                    try {
+                                                        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                                                        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                                                        Date remDate = isoFormat.parse(remDateTime);
+                                                        
+                                                        // Convert to local timezone
+                                                        Calendar calendar = Calendar.getInstance();
+                                                        calendar.setTime(remDate);
+                                                        calendar.setTimeZone(TimeZone.getDefault());
+
+                                                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                                                        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+                                                        dateFormat.setTimeZone(TimeZone.getDefault());
+                                                        timeFormat.setTimeZone(TimeZone.getDefault());
+
+                                                        tvReminderDate.setText(dateFormat.format(calendar.getTime()));
+                                                        tvReminderTime.setText(timeFormat.format(calendar.getTime()));
+                                                    } catch (Exception e) {
+                                                        Log.e("NewEventActivity", "Error parsing reminder date/time", e);
+                                                    }
+                                                }
+                                            }
+                                            
+                                            Toast.makeText(NewEventActivity.this, "Event details updated", Toast.LENGTH_SHORT).show();
+                                            
                                         } catch (Exception e) {
-                                            Log.e("NewEventActivity", "Error parsing date/time", e);
-                                            Toast.makeText(NewEventActivity.this, "Error parsing event details", Toast.LENGTH_SHORT).show();
+                                            Log.e("NewEventActivity", "Error updating UI with event details", e);
+                                            Toast.makeText(NewEventActivity.this, 
+                                                "Error updating some event details: " + e.getMessage(), 
+                                                Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                 } catch (JSONException e) {
-                                    Log.e("NewEventActivity", "Error parsing JSON response", e);
-                                    Toast.makeText(NewEventActivity.this, "Error processing speech input", Toast.LENGTH_SHORT).show();
+                                    Log.e("NewEventActivity", "Error parsing JSON response: " + response, e);
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(NewEventActivity.this, 
+                                            "Could not understand the speech input. Please try again.", 
+                                            Toast.LENGTH_SHORT).show();
+                                    });
                                 }
                             }
 
@@ -165,7 +272,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                             public void onError(Throwable ex) {
                                 Log.e("NewEventActivity", "Gemini API error", ex);
                                 runOnUiThread(() -> {
-                                    Toast.makeText(NewEventActivity.this, "Error processing speech input", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(NewEventActivity.this, 
+                                        "Error processing speech input: " + ex.getMessage(), 
+                                        Toast.LENGTH_SHORT).show();
                                 });
                             }
                         });
@@ -193,10 +302,16 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             while ((line = reader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-            String systemPrompt = stringBuilder.toString();
+            String systemPromptJson = stringBuilder.toString();
+            
+            // Parse the JSON to get the actual system prompt
+            JSONObject jsonObject = new JSONObject(systemPromptJson);
+            String systemPrompt = jsonObject.getString("system_prompt");
+            
             geminiManager = GeminiManager.getInstance(systemPrompt);
-        } catch (IOException e) {
-            Log.e("NewEventActivity", "Error reading system prompt", e);
+            Log.d("NewEventActivity", "Initialized GeminiManager with system prompt: " + systemPrompt);
+        } catch (IOException | JSONException e) {
+            Log.e("NewEventActivity", "Error reading or parsing system prompt", e);
             Toast.makeText(this, "Error initializing speech recognition", Toast.LENGTH_SHORT).show();
         }
 
