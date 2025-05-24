@@ -50,6 +50,15 @@ public class Model {
         firestore = FirebaseFirestore.getInstance();
         eventRef = firestore.collection(EVENTS_COLLECTION);
         userRef = firestore.collection(USERS_COLLECTION);
+        
+        // Initialize groups with default values
+        groups = new ArrayList<>();
+        groups.add("All");
+        groups.add("Add New Group");
+        
+        // Load initial groups
+        loadGroups();
+        
         checkUserLoginState();
     }
 
@@ -401,46 +410,11 @@ public class Model {
     }
 
     public void getGroups(GroupsCallback callback) {
-        // Use a HashSet to ensure uniqueness of all groups
-        Set<String> uniqueGroups = new HashSet<>();
+        // First return current groups immediately
+        callback.onGroupsLoaded(new ArrayList<>(groups));
         
-        // Add default "All" group
-        uniqueGroups.add("All");
-        
-        // Get all events from Firestore and extract their groups
-        firestore.collection(EVENTS_COLLECTION)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-                        Event event = document.toObject(Event.class);
-                        if (event != null && event.getGroup() != null && !event.getGroup().isEmpty()) {
-                            uniqueGroups.add(event.getGroup());
-                        }
-                    }
-                    
-                    // Clear and rebuild the groups list
-                    groups.clear();
-                    groups.addAll(uniqueGroups);
-                    
-                    // Make sure "All" is the first item
-                    if (groups.remove("All")) {
-                        groups.add(0, "All");
-                    }
-                    
-                    // Add "Add New Group" at the end if not present
-                    if (!groups.contains("Add New Group")) {
-                        groups.add("Add New Group");
-                    }
-                    
-                    Log.d(TAG, "Retrieved groups from Firestore: " + groups);
-                    
-                    // Call the callback with the updated groups
-                    callback.onGroupsLoaded(new ArrayList<>(groups));
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting groups from Firestore", e);
-                    callback.onGroupsLoaded(new ArrayList<>(groups)); // Return current groups on error
-                });
+        // Then refresh groups in background
+        loadGroups();
     }
 
     public ArrayList<String> getGroups() {
@@ -495,6 +469,40 @@ public class Model {
                 Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
             }, e -> Log.e(TAG, "Failed to retrieve user from Firebase", e));
         }
+    }
+
+    // Add new method to load groups
+    private void loadGroups() {
+        firestore.collection(EVENTS_COLLECTION)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Set<String> uniqueGroups = new HashSet<>();
+                    uniqueGroups.add("All");  // Always include default group
+                    
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Event event = document.toObject(Event.class);
+                        if (event != null && event.getGroup() != null && !event.getGroup().isEmpty()) {
+                            uniqueGroups.add(event.getGroup());
+                        }
+                    }
+                    
+                    // Update groups list
+                    groups.clear();
+                    groups.add("All");  // Ensure "All" is first
+                    uniqueGroups.remove("All");  // Remove to avoid duplication
+                    groups.addAll(uniqueGroups);
+                    groups.add("Add New Group");  // Ensure "Add New Group" is last
+                    
+                    Log.d(TAG, "Groups loaded successfully: " + groups);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading groups", e);
+                    // Ensure we at least have default groups
+                    if (groups.isEmpty()) {
+                        groups.add("All");
+                        groups.add("Add New Group");
+                    }
+                });
     }
 
 }
