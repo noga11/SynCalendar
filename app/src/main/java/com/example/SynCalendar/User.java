@@ -90,7 +90,14 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public HashMap<String, String> getMutuals() { return mutuals; }
+    public HashMap<String, String> getMutuals() { 
+        if (mutuals == null) {
+            mutuals = new HashMap<>();
+            // Initialize mutuals with following users
+            mutuals.putAll(following);
+        }
+        return mutuals; 
+    }
     public void setMutuals(HashMap<String, String> mutuals) { this.mutuals = mutuals;}
     public void updateMutuals() {
         if (mutuals == null) {
@@ -98,10 +105,8 @@ public class User {
         } else {
             mutuals.clear();
         }
-
-        for (String userId : following.keySet()) {
-            mutuals.put(userId, userId);
-        }
+        // Add all following users to mutuals
+        mutuals.putAll(following);
     }
     @Exclude
     public Bitmap getProfilePic() {
