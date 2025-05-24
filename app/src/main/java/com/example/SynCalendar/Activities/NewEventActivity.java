@@ -215,9 +215,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         spinnerGroup = findViewById(R.id.spinnerGroup);
         btnMic = findViewById(R.id.btnMic);
 
-        // Setup share users functionality
-        setupShareUsersAutocomplete();
-
         // Check if we're editing an existing event
         String eventId = getIntent().getStringExtra("Event");
 
@@ -258,6 +255,8 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         setupInitialDateTime();
 
         btnMic.setOnClickListener(v -> startSpeechToText());
+
+        setupShareUsersAutocomplete();
     }
 
     private void setupGroupSpinner() {
@@ -505,42 +504,49 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         // Create a new chip
         Chip chip = new Chip(this);
         chip.setText(username);
-        chip.setCloseIconVisible(true);
-        
-        // Find userId from mutuals map
+
+        // Find the userId from mutuals map
         String userId = null;
         for (Map.Entry<String, String> entry : currentUser.getMutuals().entrySet()) {
             if (entry.getValue().equals(username)) {
                 userId = entry.getKey();
+                chip.setTag(userId); // Store the userId in the chip's tag
                 break;
             }
         }
-        
-        if (userId != null) {
-            chip.setTag(userId); // Store the userId in the chip's tag
-            
-            // Get user profile picture
-            model.getUserById(userId,
-                user -> {
-                    if (user != null) {
-                        Bitmap profileBitmap = user.getProfilePic();
-                        if (profileBitmap != null) {
-                            Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
-                            chip.setChipIcon(drawable);
-                        }
-                    }
-                },
-                e -> Log.e("NewEventActivity", "Error getting user data", e)
-            );
-            
-            // Handle chip close button click
-            chip.setOnCloseIconClickListener(v -> {
-                chipGroup.removeView(chip);
-            });
 
-            chipGroup.addView(chip);
+        if (userId != null) {
+            model.getUserById(userId,
+                    user -> {
+                        if (user != null) {
+                            // Set profile picture if available
+                            Bitmap profileBitmap = user.getProfilePic();
+                            if (profileBitmap != null) {
+                                Drawable drawable = new BitmapDrawable(getResources(), profileBitmap);
+                                chip.setChipIcon(drawable);
+                                chip.setChipIconSize(48f);
+                            }
+
+                            chip.setCloseIconVisible(true);
+                            chip.setCloseIconResource(R.drawable.baseline_close_24);
+
+                            chip.setOnCloseIconClickListener(v -> {
+                                chipGroup.removeView(chip);
+                                Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
+                            });
+
+                            chipGroup.addView(chip);
+                        } else {
+                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                        }
+                    },
+                    e -> {
+                        Log.e("NewEventActivity", "Error getting user data", e);
+                        Toast.makeText(this, "Error getting user data", Toast.LENGTH_SHORT).show();
+                    }
+            );
         } else {
-            Toast.makeText(this, "User not found in mutuals", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "User not found in your mutuals", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -676,6 +682,12 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         HashMap<String, String> mutuals = currentUser.getMutuals();
         Log.d("NewEventActivity", "Setting up share users with mutuals: " + mutuals);
 
+        if (mutuals == null || mutuals.isEmpty()) {
+            Log.d("NewEventActivity", "No mutuals found for user: " + currentUser.getuName());
+            Toast.makeText(this, "You need to follow users before you can share events", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         // Create adapter with mutuals usernames
         ArrayList<String> mutualUsernames = new ArrayList<>(mutuals.values());
         Log.d("NewEventActivity", "Mutual usernames: " + mutualUsernames);
@@ -685,6 +697,12 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             android.R.layout.simple_dropdown_item_1line,
             mutualUsernames
         );
+
+        // Make sure auetShare is properly initialized
+        if (auetShare == null) {
+            auetShare = findViewById(R.id.auetShare);
+        }
+
         auetShare.setAdapter(shareAdapter);
         auetShare.setThreshold(1); // Show suggestions after 1 character
 
@@ -694,6 +712,39 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             Log.d("NewEventActivity", "Selected username: " + selectedUsername);
             addUserChip(selectedUsername);
             auetShare.setText(""); // Clear the input field after selection
+        });
+
+        // Add text change listener for real-time filtering
+        auetShare.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String searchText = s.toString().toLowerCase().trim();
+                Log.d("NewEventActivity", "Filtering mutuals with: " + searchText);
+                
+                ArrayList<String> filteredUsernames = new ArrayList<>();
+                for (String username : mutualUsernames) {
+                    if (username.toLowerCase().contains(searchText)) {
+                        filteredUsernames.add(username);
+                    }
+                }
+                
+                shareAdapter = new ArrayAdapter<>(
+                    NewEventActivity.this,
+                    android.R.layout.simple_dropdown_item_1line,
+                    filteredUsernames
+                );
+                auetShare.setAdapter(shareAdapter);
+                
+                if (searchText.length() > 0) {
+                    auetShare.showDropDown();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
