@@ -1,6 +1,7 @@
 package com.example.SynCalendar.Adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +12,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.SynCalendar.Model;
+import com.example.SynCalendar.PhotoHelper;
 import com.example.SynCalendar.R;
 import com.example.SynCalendar.User;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.List;
-import java.util.Map;
 
 public class UsersAdapter extends ArrayAdapter<User> {
     private Context context;
@@ -48,10 +49,27 @@ public class UsersAdapter extends ArrayAdapter<User> {
         final User otherUser = users.get(position);
 
         TextView tvUName = convertView.findViewById(R.id.tvUName);
+        ShapeableImageView imageView = convertView.findViewById(R.id.imageView);
+
         if (tvUName == null) {
             Log.e("UsersAdapter", "TextView tvUName is null at position: " + position);
         } else {
             tvUName.setText(otherUser.getuName());
+        }
+
+        // Set profile picture
+        if (imageView != null) {
+            String profilePicString = otherUser.getProfilePicString();
+            if (profilePicString != null) {
+                Bitmap profilePic = PhotoHelper.stringToBitmap(profilePicString);
+                if (profilePic != null) {
+                    imageView.setImageBitmap(profilePic);
+                } else {
+                    imageView.setImageResource(R.drawable.images); // Set default image
+                }
+            } else {
+                imageView.setImageResource(R.drawable.images); // Set default image
+            }
         }
 
         Button btnFollow = convertView.findViewById(R.id.btnAction);
@@ -84,22 +102,9 @@ public class UsersAdapter extends ArrayAdapter<User> {
     }
 
     private void handleRemoveFollower(User follower, int position) {
-        // Remove from followers list
-        currentUser.removeFollower(follower.getId());
-        // Remove from their following list
-        follower.removeFollowing(currentUser.getId());
-        // Add to their requests
-        currentUser.addPendingRequest(follower.getId(), follower.getuName());
-
-        // Update Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        
-        // Update current user
-        db.collection("users")
-            .document(currentUser.getId())
-            .set(currentUser)
-            .addOnSuccessListener(aVoid -> {
-                Log.d("UsersAdapter", "Current user updated successfully");
+        model.removeFollower(follower, new Model.FollowRequestCallback() {
+            @Override
+            public void onSuccess() {
                 // Remove from followers list
                 users.remove(position);
                 notifyDataSetChanged();
@@ -111,66 +116,32 @@ public class UsersAdapter extends ArrayAdapter<User> {
                 }
                 
                 Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
-            })
-            .addOnFailureListener(e -> {
-                Log.e("UsersAdapter", "Error updating current user", e);
-                Toast.makeText(context, "Error removing follower", Toast.LENGTH_SHORT).show();
-            });
+            }
 
-        // Update follower
-        db.collection("users")
-            .document(follower.getId())
-            .set(follower)
-            .addOnFailureListener(e -> 
-                Log.e("UsersAdapter", "Error updating follower", e));
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("UsersAdapter", "Error removing follower", e);
+                Toast.makeText(context, "Error removing follower", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void handleFollowUnfollow(User otherUser, Button btnFollow) {
-        boolean isCurrentlyFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-        boolean hasCurrentRequest = otherUser.getRequests().containsKey(currentUser.getId());
-
-        if (isCurrentlyFollowing) {
-            // Unfollow
-            currentUser.removeFollowing(otherUser.getId());
-            otherUser.removeFollower(currentUser.getId());
-            Log.d("UsersAdapter", "Unfollowed user: " + otherUser.getuName());
-        } else if (hasCurrentRequest) {
-            // Cancel request
-            otherUser.removePendingRequest(currentUser.getId());
-            Log.d("UsersAdapter", "Cancelled request to: " + otherUser.getuName());
-        } else {
-            // Follow or send request
-            if (!otherUser.getPrivacy()) {
-                // Direct follow for public accounts
-                currentUser.addFollowing(otherUser.getId(), otherUser.getuName());
-                otherUser.addFollower(currentUser.getId(), currentUser.getuName());
-                Log.d("UsersAdapter", "Following user: " + otherUser.getuName());
-            } else {
-                // Send request for private accounts
-                otherUser.addPendingRequest(currentUser.getId(), currentUser.getuName());
-                Log.d("UsersAdapter", "Sent request to: " + otherUser.getuName());
+        model.handleFollowUnfollow(otherUser, new Model.FollowRequestCallback() {
+            @Override
+            public void onSuccess() {
+                // Update button state after action
+                boolean isNowFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
+                boolean hasNowRequest = otherUser.getRequests().containsKey(currentUser.getId());
+                updateButtonState(btnFollow, isNowFollowing, hasNowRequest);
             }
-        }
 
-        // Update button state after action
-        boolean isNowFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-        boolean hasNowRequest = otherUser.getRequests().containsKey(currentUser.getId());
-        updateButtonState(btnFollow, isNowFollowing, hasNowRequest);
-
-        // Update both users in Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        
-        db.collection("users")
-            .document(otherUser.getId())
-            .set(otherUser)
-            .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Other user updated successfully"))
-            .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating other user", e));
-
-        db.collection("users")
-            .document(currentUser.getId())
-            .set(currentUser)
-            .addOnSuccessListener(aVoid -> Log.d("UsersAdapter", "Current user updated successfully"))
-            .addOnFailureListener(e -> Log.e("UsersAdapter", "Error updating current user", e));
+            @Override
+            public void onFailure(Exception e) {
+                Log.e("UsersAdapter", "Error in follow/unfollow operation", e);
+                Toast.makeText(context, "Error updating follow status", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void updateButtonState(Button button, boolean isFollowing, boolean hasSentRequest) {

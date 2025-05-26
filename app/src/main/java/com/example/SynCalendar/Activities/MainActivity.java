@@ -384,9 +384,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             if (calendarAdapter != null) {
                 calendarAdapter.setSelectedDay(dayText);
             }
-            
-            String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 

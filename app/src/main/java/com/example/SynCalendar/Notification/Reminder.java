@@ -1,6 +1,7 @@
 package com.example.SynCalendar.Notification;
 
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -14,6 +15,7 @@ public class Reminder {
     private static AlarmManager alarmMgr;
     private static PendingIntent alarmIntent;
 
+    @SuppressLint("ScheduleExactAlarm")
     public static void setAlarm(Context context, int startHour, int startMinutes, String eventTitle) {
         alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiver.class);
