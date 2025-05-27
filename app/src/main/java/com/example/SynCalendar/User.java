@@ -63,8 +63,14 @@ public class User {
     public void setFollowing(HashMap<String, String> following) {
         this.following = following != null ? following : new HashMap<>();
     }
-    public void addFollowing(String userId, String username) { following.put(userId, username); }
-    public void removeFollowing(String userId) { following.remove(userId); }
+    public void addFollowing(String userId, String username) { 
+        following.put(userId, username); 
+        updateMutuals();
+    }
+    public void removeFollowing(String userId) { 
+        following.remove(userId); 
+        updateMutuals();
+    }
 
     public HashMap<String, String> getFollowers() {
         if (followers == null) followers = new HashMap<>();
@@ -73,8 +79,14 @@ public class User {
     public void setFollowers(HashMap<String, String> followers) {
         this.followers = followers != null ? followers : new HashMap<>();
     }
-    public void addFollower(String userId, String username) { followers.put(userId, username); }
-    public void removeFollower(String userId) { followers.remove(userId); }
+    public void addFollower(String userId, String username) { 
+        followers.put(userId, username); 
+        updateMutuals();
+    }
+    public void removeFollower(String userId) { 
+        followers.remove(userId); 
+        updateMutuals();
+    }
 
     // --- Other Getters & Setters ---
 
@@ -105,8 +117,13 @@ public class User {
         } else {
             mutuals.clear();
         }
-        // Add all following users to mutuals
-        mutuals.putAll(following);
+        // Only add users who are both following and followers
+        for (Map.Entry<String, String> followingEntry : following.entrySet()) {
+            String userId = followingEntry.getKey();
+            if (followers.containsKey(userId)) {
+                mutuals.put(userId, followingEntry.getValue());
+            }
+        }
     }
     @Exclude
     public Bitmap getProfilePic() {
@@ -131,6 +148,7 @@ public class User {
             String username = requests.get(userId);
             requests.remove(userId);
             followers.put(userId, username);
+            updateMutuals();
         }
     }
 

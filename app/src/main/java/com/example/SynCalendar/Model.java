@@ -53,6 +53,9 @@ public class Model {
         eventRef = firestore.collection(EVENTS_COLLECTION);
         userRef = firestore.collection(USERS_COLLECTION);
         
+        // Initialize collections
+        initializeCollections();
+        
         // Initialize groups with default values
         groups = new ArrayList<>();
         groups.add("All");
@@ -62,6 +65,30 @@ public class Model {
         loadGroups();
 
         checkUserLoginState();
+    }
+
+    private void initializeCollections() {
+        // Create events collection if it doesn't exist
+        eventRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            Log.d(TAG, "Events collection exists");
+        }).addOnFailureListener(e -> {
+            Log.d(TAG, "Creating events collection");
+            // Create an empty document to initialize the collection
+            eventRef.document("_init").set(new HashMap<String, Object>())
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Events collection created"))
+                .addOnFailureListener(error -> Log.e(TAG, "Error creating events collection", error));
+        });
+
+        // Create users collection if it doesn't exist
+        userRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            Log.d(TAG, "Users collection exists");
+        }).addOnFailureListener(e -> {
+            Log.d(TAG, "Creating users collection");
+            // Create an empty document to initialize the collection
+            userRef.document("_init").set(new HashMap<String, Object>())
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Users collection created"))
+                .addOnFailureListener(error -> Log.e(TAG, "Error creating users collection", error));
+        });
     }
 
     public static Model getInstance(Context context) {
@@ -80,9 +107,19 @@ public class Model {
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
         if (firebaseUser != null) {
             getUserById(firebaseUser.getUid(), user -> {
-                currentUser = user;
-                Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
-            }, e -> Log.e(TAG, "Failed to retrieve user from Firebase", e));
+                if (user != null) {
+                    currentUser = user;
+                    Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
+                } else {
+                    Log.e(TAG, "User document not found in Firestore");
+                    // Handle the case where user exists in Auth but not in Firestore
+                    logout(); // Log out the user since their Firestore data is missing
+                }
+            }, e -> {
+                Log.e(TAG, "Failed to retrieve user from Firebase", e);
+                // Handle the error case
+                logout(); // Log out the user on error
+            });
         }
     }
 
