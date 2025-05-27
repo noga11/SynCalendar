@@ -372,6 +372,27 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btnMic.setOnClickListener(v -> startSpeechToText());
 
         setupShareUsersAutocomplete();
+
+        swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Check for RECORD_AUDIO permission before showing reminder fields
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECORD_AUDIO},
+                            PERMISSION_CODE);
+                    // Optionally, you can uncheck the switch until permission is granted
+                    swchReminder.setChecked(false);
+                    Toast.makeText(this, "Audio permission required to set a reminder.", Toast.LENGTH_SHORT).show();
+                } else {
+                    tvReminderDate.setVisibility(View.VISIBLE);
+                    tvReminderTime.setVisibility(View.VISIBLE);
+                }
+            } else {
+                tvReminderDate.setVisibility(View.GONE);
+                tvReminderTime.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void setupGroupSpinner() {
@@ -531,6 +552,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             try {
                 String dateStr = tvDate.getText().toString().trim() + " " + tvStartTime.getText().toString().trim();
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                sdf.setTimeZone(java.util.TimeZone.getDefault()); // Ensure device timezone
                 startDate = sdf.parse(dateStr);
             } catch (Exception e) {
                 startDate = new Date(); // fallback to current time
@@ -542,6 +564,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 String startStr = tvStartTime.getText().toString().trim();
                 String endStr = tvEndTime.getText().toString().trim();
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+                sdf.setTimeZone(java.util.TimeZone.getDefault()); // Ensure device timezone
                 Date start = sdf.parse(startStr);
                 Date end = sdf.parse(endStr);
                 if (start != null && end != null) {
@@ -557,6 +580,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 try {
                     String dateStr = tvReminderDate.getText().toString().trim() + " " + tvReminderTime.getText().toString().trim();
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                    sdf.setTimeZone(java.util.TimeZone.getDefault()); // Ensure device timezone
                     reminderTime = sdf.parse(dateStr);
 
                     // Schedule notification if reminder time is in the future

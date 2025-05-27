@@ -250,15 +250,16 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         selectedCalendar.set(Calendar.SECOND, 0);
         selectedCalendar.set(Calendar.MILLISECOND, 0);
 
+        // Debug log for selected date
+        Log.d("EventDebug", "Selected date: " + selectedCalendar.getTime());
         for (Event event : events) {
             if (event.getStart() != null) {
+                Log.d("EventDebug", "Event: " + event.getTitle() + " start: " + event.getStart());
                 Calendar eventCalendar = Calendar.getInstance();
                 eventCalendar.setTime(event.getStart());
-                
                 boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
                                 eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
                                 eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
-                
                 if (sameDay) {
                     filteredEvents.add(event);
                 }
