@@ -84,8 +84,6 @@ public class RequestAdapter extends ArrayAdapter<User> {
                     if (context instanceof FollowingActivity) {
                         ((FollowingActivity) context).fetchAllUsers();
                     }
-                    
-                    Toast.makeText(context, "Request accepted", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -103,7 +101,6 @@ public class RequestAdapter extends ArrayAdapter<User> {
                     // Remove from the adapter's list
                     users.remove(position);
                     notifyDataSetChanged();
-                    Toast.makeText(context, "Request rejected", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override

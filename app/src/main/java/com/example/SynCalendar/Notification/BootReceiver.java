@@ -74,7 +74,7 @@ public class BootReceiver extends BroadcastReceiver {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error restoring alarms", e);
-                    Toast.makeText(context, "Error restoring alarms", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Error restoring alarms in SynCalendar", Toast.LENGTH_SHORT).show();
                 });
         }
     }

@@ -251,8 +251,7 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                                                 }
                                             }
                                             
-                                            Toast.makeText(NewEventActivity.this, "Event details updated", Toast.LENGTH_SHORT).show();
-                                            
+
                                         } catch (Exception e) {
                                             Log.e("NewEventActivity", "Error updating UI with event details", e);
                                             Toast.makeText(NewEventActivity.this, 
@@ -614,7 +613,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTime(reminderTime);
                         Reminder.setAlarm(this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), eventTitle);
-                        Toast.makeText(this, "Reminder set for " + tvReminderDate.getText() + " " + tvReminderTime.getText(), Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(this, "Reminder time must be in the future", Toast.LENGTH_SHORT).show();
                         return;
@@ -633,7 +631,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                 model.updateEvent(eventId, eventTitle, details, address, group, usersId,
                                 startDate, reminderTime, swchReminder.isChecked(), 
                                 duration); // notificationId removed as it will be set by the system
-                Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
             } else {
                 // Create new event
                 Event event = new Event(
@@ -649,7 +646,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
                     duration
                 );
                 model.createEvent(event);
-                Toast.makeText(this, "Event added successfully", Toast.LENGTH_SHORT).show();
             }
 
             setResult(RESULT_OK, getIntent());  // Set the result before finishing
@@ -697,7 +693,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
                             chip.setOnCloseIconClickListener(v -> {
                                 chipGroup.removeView(chip);
-                                Toast.makeText(this, username + " removed", Toast.LENGTH_SHORT).show();
                             });
 
                             chipGroup.addView(chip);
@@ -859,7 +854,6 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         if (mutuals == null || mutuals.isEmpty()) {
             Log.d("NewEventActivity", "No mutuals found for user: " + currentUser.getuName());
-            Toast.makeText(this, "You need to follow users before you can share events", Toast.LENGTH_LONG).show();
             return;
         }
 

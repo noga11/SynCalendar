@@ -219,7 +219,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // Ensure `currentUser` is available
                 if (model.getCurrentUser() != null) {
                     model.updateUser(username, email, privacy, userProfilePic);
-                    Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
 
                     // Log current user state after update
                     Log.d("LoginActivity", "After update: " + (model.getCurrentUser() != null ? model.getCurrentUser().getuName() : "null"));

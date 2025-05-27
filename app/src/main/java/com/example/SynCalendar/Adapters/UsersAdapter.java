@@ -108,7 +108,6 @@ public class UsersAdapter extends ArrayAdapter<User> {
                 // Remove from followers list
                 users.remove(position);
                 notifyDataSetChanged();
-                Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
             }
 
             @Override
