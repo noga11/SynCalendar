@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.nav_Add) {
                 Intent intent = new Intent(MainActivity.this, NewEventActivity.class);
+                intent.putExtra("selectedDate", selectedDate.getTime());
                 activityStartLauncher.launch(intent);
                 return true;
             } else if (item.getItemId() == R.id.nav_Events) {

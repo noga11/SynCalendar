@@ -449,13 +449,20 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
     private void setupInitialDateTime() {
         Calendar calendar = Calendar.getInstance();
+        
+        // Check if we received a selected date from MainActivity
+        long selectedDateMillis = getIntent().getLongExtra("selectedDate", -1);
+        if (selectedDateMillis != -1) {
+            calendar.setTimeInMillis(selectedDateMillis);
+        }
+        
         selectedYear = calendar.get(Calendar.YEAR);
         selectedMonth = calendar.get(Calendar.MONTH);
         selectedDay = calendar.get(Calendar.DAY_OF_MONTH);
         selectedHour = calendar.get(Calendar.HOUR_OF_DAY);
         selectedMinute = calendar.get(Calendar.MINUTE);
 
-        // Set start time and date to current time
+        // Set start time and date
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Jerusalem"));
         String currentDate = dateFormat.format(calendar.getTime());
