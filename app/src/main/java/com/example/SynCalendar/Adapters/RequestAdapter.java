@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.SynCalendar.Activities.FollowingActivity;
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.PhotoHelper;
 import com.example.SynCalendar.R;
@@ -79,12 +80,9 @@ public class RequestAdapter extends ArrayAdapter<User> {
                     users.remove(position);
                     notifyDataSetChanged();
 
-                    // Add to followers list if not already there
-                    if (!followersList.contains(requester)) {
-                        followersList.add(requester);
-                        if (followersAdapter != null) {
-                            followersAdapter.notifyDataSetChanged();
-                        }
+                    // Refresh the followers list by calling fetchAllUsers on the activity
+                    if (context instanceof FollowingActivity) {
+                        ((FollowingActivity) context).fetchAllUsers();
                     }
                     
                     Toast.makeText(context, "Request accepted", Toast.LENGTH_SHORT).show();

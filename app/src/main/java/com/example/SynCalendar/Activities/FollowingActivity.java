@@ -249,7 +249,7 @@ public class FollowingActivity extends AppCompatActivity {
         }
     }
 
-    private void fetchAllUsers() {
+    public void fetchAllUsers() {
         if ("action_Following".equals(source)) {
             setTitle("Following");
             allUsers.clear();
