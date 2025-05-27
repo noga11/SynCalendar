@@ -242,50 +242,66 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             return;
         }
 
-        List<Event> filteredEvents = new ArrayList<>();
-        Calendar selectedCalendar = Calendar.getInstance();
-        selectedCalendar.setTime(selectedDate);
-        selectedCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        selectedCalendar.set(Calendar.MINUTE, 0);
-        selectedCalendar.set(Calendar.SECOND, 0);
-        selectedCalendar.set(Calendar.MILLISECOND, 0);
-
-        // Debug log for selected date
-        Log.d("EventDebug", "Selected date: " + selectedCalendar.getTime());
-        for (Event event : events) {
-            if (event.getStart() != null) {
-                Log.d("EventDebug", "Event: " + event.getTitle() + " start: " + event.getStart());
-                Calendar eventCalendar = Calendar.getInstance();
-                eventCalendar.setTime(event.getStart());
-                boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
-                                eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
-                                eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
-                if (sameDay) {
-                    filteredEvents.add(event);
-                }
-            }
+        if (model.getCurrentUser() == null) {
+            Log.e(TAG, "No user logged in");
+            return;
         }
 
-        // Sort filtered events by start time
-        Collections.sort(filteredEvents, (event1, event2) -> {
-            if (event1.getStart() == null && event2.getStart() == null) return 0;
-            if (event1.getStart() == null) return 1;
-            if (event2.getStart() == null) return -1;
-            return event1.getStart().compareTo(event2.getStart());
-        });
+        model.getEventsByUserId(model.getCurrentUser().getId(), 
+            userEvents -> {
+                List<Event> filteredEvents = new ArrayList<>();
+                Calendar selectedCalendar = Calendar.getInstance();
+                selectedCalendar.setTime(selectedDate);
+                selectedCalendar.set(Calendar.HOUR_OF_DAY, 0);
+                selectedCalendar.set(Calendar.MINUTE, 0);
+                selectedCalendar.set(Calendar.SECOND, 0);
+                selectedCalendar.set(Calendar.MILLISECOND, 0);
 
-        runOnUiThread(() -> {
-            if (!filteredEvents.isEmpty()) {
-                adapter.updateData(filteredEvents);
-                tvEmptyList.setVisibility(View.GONE);
-                lstDailyEvents.setVisibility(View.VISIBLE);
-            } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                tvEmptyList.setText("No events for " + dateFormat.format(selectedDate));
-                tvEmptyList.setVisibility(View.VISIBLE);
-                lstDailyEvents.setVisibility(View.GONE);
+                // Debug log for selected date
+                Log.d("EventDebug", "Selected date: " + selectedCalendar.getTime());
+                Log.d("EventDebug", "Total events to filter: " + userEvents.size());
+                
+                for (Event event : userEvents) {
+                    if (event.getStart() != null) {
+                        Log.d("EventDebug", "Event: " + event.getTitle() + " start: " + event.getStart());
+                        Calendar eventCalendar = Calendar.getInstance();
+                        eventCalendar.setTime(event.getStart());
+                        boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
+                                        eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
+                                        eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
+                        
+                        if (sameDay) {
+                            filteredEvents.add(event);
+                        }
+                    }
+                }
+
+                // Sort filtered events by start time
+                Collections.sort(filteredEvents, (event1, event2) -> {
+                    if (event1.getStart() == null && event2.getStart() == null) return 0;
+                    if (event1.getStart() == null) return 1;
+                    if (event2.getStart() == null) return -1;
+                    return event1.getStart().compareTo(event2.getStart());
+                });
+
+                runOnUiThread(() -> {
+                    if (!filteredEvents.isEmpty()) {
+                        adapter.updateData(filteredEvents);
+                        tvEmptyList.setVisibility(View.GONE);
+                        lstDailyEvents.setVisibility(View.VISIBLE);
+                    } else {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        tvEmptyList.setText("No events for " + dateFormat.format(selectedDate));
+                        tvEmptyList.setVisibility(View.VISIBLE);
+                        lstDailyEvents.setVisibility(View.GONE);
+                    }
+                });
+            },
+            e -> {
+                Log.e(TAG, "Failed to load events", e);
+                Toast.makeText(MainActivity.this, "Failed to load events", Toast.LENGTH_SHORT).show();
             }
-        });
+        );
     }
 
     private void setMonthView() {
