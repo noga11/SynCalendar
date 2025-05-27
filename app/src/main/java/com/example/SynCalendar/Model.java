@@ -8,7 +8,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.SynCalendar.Notification.Reminder;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
@@ -29,8 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Date;
-import java.util.Calendar;
-import java.util.Map;
 
 public class Model {
     private static final String TAG = "Model";
@@ -38,6 +35,7 @@ public class Model {
     private static final String USERS_COLLECTION = "users";
     private static Model instance;
     private FirebaseAuth mAuth;
+    private FirebaseUser firebaseUser;
     private FirebaseFirestore firestore;
     private CollectionReference eventRef;
     private CollectionReference userRef;
@@ -60,7 +58,7 @@ public class Model {
         
         // Load initial groups
         loadGroups();
-
+        
         checkUserLoginState();
     }
 
@@ -71,52 +69,13 @@ public class Model {
 
     // -------------------------------------- User Functions --------------------------------------
 
-    public boolean isUserLoggedIn() {
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        return firebaseUser != null;
-    }
-
-    private void checkUserLoginState() {
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        if (firebaseUser != null) {
-            getUserById(firebaseUser.getUid(), user -> {
-                currentUser = user;
-                Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
-            }, e -> Log.e(TAG, "Failed to retrieve user from Firebase", e));
-        }
-    }
-
     public User getCurrentUser(){
         if (currentUser != null) {
+            Log.d("Model", "Current user following map: " + currentUser.getFollowing().toString());
+            Log.d("Model", "Current user following count: " + currentUser.getFollowing().size());
             return currentUser;
         }
         return null;
-    }
-
-    public void login(String email, String password, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                        getUserById(firebaseUser.getUid(), user -> {
-                            currentUser = user;
-                            Log.d(TAG, "User logged in: " + currentUser.getuName());
-                            onSuccess.onSuccess(currentUser);
-                        }, onFailure);
-                    }
-                })
-                .addOnFailureListener(onFailure);
-    }
-
-    public void logout() {
-        mAuth.signOut();
-        Log.d("Model", "User logged out");
-        currentUser = null;
-        events.clear();
-        groups.clear();
-        // Clear the singleton instance to force a fresh start
-        instance = null;
     }
 
     public void createUser(String displayName, String email, String password, boolean privacy, Bitmap profilePic, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
@@ -127,6 +86,7 @@ public class Model {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         currentUser = new User(displayName, email, profilePic, firebaseUser.getUid(), null, null, privacy, password);
                         DocumentReference userDoc = firestore.collection(USERS_COLLECTION).document(firebaseUser.getUid());
+                        // Log the currentUser object before saving to Firestore
                         Log.d("Model", "Creating user with details: " + currentUser.toString());
                         userDoc.set(currentUser)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -137,6 +97,62 @@ public class Model {
                                     }
                                 })
                                 .addOnFailureListener(onFailure);
+                    }
+                })
+                .addOnFailureListener(onFailure);
+    }
+
+    public void login(String email, String password, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        getUserFromFirebase(firebaseUser.getUid(), user -> {
+                            currentUser = user;
+                            Log.d(TAG, "User logged in: " + currentUser.getuName());
+                            onSuccess.onSuccess(currentUser);
+                        }, onFailure);
+                    }
+                })
+                .addOnFailureListener(onFailure);
+    }
+
+    private void getUserFromFirebase(String userId, OnSuccessListener<User> onSuccess, OnFailureListener onFailure) {
+        DocumentReference userRef = firestore.collection(USERS_COLLECTION).document(userId);
+        userRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()) {
+                            currentUser = documentSnapshot.toObject(User.class);
+                            if (currentUser != null) {
+                                // Ensure maps are initialized
+                                if (currentUser.getFollowing() == null) {
+                                    currentUser.setFollowing(new HashMap<>());
+                                }
+                                if (currentUser.getFollowers() == null) {
+                                    currentUser.setFollowers(new HashMap<>());
+                                }
+                                if (currentUser.getRequests() == null) {
+                                    currentUser.setPendingRequests(new HashMap<>());
+                                }
+                                
+                                // Set the ID since it might not be set in the Firestore document
+                                currentUser.setId(userId);
+                                
+                                Log.d("Model", "User data retrieved: " + currentUser.getuName());
+                                Log.d("Model", "Following count: " + currentUser.getFollowing().size());
+                                Log.d("Model", "Following data: " + currentUser.getFollowing().toString());
+                                onSuccess.onSuccess(currentUser);
+                            } else {
+                                Log.e("Model", "Failed to convert document to User object");
+                                onFailure.onFailure(new Exception("Failed to convert document to User object"));
+                            }
+                        } else {
+                            Log.e("Model", "No such user in Firestore");
+                            onFailure.onFailure(new Exception("User not found in database"));
+                        }
                     }
                 })
                 .addOnFailureListener(onFailure);
@@ -166,6 +182,7 @@ public class Model {
                                 user.setId(documentSnapshot.getId());
                                 
                                 Log.d("Model", "Retrieved user: " + user.getuName());
+                                Log.d("Model", "User following count: " + user.getFollowing().size());
                             }
                             onSuccess.onSuccess(user);
                         } else {
@@ -174,6 +191,16 @@ public class Model {
                     }
                 })
                 .addOnFailureListener(onFailure);
+    }
+
+    public void logout() {
+        mAuth.signOut();
+        Log.d("Model", "User logged out");
+        currentUser = null;
+        events.clear();
+        groups.clear();
+        // Clear the singleton instance to force a fresh start
+        instance = null;
     }
 
     public void updateUser(String uName, String email, boolean privacy, Bitmap profilePic) {
@@ -203,6 +230,7 @@ public class Model {
         // Update currentUser (not in the firebase)
         currentUser.setPrivacy(privacy);
         currentUser.setuName(uName);
+        currentUser.setEmail(email);
         currentUser.setPrivacy(privacy);
         currentUser.setProfilePic(profilePic);
 
@@ -377,8 +405,6 @@ public class Model {
                 });
     }
 
-    // -------------------------------------- Group Functions --------------------------------------
-
     public interface GroupsCallback {
         void onGroupsLoaded(ArrayList<String> groups);
     }
@@ -435,6 +461,16 @@ public class Model {
         }
     }
 
+    private void checkUserLoginState() {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            getUserFromFirebase(firebaseUser.getUid(), user -> {
+                currentUser = user;
+                Log.d(TAG, "User logged in from Firebase Auth: " + currentUser.getuName());
+            }, e -> Log.e(TAG, "Failed to retrieve user from Firebase", e));
+        }
+    }
+
     // Add new method to load groups
     private void loadGroups() {
         firestore.collection(EVENTS_COLLECTION)
@@ -467,146 +503,6 @@ public class Model {
                         groups.add("Add New Group");
                     }
                 });
-    }
-
-    // -------------------------------------- Follow Functions --------------------------------------
-
-    public interface FollowRequestCallback {
-        void onSuccess();
-        void onFailure(Exception e);
-    }
-
-    public void acceptFollowRequest(User requester, FollowRequestCallback callback) {
-        Map<String, String> requests = currentUser.getRequests();
-
-        if (requests.containsKey(requester.getId())) {
-            // Accept the request
-            currentUser.approveFollowRequest(requester.getId());
-            
-            // Update requester's following list
-            requester.addFollowing(currentUser.getId(), currentUser.getuName());
-
-            // Update Firestore for both users
-            firestore.collection(USERS_COLLECTION)
-                .document(currentUser.getId())
-                .set(currentUser)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Current user updated successfully");
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error updating current user", e);
-                    callback.onFailure(e);
-                });
-
-            firestore.collection(USERS_COLLECTION)
-                .document(requester.getId())
-                .set(requester)
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error updating requester", e);
-                    callback.onFailure(e);
-                });
-        }
-    }
-
-    public void rejectFollowRequest(User requester, FollowRequestCallback callback) {
-        Map<String, String> requests = currentUser.getRequests();
-        
-        if (requests.containsKey(requester.getId())) {
-            // Reject the request
-            currentUser.denyFollowRequest(requester.getId());
-
-            // Update Firestore
-            firestore.collection(USERS_COLLECTION)
-                .document(currentUser.getId())
-                .set(currentUser)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Request rejected successfully");
-                    callback.onSuccess();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error rejecting request", e);
-                    callback.onFailure(e);
-                });
-        }
-    }
-
-    public void removeFollower(User follower, FollowRequestCallback callback) {
-        // Remove from followers list
-        currentUser.removeFollower(follower.getId());
-        // Remove from their following list
-        follower.removeFollowing(currentUser.getId());
-        // Add to their requests
-        currentUser.addPendingRequest(follower.getId(), follower.getuName());
-
-        // Update Firestore
-        userRef.document(currentUser.getId())
-            .set(currentUser)
-            .addOnSuccessListener(aVoid -> {
-                Log.d(TAG, "Current user updated successfully after removing follower");
-                callback.onSuccess();
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error updating current user after removing follower", e);
-                callback.onFailure(e);
-            });
-
-        // Update follower
-        userRef.document(follower.getId())
-            .set(follower)
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error updating follower", e);
-                callback.onFailure(e);
-            });
-    }
-
-    public void handleFollowUnfollow(User otherUser, FollowRequestCallback callback) {
-        boolean isCurrentlyFollowing = currentUser.getFollowing().containsKey(otherUser.getId());
-        boolean hasCurrentRequest = otherUser.getRequests().containsKey(currentUser.getId());
-
-        if (isCurrentlyFollowing) {
-            // Unfollow
-            currentUser.removeFollowing(otherUser.getId());
-            otherUser.removeFollower(currentUser.getId());
-            Log.d(TAG, "Unfollowed user: " + otherUser.getuName());
-        } else if (hasCurrentRequest) {
-            // Cancel request
-            otherUser.removePendingRequest(currentUser.getId());
-            Log.d(TAG, "Cancelled request to: " + otherUser.getuName());
-        } else {
-            // Follow or send request
-            if (!otherUser.getPrivacy()) {
-                // Direct follow for public accounts
-                currentUser.addFollowing(otherUser.getId(), otherUser.getuName());
-                otherUser.addFollower(currentUser.getId(), currentUser.getuName());
-                Log.d(TAG, "Following user: " + otherUser.getuName());
-            } else {
-                // Send request for private accounts
-                otherUser.addPendingRequest(currentUser.getId(), currentUser.getuName());
-                Log.d(TAG, "Sent request to: " + otherUser.getuName());
-            }
-        }
-
-        // Update both users in Firestore
-        userRef.document(otherUser.getId())
-            .set(otherUser)
-            .addOnSuccessListener(aVoid -> {
-                Log.d(TAG, "Other user updated successfully");
-                userRef.document(currentUser.getId())
-                    .set(currentUser)
-                    .addOnSuccessListener(aVoid2 -> {
-                        Log.d(TAG, "Current user updated successfully");
-                        callback.onSuccess();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error updating current user", e);
-                        callback.onFailure(e);
-                    });
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error updating other user", e);
-                callback.onFailure(e);
-            });
     }
 
 }

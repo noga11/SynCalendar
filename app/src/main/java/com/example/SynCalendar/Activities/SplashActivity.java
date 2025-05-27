@@ -7,10 +7,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.SynCalendar.Model;
 import com.example.SynCalendar.R;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class SplashActivity extends AppCompatActivity {
     private static final int SPLASH_DELAY = 2000; // 2 seconds
     private Model model;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,9 +20,10 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         model = Model.getInstance(this);
+        mAuth = FirebaseAuth.getInstance();
 
         new Handler().postDelayed(() -> {
-            if (!model.isUserLoggedIn()) {
+            if (mAuth.getCurrentUser() == null) {
                 Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();

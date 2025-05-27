@@ -104,14 +104,14 @@ public class GeminiManager {
                     GenerateContentResponse generateContentResponse = (GenerateContentResponse)result;
                     String response = generateContentResponse.getText();
                     Log.d("GeminiManager", "Raw response from Gemini: " + response);
-
+                    
                     // Try to clean up the response if it contains markdown code blocks
                     if (response.contains("```json")) {
                         response = response.split("```json")[1].split("```")[0].trim();
                     } else if (response.contains("```")) {
                         response = response.split("```")[1].split("```")[0].trim();
                     }
-
+                    
                     // Validate JSON format
                     try {
                         // Try parsing and re-stringifying to ensure valid JSON
@@ -130,15 +130,65 @@ public class GeminiManager {
                             Log.e("GeminiManager", "Error creating error JSON", ex);
                         }
                     }
-
+                    
                     geminiCallback.onSuccessful(response);
                 }
             }
         });
     }
 
+    public void sendMessageWithPhoto(String propmt, Bitmap bitmap, GeminiCallback geminiCallback){
+        List<Part> parts = new ArrayList<>();
+        parts.add(new TextPart(propmt));
+        parts.add(new ImagePart(bitmap));
+        Content[] content = new Content[1];
+        content[0] = new Content(parts);
+        generativeModel.generateContent(content,
+                new Continuation<GenerateContentResponse>() {
+                    @NonNull
+                    @Override
+                    public CoroutineContext getContext() {
+                        return EmptyCoroutineContext.INSTANCE;
+                    }
+
+                    @Override
+                    public void resumeWith(@NonNull Object result) {
+                        if (result instanceof Result.Failure) {
+                            Result.Failure failure = (Result.Failure) result;
+                            geminiCallback.onError(failure.exception);
+                        }
+                        else{
+                            GenerateContentResponse generateContentResponse = (GenerateContentResponse)result;
+                            geminiCallback.onSuccessful(generateContentResponse.getText());
+                        }
+                    }
+                });
+    }
+
     private void startChat(){
         chat = generativeModel.startChat(Collections.emptyList());
+    }
+
+    public void sendChatMessage(String prompt, GeminiCallback geminiCallback){
+        chat.sendMessage(prompt, new Continuation<GenerateContentResponse>() {
+            @NonNull
+            @Override
+            public CoroutineContext getContext() {
+                return coroutineContext;
+            }
+
+            @Override
+            public void resumeWith(@NonNull Object result) {
+                if (result instanceof Result.Failure) {
+                    Result.Failure failure = (Result.Failure) result;
+                    geminiCallback.onError(failure.exception);
+                }
+                else{
+                    GenerateContentResponse generateContentResponse = (GenerateContentResponse)result;
+                    geminiCallback.onSuccessful(generateContentResponse.getText());
+                }
+            }
+        });
     }
 
     public void setSystemPrompt(String prompt){

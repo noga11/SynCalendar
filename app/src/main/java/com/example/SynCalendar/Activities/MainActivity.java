@@ -242,6 +242,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             return;
         }
 
+        // Always filter from the full events list
         List<Event> filteredEvents = new ArrayList<>();
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
@@ -250,16 +251,15 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         selectedCalendar.set(Calendar.SECOND, 0);
         selectedCalendar.set(Calendar.MILLISECOND, 0);
 
-        // Debug log for selected date
-        Log.d("EventDebug", "Selected date: " + selectedCalendar.getTime());
-        for (Event event : events) {
+        for (Event event : events) { // Use the full events list
             if (event.getStart() != null) {
-                Log.d("EventDebug", "Event: " + event.getTitle() + " start: " + event.getStart());
                 Calendar eventCalendar = Calendar.getInstance();
                 eventCalendar.setTime(event.getStart());
+                
                 boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
                                 eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
                                 eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
+                
                 if (sameDay) {
                     filteredEvents.add(event);
                 }
@@ -385,6 +385,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             if (calendarAdapter != null) {
                 calendarAdapter.setSelectedDay(dayText);
             }
+            
+            String message = "Selected Date " + dayText + " " + monthYearFormat.format(selectedDate);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 
