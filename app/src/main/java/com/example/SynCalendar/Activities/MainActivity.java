@@ -205,11 +205,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         return false;
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-//        customCalendarView.invalidate();
     }
 
     private void refreshEvents() {
@@ -237,55 +235,23 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     }
 
     private void updateEventsForSelectedDate(Date selectedDate) {
-        if (adapter == null || tvEmptyList == null || lstDailyEvents == null) {
-            Log.e(TAG, "UI components not initialized");
-            return;
-        }
-
-        // Always filter from the full events list
-        List<Event> filteredEvents = new ArrayList<>();
-        Calendar selectedCalendar = Calendar.getInstance();
-        selectedCalendar.setTime(selectedDate);
-        selectedCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        selectedCalendar.set(Calendar.MINUTE, 0);
-        selectedCalendar.set(Calendar.SECOND, 0);
-        selectedCalendar.set(Calendar.MILLISECOND, 0);
-
-        for (Event event : events) { // Use the full events list
-            if (event.getStart() != null) {
-                Calendar eventCalendar = Calendar.getInstance();
-                eventCalendar.setTime(event.getStart());
-                
-                boolean sameDay = eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
-                                eventCalendar.get(Calendar.MONTH) == selectedCalendar.get(Calendar.MONTH) &&
-                                eventCalendar.get(Calendar.DAY_OF_MONTH) == selectedCalendar.get(Calendar.DAY_OF_MONTH);
-                
-                if (sameDay) {
-                    filteredEvents.add(event);
-                }
+        ArrayList<Event> filteredEvents = new ArrayList<>();
+        for (Event event : events) {
+            if (event.getStart() != null && isSameDay(event.getStart(), selectedDate)) {
+                filteredEvents.add(event);
             }
         }
+        adapter.updateData(filteredEvents);
+    }
 
-        // Sort filtered events by start time
-        Collections.sort(filteredEvents, (event1, event2) -> {
-            if (event1.getStart() == null && event2.getStart() == null) return 0;
-            if (event1.getStart() == null) return 1;
-            if (event2.getStart() == null) return -1;
-            return event1.getStart().compareTo(event2.getStart());
-        });
-
-        runOnUiThread(() -> {
-            if (!filteredEvents.isEmpty()) {
-                adapter.updateData(filteredEvents);
-                tvEmptyList.setVisibility(View.GONE);
-                lstDailyEvents.setVisibility(View.VISIBLE);
-            } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                tvEmptyList.setText("No events for " + dateFormat.format(selectedDate));
-                tvEmptyList.setVisibility(View.VISIBLE);
-                lstDailyEvents.setVisibility(View.GONE);
-            }
-        });
+    private boolean isSameDay(Date date1, Date date2) {
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(date1);
+        cal2.setTime(date2);
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+               cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
 
     private void setMonthView() {
@@ -299,9 +265,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
         Calendar selectedCalendar = Calendar.getInstance();
         selectedCalendar.setTime(selectedDate);
 
-        // Log the total number of events being processed
-        Log.d("MainActivity", "Processing " + events.size() + " events for calendar view");
-
         for (Event event : events) {
             if (event.getStart() != null) {
                 eventCalendar.setTime(event.getStart());
@@ -310,12 +273,9 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
                     eventCalendar.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR)) {
                     String day = dayFormat.format(eventCalendar.getTime());
                     eventDates.add(day);
-                    Log.d("MainActivity", "Adding event date: " + day + " for event at " + event.getStart());
                 }
             }
         }
-
-        Log.d("MainActivity", "Final event dates set: " + eventDates);
 
         CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, eventDates, this);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 7);
@@ -374,8 +334,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             calendar.setTime(selectedDate);
             calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayText));
             selectedDate = calendar.getTime();
-            
-            Log.d(TAG, "Selected new date: " + selectedDate);
             
             // Only update the daily events view, not the whole calendar
             updateEventsForSelectedDate(selectedDate);

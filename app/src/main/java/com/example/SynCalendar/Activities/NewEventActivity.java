@@ -64,6 +64,8 @@ import org.json.JSONArray;
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int PERMISSION_CODE = 100;
+    private static final int NOTIFICATION_PERMISSION_CODE = 101;
+    private static final int ALARM_PERMISSION_CODE = 102;
     private Model model;
     private User currentUser;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
@@ -288,6 +290,9 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
+        // Check notification permission
+        checkNotificationPermission();
+
         // Initialize model and check if user is logged in
         model = Model.getInstance(this);
         notificationMsg = new NotificationMsg(this);
@@ -372,6 +377,16 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         btnMic.setOnClickListener(v -> startSpeechToText());
 
         setupShareUsersAutocomplete();
+
+        swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                tvReminderDate.setVisibility(View.VISIBLE);
+                tvReminderTime.setVisibility(View.VISIBLE);
+            } else {
+                tvReminderDate.setVisibility(View.GONE);
+                tvReminderTime.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void setupGroupSpinner() {
@@ -778,6 +793,26 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
+            }
+        }
+
+        // Check for exact alarm permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
@@ -788,6 +823,12 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
             } else {
                 Toast.makeText(this, "Permission Denied",
                         Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Notification permission granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Notification permission denied. Reminders won't work.", Toast.LENGTH_LONG).show();
             }
         }
     }
