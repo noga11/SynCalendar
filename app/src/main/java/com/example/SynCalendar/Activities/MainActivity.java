@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             } else if (item.getItemId() == R.id.nav_Events) {
                 Intent intent = new Intent(MainActivity.this, AllEventsActivity.class);
                 activityStartLauncher.launch(intent);
+                finish();
                 return true;
             }
             return false;
@@ -181,16 +182,19 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
             intent = new Intent(MainActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_Followers");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_users) {
             intent = new Intent(MainActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_FindUser");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_following) {
             intent = new Intent(MainActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_Following");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         }
         if (item.getItemId() == R.id.action_profile) {
@@ -210,7 +214,6 @@ public class MainActivity extends AppCompatActivity implements CalendarAdapter.O
     @Override
     protected void onResume() {
         super.onResume();
-//        customCalendarView.invalidate();
     }
 
     private void refreshEvents() {

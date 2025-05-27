@@ -122,7 +122,6 @@ public class FollowingActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.nav_Add) {
                     startActivity(new Intent(FollowingActivity.this, NewEventActivity.class));
-                    finish();
                     return true;
                 } else if (item.getItemId() == R.id.nav_Today) {
                     startActivity(new Intent(FollowingActivity.this, MainActivity.class));
@@ -151,6 +150,7 @@ public class FollowingActivity extends AppCompatActivity {
             intent = new Intent(FollowingActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_Followers");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_users){
@@ -170,7 +170,6 @@ public class FollowingActivity extends AppCompatActivity {
         else if (item.getItemId() == R.id.action_profile){
             intent.putExtra("PROFILE", "action_profile");
             activityStartLauncher.launch(intent);
-            finish();
             return true;
         }
         else if (item.getItemId() == R.id.action_logout){

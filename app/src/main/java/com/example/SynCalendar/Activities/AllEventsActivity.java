@@ -221,6 +221,7 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             } else if (item.getItemId() == R.id.nav_Today) {
                 intent.setClass(AllEventsActivity.this, MainActivity.class);
                 activityStartLauncher.launch(intent);
+                finish();
                 return true;
             }
             return false;
@@ -245,16 +246,19 @@ public class AllEventsActivity extends AppCompatActivity implements View.OnLongC
             intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_Followers");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_users) {
             intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_FindUser");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_following) {
             intent = new Intent(AllEventsActivity.this, FollowingActivity.class);
             intent.putExtra("SOURCE", "action_Following");
             activityStartLauncher.launch(intent);
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_profile) {
             intent.putExtra("PROFILE", "action_profile");
