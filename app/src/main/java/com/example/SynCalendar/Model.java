@@ -573,26 +573,26 @@ public class Model {
         currentUser.removeFollower(follower.getId());
         // Remove from their following list
         follower.removeFollowing(currentUser.getId());
-        // Add to their requests
-        currentUser.addPendingRequest(follower.getId(), follower.getuName());
 
         // Update Firestore
         userRef.document(currentUser.getId())
             .set(currentUser)
             .addOnSuccessListener(aVoid -> {
                 Log.d(TAG, "Current user updated successfully after removing follower");
-                callback.onSuccess();
+                // Update follower after current user is updated
+                userRef.document(follower.getId())
+                    .set(follower)
+                    .addOnSuccessListener(aVoid2 -> {
+                        Log.d(TAG, "Follower updated successfully");
+                        callback.onSuccess();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error updating follower", e);
+                        callback.onFailure(e);
+                    });
             })
             .addOnFailureListener(e -> {
                 Log.e(TAG, "Error updating current user after removing follower", e);
-                callback.onFailure(e);
-            });
-
-        // Update follower
-        userRef.document(follower.getId())
-            .set(follower)
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error updating follower", e);
                 callback.onFailure(e);
             });
     }

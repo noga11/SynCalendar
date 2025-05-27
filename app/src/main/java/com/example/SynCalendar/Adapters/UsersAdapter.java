@@ -108,13 +108,6 @@ public class UsersAdapter extends ArrayAdapter<User> {
                 // Remove from followers list
                 users.remove(position);
                 notifyDataSetChanged();
-
-                // Add to requests list if not already there
-                if (!requestsList.contains(follower)) {
-                    requestsList.add(follower);
-                    requestAdapter.notifyDataSetChanged();
-                }
-                
                 Toast.makeText(context, "Follower removed", Toast.LENGTH_SHORT).show();
             }
 
