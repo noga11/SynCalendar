@@ -64,6 +64,8 @@ import org.json.JSONArray;
 public class NewEventActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int PERMISSION_CODE = 100;
+    private static final int NOTIFICATION_PERMISSION_CODE = 101;
+    private static final int EXACT_ALARM_PERMISSION_CODE = 102;
     private Model model;
     private User currentUser;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
@@ -375,19 +377,36 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
 
         swchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // Check for RECORD_AUDIO permission before showing reminder fields
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this,
-                            new String[]{Manifest.permission.RECORD_AUDIO},
-                            PERMISSION_CODE);
-                    // Optionally, you can uncheck the switch until permission is granted
-                    swchReminder.setChecked(false);
-                    Toast.makeText(this, "Audio permission required to set a reminder.", Toast.LENGTH_SHORT).show();
-                } else {
-                    tvReminderDate.setVisibility(View.VISIBLE);
-                    tvReminderTime.setVisibility(View.VISIBLE);
+                // Check for notification permission first
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this,
+                                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                NOTIFICATION_PERMISSION_CODE);
+                        // Uncheck the switch until permission is granted
+                        swchReminder.setChecked(false);
+                        Toast.makeText(this, "Notification permission required to set a reminder.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                 }
+                
+                // Check for exact alarm permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                        startActivity(intent);
+                        // Uncheck the switch until permission is granted
+                        swchReminder.setChecked(false);
+                        Toast.makeText(this, "Exact alarm permission required to set a reminder.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+                
+                // If all permissions are granted, show reminder fields
+                tvReminderDate.setVisibility(View.VISIBLE);
+                tvReminderTime.setVisibility(View.VISIBLE);
             } else {
                 tvReminderDate.setVisibility(View.GONE);
                 tvReminderTime.setVisibility(View.GONE);
@@ -806,7 +825,17 @@ public class NewEventActivity extends AppCompatActivity implements View.OnClickL
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSION_CODE) {
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Notification permission granted, show reminder fields
+                swchReminder.setChecked(true);
+                tvReminderDate.setVisibility(View.VISIBLE);
+                tvReminderTime.setVisibility(View.VISIBLE);
+            } else {
+                Toast.makeText(this, "Notification permission is required for reminders",
+                        Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startSpeechToText();
             } else {
